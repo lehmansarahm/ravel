@@ -60,7 +60,7 @@ if __name__ == "__main__":
     if not inpath("ravel"):
         addpath("ravel", raveldir)
 
-    from ravel.cli import CLI
+    from ravel.cli import RavelCLI
     from ravel.log import LEVELS, logger
     opts = parseArgs()
-    CLI(opts)
+    RavelCLI(opts)

@@ -111,7 +111,7 @@ class RavelConsole(cmd.Cmd):
 
     def do_m(self, line):
         if not line:
-            CLI(self.mnet)
+            CLI(self.env.net)
         else:
             temp = tempfile.NamedTemporaryFile(delete=False)
             temp.write(line)
@@ -177,7 +177,7 @@ class RavelConsole(cmd.Cmd):
         print "syntax: p [sql statement]"
         print "-- execute PostgreSQL statement"
 
-def CLI(opts):
+def RavelCLI(opts):
     if opts.custom:
         mndeps.custom(opts.custom)
 
