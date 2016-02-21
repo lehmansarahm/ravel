@@ -125,6 +125,7 @@ class RavelConsole(cmd.Cmd):
             cursor.execute(line)
         except psycopg2.ProgrammingError, e:
             print e
+            return
 
         try:
             names = [row[0] for row in cursor.description]
@@ -132,6 +133,8 @@ class RavelConsole(cmd.Cmd):
             print tabulate.tabulate(data, headers=names)
         except psycopg2.ProgrammingError:
             pass
+        except TypeError, e:
+            print e
 
     def do_reinit(self, line):
         "Reinitialize the database, deleting all data except topology"
