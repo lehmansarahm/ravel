@@ -3,7 +3,7 @@
 # XXX: newer mininet version also has MinimalTopo
 from mininet.topo import ( SingleSwitchTopo, LinearTopo,
                            SingleSwitchReversedTopo )
-from mininet.topolib import TreeTopo, TorusTopo
+from mininet.topolib import TreeTopo
 from mininet.util import buildTopo
 import psycopg2
 
