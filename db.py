@@ -42,7 +42,8 @@ class RavelDb():
             if conn:
                 conn.close()
 
-    def load_topo(self, topo, net):
+    def load_topo(self, net):
+        topo = net.topo
         conn = None
         try:
             conn = self.connect()
