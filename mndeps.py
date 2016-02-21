@@ -10,8 +10,8 @@ import psycopg2
 TOPOS = { 'linear': LinearTopo,
           'reversed': SingleSwitchReversedTopo,
           'single': SingleSwitchTopo,
-          'tree': TreeTopo,
-          'torus': TorusTopo }
+          'tree': TreeTopo
+      }
 
 def build(opts):
     return buildTopo(TOPOS, opts)
