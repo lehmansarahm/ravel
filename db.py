@@ -2,6 +2,8 @@
 
 import psycopg2
 
+from log import logger
+
 ISOLEVEL = psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT
 
 class RavelDb():
@@ -38,9 +40,12 @@ class RavelDb():
             conn = self.connect()
             cursor = conn.cursor()
             s = open(script, 'r').read()
+            logger.debug("loaded schema %s", script)
             cursor.execute(s)
+
+            # TODO: load flow triggers
         except psycopg2.DatabaseError, e:
-            print "error loading schema:", self.fmt_errmsg(e)
+            logger.warning("error loading schema: %s", self.fmt_errmsg(e))
 
         finally:
             if conn:
@@ -87,7 +92,7 @@ class RavelDb():
                                "VALUES ({0}, {1}, {2}, {3});"
                                .format(sid, nid, ishost, 1))
         except psycopg2.DatabaseError, e:
-            print e
+            logger.warning("error loading topology: %s", self.fmt_errmsg(e))
         finally:
             if conn:
                 conn.close()
@@ -104,8 +109,9 @@ class RavelDb():
             dblist = [fetch[i][0] for i in range(len(fetch))]
             if self.name not in dblist:
                 cursor.execute("CREATE DATABASE %s;" % self.name)
+                logger.debug("created databse %s", self.name)
         except psycopg2.DatabaseError, e:
-            print "error creating database:", self.fmt_errmsg(e)
+            logger.warning("error creating database: %s", self.fmt_errmsg(e))
         finally:
             if conn:
                 conn.close()
@@ -119,13 +125,15 @@ class RavelDb():
                            "pg_catalog.pg_proc p ON pronamespace = n.oid " +
                            "WHERE proname = 'pgr_dijkstra';")
             fetch = cursor.fetchall()
+
             if fetch == []:
                 cursor.execute("CREATE EXTENSION IF NOT EXISTS plpythonu;")
                 cursor.execute("CREATE EXTENSION IF NOT EXISTS postgis;")
                 cursor.execute("CREATE EXTENSION IF NOT EXISTS pgrouting;")
                 cursor.execute("CREATE EXTENSION plsh;")
+                logger.debug("created extensions")
         except psycopg2.DatabaseError, e:
-            print "error loading extensions:", self.fmt_errmsg(e)
+            logger.warning("error loading extensions: %s", self.fmt_errmsg(e))
         finally:
             if conn:
                 conn.close()
@@ -139,7 +147,7 @@ class RavelDb():
             fetch = cursor.fetchall()
             return fetch
         except psycopg2.DatabaseError, e:
-            print "error executing query:", self.fmt_errmsg(e)
+            logger.warning("error executing query: %s", self.fmt_errmsg(e))
         finally:
             if conn:
                 conn.close()
@@ -151,7 +159,7 @@ class RavelDb():
             cursor = conn.cursor()
             cursor.execute("drop database %s" % self.name)
         except psycopg2.DatabaseError, e:
-            print "error cleaning database:", self.fmt_errmsg(e)
+            logger.warning("error cleaning database: %s", self.fmt_errmsg(e))
         finally:
             if conn:
                 conn.close()
@@ -159,8 +167,6 @@ class RavelDb():
     def truncate(self):
         conn = None
         try:
-            # TODO: add ports to tables
-            # TODO: also add hosts, switches?
             tables = ["cf", "clock", "p1", "p2", "p3", "p_spv", "pox_hosts", 
                       "pox_switches", "pox_tp", "rtm", "rtm_clock",
                       "spatial_ref_sys", "spv_tb_del", "spv_tb_ins", "tm",
@@ -171,13 +177,14 @@ class RavelDb():
             cursor = conn.cursor()
 
             cursor.execute("truncate %s;" % ", ".join(tables))
+            logger.debug("truncated tables")
 
             cursor.execute("INSERT INTO clock values (0);")
-
             # TODO: fix
             #cursor.execute("truncate %s;" % ", ".join(tenants))
+            logger.debug("truncated tenant tables")
         except psycopg2.DatabaseError, e:
-            print "error truncating databases:", self.fmt_errmsg(e)
+            logger.warning("error truncating databases: %s", self.fmt_errmsg(e))
         finally:
             if conn:
                 conn.close()

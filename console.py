@@ -17,6 +17,7 @@ from mininet.log import setLogLevel
 
 import mndeps
 import db
+from log import logger, LEVELS
 
 DB='mininet'
 DBUSER='mininet'
@@ -95,6 +96,9 @@ class Environment(object):
     def load_app(self, appname):
         if appname in self.loaded:
             return
+
+        # for newly-added applications
+        self.discover()
 
         if appname in self.apps:
             app = self.apps[appname]
@@ -228,6 +232,10 @@ class RavelConsole(cmd.Cmd):
         except psycopg2.ProgrammingError:
             pass
 
+    def do_reinit(self, line):
+        "Reinitialize the database, deleting all data except topology"
+        self.env.db.truncate()
+
     def do_EOF(self, line):
         "Quit Ravel console"
         sys.stdout.write('\n')
@@ -238,6 +246,23 @@ class RavelConsole(cmd.Cmd):
         "Quit Ravel console"
         self.env.stop()
         return True
+
+    def complete_load(self, text, line, begidx, endidx):
+        apps = self.env.apps.keys()
+        if not text:
+            completions = apps
+        else:
+            completions = [d for d in apps if d.startswith(text)]
+
+        return completions
+
+    def help_addflow(self):
+        print "syntax: addflow [node1] [host2]"
+        print "-- add flow between host1 and host2 (mininet names)"
+
+    def help_delflow(self):
+        print "syntax: delflow [node1] [host2]"
+        print "-- remove flow between host1 and host2 (mininet names)"
 
     def help_load(self):
         print "syntax: load [application]"
@@ -261,10 +286,13 @@ def parseArgs():
                       help='postgresql username (default: %s)' % DBUSER)
     parser.add_option('--db', '-d', type='string', default=DB,
                       help='postgresql username (default: %s)' % DB)
-    parser.add_option("--custom", type='string', default=None,
+    parser.add_option('--custom', type='string', default=None,
                      help='mininet: read custom classes or params from py file(s)')
     parser.add_option('--topo', '-t', type='string', default=None,
                       help='mininet: topology argument')
+    parser.add_option('--verbosity', '-v',  type='choice',
+                      choices=LEVELS.keys(), default='info',
+                      help='|'.join(LEVELS.keys()))
 
     options, args = parser.parse_args()
     if args:
@@ -274,6 +302,7 @@ def parseArgs():
     if not options.topo:
         parser.error("No topology specified")
 
+    logger.setLogLevel(options.verbosity)
     return options
 
 if __name__ == "__main__":
