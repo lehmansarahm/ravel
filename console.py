@@ -70,29 +70,33 @@ class Application(object):
             self.module.console.onecmd(line)
 
 class Environment(object):
-    def __init__(self, db, net):
+    def __init__(self, db, net, appdirs):
         self.db = db
         self.net = net
+        self.appdirs = appdirs
         self.apps = {}
         self.loaded = {}
+        self.find_apps()
 
     def start(self):
         self.net.start()
-        self.load_topo(self.net.topo, self.net)
-        pass
+        self.db.load_topo(self.net)
 
     def stop(self):
-        pass
+        self.net.stop()
 
     def load_app(self, appname):
+        if appname in self.loaded:
+            return
+
         if appname in self.apps:
             app = self.apps[appname]
             if app.start():
                 self.loaded[app.name] = app
                 self.loaded[app.shortcut] = app
 
-    def find_apps(self, dirs):
-        for d in dirs:
+    def find_apps(self):
+        for d in self.appdirs:
             for f in os.listdir(d):
                 if f.endswith(".py"): # or sql
                     name = os.path.splitext(f)[0]
@@ -106,9 +110,9 @@ class RavelConsole(cmd.Cmd):
     intro = "RavelConsole: interactive console for Ravel."
     doc_header = "Commands (type help <topic>):"
 
-    def __init__(self, mnet, db):
-        self.mnet = mnet
-        self.db = db
+    def __init__(self, env):
+        self.env = env
+        self.env.start()
         cmd.Cmd.__init__(self)
 
     def do_m(self, line):
@@ -118,11 +122,23 @@ class RavelConsole(cmd.Cmd):
             temp = tempfile.NamedTemporaryFile(delete=False)
             temp.write(line)
             temp.close()
-            CLI(self.mnet, script=temp.name)
+            CLI(self.env.net, script=temp.name)
             os.unlink(temp.name)
 
+    def do_load(self, line):
+        apps = line.split()
+        for app in apps:
+            if app in self.env.apps:
+                self.env.load_app(app)
+            else:
+                print "Unknown application", app
+
+    def do_apps(self, line):
+        "List available applications"
+        print "\n".join(["   {0}".format(app) for app in self.env.apps.keys()])
+
     def do_p(self, line):
-        cursor = self.db.connect().cursor()
+        cursor = self.env.db.connect().cursor()
         try:
             cursor.execute(line)
         except psycopg2.ProgrammingError, e:
@@ -135,6 +151,13 @@ class RavelConsole(cmd.Cmd):
         except psycopg2.ProgrammingError:
             pass
 
+    def default(self, line):
+        cmd = line.split()[0]
+        if cmd in self.env.loaded:
+            self.env.loaded[cmd].cmd(line[len(cmd):])
+        else:
+            print '*** Unknown command: %s' % line
+
     def help_m(self):
         print "syntax: m [mininet cmd]"
         print "-- run mininet command"
@@ -146,10 +169,12 @@ class RavelConsole(cmd.Cmd):
     def do_EOF(self, line):
         "Quit Ravel console"
         sys.stdout.write('\n')
+        self.env.stop()
         return True
 
     def do_exit(self, line):
         "Quit Ravel console"
+        self.env.stop()
         return True
 
 def parseArgs():
@@ -178,22 +203,13 @@ def parseArgs():
     return options
 
 if __name__ == "__main__":
-#    env = Environment(None, None)
-#    env.find_apps(["./apps"])
-#    env.load_app("routing")
-
-#    env.apps["routing"].cmd("blah")
-#
-#    sys.exit(0)
-
     opts = parseArgs()
     if opts.custom:
         mndeps.custom(opts.custom)
 
     topo = mndeps.build(opts.topo)
     net = Mininet(topo)
-    net.start()
     db = RavelDb(opts.db, opts.user)
-    db.load_topo(net)
-    RavelConsole(net, db).cmdloop()
-    net.stop()
+    env = Environment(db, net, ["./apps"])
+
+    RavelConsole(env).cmdloop()
