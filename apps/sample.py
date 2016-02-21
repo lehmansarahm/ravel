@@ -8,4 +8,5 @@ class SampleConsole(cmd.Cmd):
         print self.__class__.__name__, "says:", line
 
 shortcut = "sp"
+description = "a sample application"
 console = SampleConsole()

@@ -37,7 +37,8 @@ def append_path(path):
 class Application(object):
     def __init__(self, name):
         self.name = name
-        self.shortcut = None
+        self.shortcut = ""
+        self.description = ""
         self.pyfile = None
         self.sqlfile = None
         self.module = None
@@ -48,7 +49,10 @@ class Application(object):
         elif filename.endswith(".sql"):
             self.sqlfile = filename
 
-    def start(self):
+    def is_loadable(self):
+        return self.module is not None
+
+    def init(self):
         if not self.pyfile:
             return
 
@@ -58,13 +62,15 @@ class Application(object):
 
         try:
             self.module = importlib.import_module(self.name)
-            self.shortcut = self.module.shortcut
         except BaseException, e:
             errstr = "{0}: {1}".format(type(e).__name__, str(e))
             print errstr
-            return False
 
-        return True
+        try:
+            self.shortcut = self.module.shortcut
+            self.description = self.module.description
+        except BaseException:
+            pass
 
     def cmd(self, line):
         if self.module:
@@ -77,7 +83,7 @@ class Environment(object):
         self.appdirs = appdirs
         self.apps = {}
         self.loaded = {}
-        self.find_apps()
+        self.discover()
 
     def start(self):
         self.net.start()
@@ -92,11 +98,11 @@ class Environment(object):
 
         if appname in self.apps:
             app = self.apps[appname]
-            if app.start():
+            if app.is_loadable():
                 self.loaded[app.name] = app
                 self.loaded[app.shortcut] = app
 
-    def find_apps(self):
+    def discover(self):
         for d in self.appdirs:
             for f in os.listdir(d):
                 if f.endswith(".py"): # or sql
@@ -105,6 +111,9 @@ class Environment(object):
                     if name not in self.apps:
                         self.apps[name] = Application(name)
                     self.apps[name].link(path)
+
+        for app in self.apps.values():
+            app.init()
 
 class Flow(object):
     def __init__(self, db, h1, h2):
@@ -177,7 +186,15 @@ class RavelConsole(cmd.Cmd):
 
     def do_apps(self, line):
         "List available applications"
-        print "\n".join(["   {0}".format(app) for app in self.env.apps.keys()])
+        for app in self.env.apps.values():
+            shortcut = ""
+            description = ""
+            if app.shortcut:
+                shortcut = " ({0})".format(app.shortcut)
+            if app.description:
+                description = ": {0}".format(app.description)
+
+            print "  {0}{1}{2}".format(app.name, shortcut, description)
 
     def do_load(self, line):
         apps = line.split()
