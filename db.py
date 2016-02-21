@@ -7,9 +7,10 @@ from log import logger
 ISOLEVEL = psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT
 
 class RavelDb():
-    def __init__(self, name, user, base):
+    def __init__(self, name, user, base, passwd=None):
         self.dbname = name
         self.user = user
+        self.passwd = passwd
         self.init(base)
         
     @property
@@ -27,7 +28,8 @@ class RavelDb():
             db = self.name
 
         conn = psycopg2.connect(database=db,
-                                    user=self.user)
+                                user=self.user,
+                                password=self.passwd)
         conn.set_isolation_level(ISOLEVEL)
         return conn
 

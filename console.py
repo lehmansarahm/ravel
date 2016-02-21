@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import cmd
+import getpass
 import importlib
 import os
 import psycopg2
@@ -286,6 +287,8 @@ def parseArgs():
                       help='postgresql username (default: %s)' % DBUSER)
     parser.add_option('--db', '-d', type='string', default=DB,
                       help='postgresql username (default: %s)' % DB)
+    parser.add_option('--password', '-p', action='store_true', default=False,
+                      help='postgres password')
     parser.add_option('--custom', type='string', default=None,
                      help='mininet: read custom classes or params from py file(s)')
     parser.add_option('--topo', '-t', type='string', default=None,
@@ -297,12 +300,13 @@ def parseArgs():
     options, args = parser.parse_args()
     if args:
         parser.print_help()
-        exit()
+        sys.exit(0)
 
     if not options.topo:
         parser.error("No topology specified")
 
     logger.setLogLevel(options.verbosity)
+
     return options
 
 if __name__ == "__main__":
@@ -312,7 +316,12 @@ if __name__ == "__main__":
 
     topo = mndeps.build(opts.topo)
     net = Mininet(topo)
-    raveldb = db.RavelDb(opts.db, opts.user, BASE_SQL)
+
+    passwd = None
+    if opts.password:
+        passwd = getpass.getpass("Enter password: ")
+
+    raveldb = db.RavelDb(opts.db, opts.user, BASE_SQL, passwd)
     env = Environment(raveldb, net, ["./apps"])
 
     RavelConsole(env).cmdloop()

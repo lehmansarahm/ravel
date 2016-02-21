@@ -26,8 +26,14 @@ class MapObject(object):
         self.automap()
 
     def automap(self):
-        self.engine = create_engine('postgresql+psycopg2://{0}@/{1}'
-                                    .format(self.db.user, self.db.name))
+        if self.db.passwd:
+            connstr = "postgresql+psycopg2://{0}@{1}/{2}".format(
+                self.db.user, self.db.passwd, self.db.name)
+        else:
+            connstr = "postgresql+psycopg2://{0}@/{1}".format(
+                self.db.user, self.db.name)
+
+        self.engine = create_engine(connstr)
         self.metadata = MetaData()
         self.metadata.reflect(self.engine, only=['switches', 'hosts'])
         Table("nodes", self.metadata,
