@@ -59,10 +59,11 @@ class RavelDb():
                 node_count += 1
                 dpid = net.getNodeByName(sw).defaultDpid()
                 ip = net.getNodeByName(sw).IP()
+                mac = net.getNodeByName(sw).MAC()
                 nodes[sw] = node_count
-                cursor.execute("INSERT INTO switches (sid, dpid, ip, name) "
-                               "VALUES ({0}, '{1}', '{2}', '{3}');"
-                               .format(node_count, dpid, ip, sw))
+                cursor.execute("INSERT INTO switches (sid, dpid, ip, mac, name) "
+                               "VALUES ({0}, '{1}', '{2}', '{3}', '{4}');"
+                               .format(node_count, dpid, ip, mac, sw))
 
             for host in topo.hosts():
                 node_count += 1

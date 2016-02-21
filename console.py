@@ -16,7 +16,7 @@ from mininet.net import Mininet
 from mininet.log import setLogLevel
 
 import mndeps
-from db import RavelDb
+import db
 
 DB='mininet'
 DBUSER='mininet'
@@ -114,11 +114,8 @@ class Flow(object):
 
     def _dbid(self, host):
         cursor = self.db.connect().cursor()
-        cursor.execute("SELECT sid FROM "
-                       "(SELECT sid, name FROM switches UNION "
-                       "SELECT hid, name FROM hosts) as N "
-                       "WHERE N.name='{0}';".format(host))
-
+        cursor.execute("SELECT id FROM nodes WHERE name='{0}';"
+                       .format(host))
         result = cursor.fetchall()
         if len(result) == 0:
             print "Unknown host", host
@@ -269,7 +266,7 @@ if __name__ == "__main__":
 
     topo = mndeps.build(opts.topo)
     net = Mininet(topo)
-    db = RavelDb(opts.db, opts.user, BASE_SQL)
-    env = Environment(db, net, ["./apps"])
+    raveldb = db.RavelDb(opts.db, opts.user, BASE_SQL)
+    env = Environment(raveldb, net, ["./apps"])
 
     RavelConsole(env).cmdloop()

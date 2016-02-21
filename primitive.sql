@@ -80,16 +80,17 @@ CREATE OR REPLACE RULE pox_tp_del_rule AS
 
 DROP TABLE IF EXISTS switches CASCADE;
 CREATE UNLOGGED TABLE switches (
-       sid	integer,
-       ip	varchar(16),
+       sid	integer PRIMARY KEY,
        dpid	varchar(16),
+       ip	varchar(16),
+       mac	varchar(17),
        name	varchar(16)
 );
 CREATE INDEX ON switches(sid);
 
 DROP TABLE IF EXISTS hosts CASCADE;
 CREATE UNLOGGED TABLE hosts (
-       hid	integer,
+       hid	integer PRIMARY KEY,
        ip	varchar(16),
        mac	varchar(17),
        name	varchar(16)
@@ -100,6 +101,12 @@ CREATE OR REPLACE VIEW uhosts AS (
        SELECT hid, 
        	      row_number () OVER () as u_hid
        FROM hosts
+);
+
+DROP VIEW IF EXISTS nodes CASCADE;
+CREATE OR REPLACE VIEW nodes AS (
+       SELECT sid AS id, name FROM SWITCHES UNION
+       SELECT hid AS id, name FROM HOSTS
 );
 
 
