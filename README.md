@@ -1,2 +1,4 @@
-# cli-ravel
-Temporary workspace for Ravel
+# Ravel CLI
+
+* Run the Ravel CLI with `./ravel.py --topo [topo]`
+
