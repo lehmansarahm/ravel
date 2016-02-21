@@ -19,6 +19,8 @@ def setCustom(name, value):
     if name in ('topos', 'switches', 'hosts', 'controllers'):
         param = name.upper()
         globals()[param].update(value)
+    elif name == 'validate':
+        validate = value
     else:
         globals()[name] = value
 
@@ -34,11 +36,9 @@ def custom(value):
         if os.path.isfile(filename):
             execfile(filename, customs, customs)
             for name, val in customs.iteritems():
-                setCustom(name, value)
+                setCustom(name, val)
         else:
             print "Could not find custom file", filename
-
-    print globals()
 
 def build(opts):
     return buildTopo(TOPOS, opts)

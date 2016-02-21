@@ -194,6 +194,6 @@ if __name__ == "__main__":
     net = Mininet(topo)
     net.start()
     db = RavelDb(opts.db, opts.user)
-    db.load_topo(topo, net)
+    db.load_topo(net)
     RavelConsole(net, db).cmdloop()
     net.stop()
