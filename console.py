@@ -20,6 +20,7 @@ from db import RavelDb
 
 DB='mininet'
 DBUSER='mininet'
+BASE_SQL="primitive.sql"
 
 def append_path(path):
     if 'PYTHONPATH' not in os.environ:
@@ -105,6 +106,45 @@ class Environment(object):
                         self.apps[name] = Application(name)
                     self.apps[name].link(path)
 
+class Flow(object):
+    def __init__(self, db, h1, h2):
+        self.db = db
+        self.h1 = self._dbid(h1)
+        self.h2 = self._dbid(h2)
+
+    def _dbid(self, host):
+        cursor = self.db.connect().cursor()
+        cursor.execute("SELECT sid FROM "
+                       "(SELECT sid, name FROM switches UNION "
+                       "SELECT hid, name FROM hosts) as N "
+                       "WHERE N.name='{0}';".format(host))
+
+        result = cursor.fetchall()
+        if len(result) == 0:
+            print "Unknown host", host
+            return None
+        else:
+            return result[0][0]
+
+    def insert(self):
+        if not self.h1 or not self.h2:
+            return
+
+        cursor = self.db.connect().cursor()
+        cursor.execute("SELECT * FROM utm;")
+        fid = len(cursor.fetchall()) + 1
+        cursor.execute("INSERT INTO utm (fid, host1, host2) "
+                       "VALUES ({0}, {1}, {2});"
+                       .format(fid, self.h1, self.h2))
+
+    def remove(self):
+        if not self.h1 or not self.h2:
+            return
+
+        cursor = self.db.connect().cursor()
+        cursor.execute("DELETE FROM utm WHERE host1={0} and host2={1};"
+                       .format(self.h1, self.h2))
+
 class RavelConsole(cmd.Cmd):
     prompt = "ravel> "
     intro = "RavelConsole: interactive console for Ravel."
@@ -115,15 +155,32 @@ class RavelConsole(cmd.Cmd):
         self.env.start()
         cmd.Cmd.__init__(self)
 
-    def do_m(self, line):
-        if not line:
-            CLI(self.mnet)
+    def default(self, line):
+        cmd = line.split()[0]
+        if cmd in self.env.loaded:
+            self.env.loaded[cmd].cmd(line[len(cmd):])
         else:
-            temp = tempfile.NamedTemporaryFile(delete=False)
-            temp.write(line)
-            temp.close()
-            CLI(self.env.net, script=temp.name)
-            os.unlink(temp.name)
+            print '*** Unknown command: %s' % line
+
+    def do_addflow(self, line):
+        args = line.split()
+        if len(args) != 2:
+            print "Invalid syntax"
+            return
+
+        Flow(self.env.db, args[0], args[1]).insert()
+
+    def do_delflow(self, line):
+        args = line.split()
+        if len(args) != 2:
+            print "Invalid syntax"
+            return
+
+        Flow(self.env.db, args[0], args[1]).remove()
+
+    def do_apps(self, line):
+        "List available applications"
+        print "\n".join(["   {0}".format(app) for app in self.env.apps.keys()])
 
     def do_load(self, line):
         apps = line.split()
@@ -133,9 +190,15 @@ class RavelConsole(cmd.Cmd):
             else:
                 print "Unknown application", app
 
-    def do_apps(self, line):
-        "List available applications"
-        print "\n".join(["   {0}".format(app) for app in self.env.apps.keys()])
+    def do_m(self, line):
+        if not line:
+            CLI(self.mnet)
+        else:
+            temp = tempfile.NamedTemporaryFile(delete=False)
+            temp.write(line)
+            temp.close()
+            CLI(self.env.net, script=temp.name)
+            os.unlink(temp.name)
 
     def do_p(self, line):
         cursor = self.env.db.connect().cursor()
@@ -151,21 +214,6 @@ class RavelConsole(cmd.Cmd):
         except psycopg2.ProgrammingError:
             pass
 
-    def default(self, line):
-        cmd = line.split()[0]
-        if cmd in self.env.loaded:
-            self.env.loaded[cmd].cmd(line[len(cmd):])
-        else:
-            print '*** Unknown command: %s' % line
-
-    def help_m(self):
-        print "syntax: m [mininet cmd]"
-        print "-- run mininet command"
-
-    def help_p(self):
-        print "syntax: p [sql statement]"
-        print "-- execute PostgreSQL statement"
-
     def do_EOF(self, line):
         "Quit Ravel console"
         sys.stdout.write('\n')
@@ -176,6 +224,18 @@ class RavelConsole(cmd.Cmd):
         "Quit Ravel console"
         self.env.stop()
         return True
+
+    def help_load(self):
+        print "syntax: load [application]"
+        print "-- start an application"
+
+    def help_m(self):
+        print "syntax: m [mininet cmd]"
+        print "-- run mininet command"
+
+    def help_p(self):
+        print "syntax: p [sql statement]"
+        print "-- execute PostgreSQL statement"
 
 def parseArgs():
     desc = ( "Ravel console." )
@@ -209,7 +269,7 @@ if __name__ == "__main__":
 
     topo = mndeps.build(opts.topo)
     net = Mininet(topo)
-    db = RavelDb(opts.db, opts.user)
+    db = RavelDb(opts.db, opts.user, BASE_SQL)
     env = Environment(db, net, ["./apps"])
 
     RavelConsole(env).cmdloop()

@@ -81,7 +81,9 @@ CREATE OR REPLACE RULE pox_tp_del_rule AS
 DROP TABLE IF EXISTS switches CASCADE;
 CREATE UNLOGGED TABLE switches (
        sid	integer,
-       ip	varchar(16)
+       ip	varchar(16),
+       dpid	varchar(16),
+       name	varchar(16)
 );
 CREATE INDEX ON switches(sid);
 
@@ -89,7 +91,8 @@ DROP TABLE IF EXISTS hosts CASCADE;
 CREATE UNLOGGED TABLE hosts (
        hid	integer,
        ip	varchar(16),
-       mac	varchar(17)
+       mac	varchar(17),
+       name	varchar(16)
 );
 CREATE INDEX ON hosts (hid);
 

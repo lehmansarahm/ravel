@@ -5,17 +5,21 @@ import psycopg2
 ISOLEVEL = psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT
 
 class RavelDb():
-    def __init__(self, name, user):
+    def __init__(self, name, user, base):
         self.dbname = name
         self.user = user
-        self.truncate()
-        self.create()
-        self.add_extensions()
+        self.init(base)
         
     @property
     def name(self):
         return self.dbname
-        
+
+    def init(self, base):
+        self.clean()
+        self.create()
+        self.add_extensions()
+        self.load_schema(base)
+
     def connect(self, db=None):
         if db is None:
             db = self.name
@@ -49,31 +53,29 @@ class RavelDb():
             conn = self.connect()
             cursor = conn.cursor()
 
-            switches = {}
+            node_count = 0
+            nodes = {}
             for sw in topo.switches():
-                # TODO: better naming scheme
-                name = sw.replace("s", "")
+                node_count += 1
                 dpid = net.getNodeByName(sw).defaultDpid()
                 ip = net.getNodeByName(sw).IP()
-                switches[sw] = name
-                cursor.execute("INSERT INTO switches VALUES ({0});".format(name))
+                nodes[sw] = node_count
+                cursor.execute("INSERT INTO switches (sid, dpid, ip, name) "
+                               "VALUES ({0}, '{1}', '{2}', '{3}');"
+                               .format(node_count, dpid, ip, sw))
 
-            hosts = {}
             for host in topo.hosts():
-                # TODO: better naming scheme
-                name = int(host.replace("h", "")) + len(topo.switches())
+                node_count += 1
                 ip = net.getNodeByName(host).IP()
                 mac = net.getNodeByName(host).MAC()
-                hosts[host] = name
-                cursor.execute("INSERT INTO hosts VALUES ({0}, '{1}', '{2}');"
-                               .format(name, ip, mac))
+                nodes[host] = node_count
+                cursor.execute("INSERT INTO hosts (hid, ip, mac, name) "
+                               "VALUES ({0}, '{1}', '{2}', '{3}');"
+                               .format(node_count, ip, mac, host))
 
-            nodes = {}
-            nodes.update(hosts)
-            nodes.update(switches)
             for link in topo.links():
                 h1,h2 = link
-                if h1 in switches and h2 in switches:
+                if h1 in topo.switches() and h2 in topo.switches():
                     ishost = 0
                 else:
                     ishost = 1
@@ -83,7 +85,6 @@ class RavelDb():
                 cursor.execute("INSERT INTO tp(sid, nid, ishost, isactive) "
                                "VALUES ({0}, {1}, {2}, {3});"
                                .format(sid, nid, ishost, 1))
-
         except psycopg2.DatabaseError, e:
             print e
         finally:
@@ -162,8 +163,7 @@ class RavelDb():
             tables = ["cf", "clock", "p1", "p2", "p3", "p_spv", "pox_hosts", 
                       "pox_switches", "pox_tp", "rtm", "rtm_clock",
                       "spatial_ref_sys", "spv_tb_del", "spv_tb_ins", "tm",
-                      "tm_delta", "utm", "acl_tb", "acl_tb", "lb_tb",
-                      "hosts", "switches", "tp"]
+                      "tm_delta", "utm", "acl_tb", "acl_tb", "lb_tb"]
             tenants = ["t1", "t2", "t3", "tacl_tb", "tenant_hosts", "tlb_tb"]
 
             conn = self.connect()
