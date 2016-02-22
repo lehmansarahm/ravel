@@ -439,7 +439,7 @@ $$ LANGUAGE SQL;
 
 DROP TABLE IF EXISTS ports CASCADE;
 CREATE UNLOGGED TABLE ports (
-       sid	 integer,
+       sid	integer,
        nid	integer,
        port	integer
 );
