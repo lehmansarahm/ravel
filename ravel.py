@@ -29,6 +29,8 @@ def parseArgs():
               '(type %prog -h for details)' )
 
     parser = OptionParser(description=desc, usage=usage)
+    parser.add_option('--remote', '-r', action='store_true', default=False,
+                      help='start remote controller')
     parser.add_option('--user', '-u', type='string', default=DBUSER,
                       help='postgresql username (default: %s)' % DBUSER)
     parser.add_option('--db', '-d', type='string', default=DB,
@@ -63,4 +65,4 @@ if __name__ == "__main__":
     from ravel.cli import RavelCLI
     from ravel.log import LEVELS, logger
     opts = parseArgs()
-    RavelCLI(opts)
+    RavelCLI(opts, opts.remote)

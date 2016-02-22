@@ -21,6 +21,7 @@ ControllerPort = 6653
 RpcAddress = "http://localhost:9000/"
 QueueId = 123
 
+OFPP_FLOOD = of.OFPP_FLOOD
 OFPFC_ADD = of.OFPFC_ADD
 OFPFC_DELETE = of.OFPFC_DELETE
 OFPFC_DELETE_STRICT = of.OFPFC_DELETE_STRICT
@@ -42,26 +43,40 @@ CurrentChannel = Channel.Mq
 def channelFactory(channel):
     return channels[channel]()
 
-def installFlow(flowid, sw, ip1, ip2, outport, revoutport):
+def installFlow(flowid, sw, ip1, mac1, ip2, mac2, outport, revoutport):
     channel = channelFactory(CurrentChannel)
     msg1 = OfMessage(command=OFPFC_ADD,
+                     priority=10,
                      switch=sw,
-                     match=Match(ip1, ip2),
+                     match=Match(nw_src=ip1, nw_dst=ip2, dl_type=0x0800),
                      actions=[outport])
 
     msg2 = OfMessage(command=OFPFC_ADD,
+                     priority=10,
                      switch=sw,
-                     match=Match(ip2, ip1),
+                     match=Match(nw_src=ip2, nw_dst=ip1, dl_type=0x0800),
                      actions=[revoutport])
 
-    print "Installing:", sw.dpid, ip1, ip2, outport, revoutport
+    arp1 = OfMessage(command=OFPFC_ADD,
+                     priority=1,
+                     switch=sw,
+                     match=Match(dl_src=mac1, dl_type=0x0806),
+                     actions=[OFPP_FLOOD])
+
+    arp2 = OfMessage(command=OFPFC_ADD,
+                     priority=1,
+                     switch=sw,
+                     match=Match(dl_src=mac2, dl_type=0x0806),
+                     actions=[OFPP_FLOOD])
+
     channel.send(msg1)
     channel.send(msg2)
+    channel.send(arp1)
+    channel.send(arp2)
 
-def removeFlow(flowid, sw, ip1, ip2, outport, revoutport):
+def removeFlow(flowid, sw, ip1, mac1, ip2, mac2, outport, revoutport):
+    raise Exception('Not implemented')
     channel = channelFactory(CurrentChannel)
-    print flowid, sw.name, sw.ip, sw.dpid, \
-        ip1, ip2, outport, revoutport
 
 class ChannelBase(object):
     def send(self, msg):
@@ -72,14 +87,7 @@ class MqChannel(ChannelBase):
         self.mq = sysv_ipc.MessageQueue(QueueId, mode=07777)
 
     def send(self, msg):
-        tup = (msg.command,
-               msg.switch.dpid,
-               msg.priority,
-               msg.match.nw_src,
-               msg.match.nw_dst,
-               msg.actions[0])  # TODO: handle list
-        p = json.dumps([tup])
-        print "sending"
+        p = json.dumps(msg.to_dict(msg.switch.dpid))
         self.mq.send(p)
 
 class OvsChannel(ChannelBase):
@@ -127,23 +135,14 @@ class OvsChannel(ChannelBase):
         return os.system(cmd)
 
 class RpcChannel(ChannelBase):
-    def __init__(self, addr):
+    def __init__(self):
+        self.proxy = xmlrpclib.ServerProxy(RpcAddress, allow_none=True)
+
+    def set_addr(addr):
         self.proxy = xmlrpclib.ServerProxy(addr, allow_none=True)
 
     def send(self, msg):
-        if msg.command == OFPFC_ADD:
-            # TODO: fix actionlist
-            proxy.installFlow(msg.switch.dpid,
-                              msg.priority,
-                              msg.match.nw_src,
-                              msg.match.nw_dst,
-                              msg.actions[0])
-        else:
-            proxy.removeFlow(msg.switch.dpid,
-                             msg.priority,
-                             msg.match.nw_src,
-                             msg.match.nw_dst,
-                             msg.actions[0])
+        self.proxy.sendFlowmod(msg.to_dict(msg.switch.dpid))
 
 class Switch(object):
     def __init__(self, name, ip, dpid):
@@ -152,10 +151,26 @@ class Switch(object):
         self.dpid = dpid
 
 class Match(object):
-    def __init__(self, nw_src=None, nw_dst=None, dl_type=None):
+    def __init__(self, nw_src=None, nw_dst=None, dl_src=None, dl_dst=None, dl_type=None):
         self.nw_src = nw_src
         self.nw_dst = nw_dst
+        self.dl_src = dl_src
+        self.dl_dst = dl_dst
         self.dl_type = dl_type
+
+    def to_dict(self):
+        d = {}
+        if self.nw_src:
+            d['nw_src'] = self.nw_src
+        if self.nw_dst:
+            d['nw_dst'] = self.nw_dst
+        if self.dl_src:
+            d['dl_src'] = self.dl_src
+        if self.dl_dst:
+            d['dl_dst'] = self.dl_dst
+        if self.dl_type:
+            d['dl_type'] = self.dl_type
+        return d
 
 class OfMessage(object):
     def __init__(self, command=None, priority=1, switch=None,
@@ -167,6 +182,15 @@ class OfMessage(object):
         self.actions = actions
         if not actions:
             self.actions = []
+
+    def to_dict(self, switch_prop):
+        d = {}
+        d['match'] = self.match.to_dict()
+        d['command'] = self.command
+        d['priority'] = self.priority
+        d['switch'] = switch_prop
+        d['actions'] = self.actions
+        return d
 
 channels = { Channel.Mq : MqChannel,
              Channel.Ovs : OvsChannel,

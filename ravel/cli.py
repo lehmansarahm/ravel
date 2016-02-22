@@ -200,15 +200,17 @@ class RavelConsole(cmd.Cmd):
         print "syntax: p [sql statement]"
         print "-- execute PostgreSQL statement"
 
-def RavelCLI(opts):
+def RavelCLI(opts, remote=False):
     if opts.custom:
         mndeps.custom(opts.custom)
 
     topo = mndeps.build(opts.topo)
 
-    net = Mininet(topo)
-#    net = Mininet(topo,
-#                  controller=partial(RemoteController, ip='127.0.0.1'))
+    if remote:
+        net = Mininet(topo,
+                      controller=partial(RemoteController, ip='127.0.0.1'))
+    else:
+        net = Mininet(topo)
 
     passwd = None
     if opts.password:
@@ -216,8 +218,9 @@ def RavelCLI(opts):
 
     raveldb = db.RavelDb(opts.db, opts.user, BASE_SQL, passwd)
 
-    util.update_trigger_path(FLOW_SQL, util.libpath())
-    raveldb.load_schema(FLOW_SQL)
+    if remote:
+        util.update_trigger_path(FLOW_SQL, util.libpath())
+        raveldb.load_schema(FLOW_SQL)
 
     env = Environment(raveldb, net, [APP_DIR])
     env.start()

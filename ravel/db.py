@@ -87,11 +87,18 @@ class RavelDb():
                 else:
                     ishost = 1
 
-                sid = min(nodes[h1], nodes[h2])
-                nid = max(nodes[h1], nodes[h2])
+                sid = nodes[h1]
+                nid = nodes[h2]
                 cursor.execute("INSERT INTO tp(sid, nid, ishost, isactive) "
                                "VALUES ({0}, {1}, {2}, {3});"
                                .format(sid, nid, ishost, 1))
+
+                cursor.execute("INSERT INTO ports(sid, nid, port) "
+                               "VALUES ({0}, {1}, {2}), ({1}, {0}, {3});"
+                               .format(sid, nid,
+                                       topo.port(h1, h2)[0],
+                                       topo.port(h1, h2)[1]))
+
         except psycopg2.DatabaseError, e:
             logger.warning("error loading topology: %s", self.fmt_errmsg(e))
         finally:

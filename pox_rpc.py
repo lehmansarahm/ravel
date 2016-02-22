@@ -75,17 +75,6 @@ class RavelPoxController(object):
             self.log.info("   flow: nw_src={0}, nw_dst={1}".format(
                 stat.match.nw_src, stat.match.nw_dst))
 
-    def mk_msg(self, command, priority, nw_src, nw_dst, outport):
-        msg = of.ofp_flow_mod()
-        msg.command = command
-        msg.priority = priority
-        msg.match = of.ofp_match()
-        msg.match.nw_src = IPAddr(nw_src)
-        msg.match.nw_dst = IPAddr(nw_dst)
-        msg.match.dl_type = 0x0800
-        msg.actions.append(of.ofp_action_output(port=outport))
-        return msg
-
     def startTimer(self):
         self.timelast = time.time()
 
@@ -118,45 +107,29 @@ class RavelPoxController(object):
             self.log.debug("dpid {0} not in datapath list".format(dpid))
         return True
 
-    def removeFlow(self, dpid, priority, nw_src, nw_dst, outport):
-        dpid = int(dpid)
-        priority = int(priority)
-        outport = int(outport)
-        msg = self.mk_msg(of.OFPFC_DELETE_STRICT, priority, nw_src, nw_dst, outport)
-        self.send(dpid, msg)
-        return True
+    def mk_msg(self, flow):
+        msg = of.ofp_flow_mod()
+        msg.command = int(flow['command'])
+        msg.priority = int(flow['priority'])
+        msg.match = of.ofp_match()
+        if 'dl_type' in flow['match']:
+            msg.match.dl_type = int(flow['match']['dl_type'])
+        if 'nw_src' in flow['match']:
+            msg.match.nw_src = IPAddr(flow['match']['nw_src'])
+        if 'nw_dst' in flow['match']:
+            msg.match.nw_dst = IPAddr(flow['match']['nw_dst'])
+        if 'dl_src' in flow['match']:
+            msg.match.dl_src = EthAddr(flow['match']['dl_src'])
+        if 'dl_dst' in flow['match']:
+            msg.match.dl_dst = EthAddr(flow['match']['dl_dst'])
+        for outport in flow['actions']:
+            msg.actions.append(of.ofp_action_output(port=int(outport)))
 
-    def installFlow(self, dpid, priority, nw_src, nw_dst, outport):
-        dpid = int(dpid)
-        priority = int(priority)
-        outport = int(outport)
-        msg = self.mk_msg(of.OFPFC_ADD, priority, nw_src, nw_dst, outport)
-        self.send(dpid, msg)
-        return True
+        return msg
 
-    def removeBidirectional(self, dpid, priority, nw_src, nw_dst, outport1, outport2):
-        dpid = int(dpid)
-        priority = int(priority)
-        outport1 = int(outport1)
-        outport2 = int(outport2)
-        msg1 = self.mk_msg(of.OFPFC_DELETE_STRICT, priority, nw_src, nw_dst, outport1)
-        msg2 = self.mk_msg(of.OFPFC_DELETE_STRICT, priority, nw_dst, nw_src, outport2)
-        self.timelast = time.time()
-        self.send(dpid, msg1)
-        self.send(dpid, msg2)
-        self.sendBarrier(dpid)
-
-    def installBidirectional(self, dpid, priority, nw_src, nw_dst, outport1, outport2):
-        dpid = int(dpid)
-        priority = int(priority)
-        outport1 = int(outport1)
-        outport2 = int(outport2)
-        msg1 = self.mk_msg(of.OFPFC_ADD, priority, nw_src, nw_dst, outport1)
-        msg2 = self.mk_msg(of.OFPFC_ADD, priority, nw_dst, nw_src, outport2)
-        self.timelast = time.time()
-        self.send(dpid, msg1)
-        self.send(dpid, msg2)
-        self.sendBarrier(dpid)
+    def sendFlowmod(self, flow):
+        dpid = int(flow['switch'])
+        self.send(dpid, self.mk_msg(flow))
 
 class RpcAdapter():
     def __init__(self, ctrl, log):
@@ -168,10 +141,7 @@ class RpcAdapter():
                                          allow_none=True)
 
         self.server.register_function(self.ctrl.send)
-        self.server.register_function(self.ctrl.installFlow)
-        self.server.register_function(self.ctrl.installBidirectional)
-        self.server.register_function(self.ctrl.removeBidirectional)
-        self.server.register_function(self.ctrl.removeFlow)
+        self.server.register_function(self.ctrl.sendFlowmod)
         self.server.register_function(self.ctrl.requestStats)
         self.server.register_function(self.ctrl.sendBarrier)
         self.server.register_function(self.echo)
@@ -229,33 +199,9 @@ class MsgQueueAdapter():
             s,_ = self.mq.receive()
             t = time.time()
             p = s.decode()
-            #obj = pickle.loads(p)
             obj = json.loads(p)
             self.log.debug("mq_server: received {0}".format(len(obj)))
-            for flow in obj:
-                if flow[0] == of.OFPFC_ADD:
-                    self.ctrl.startTimer()
-                    self.ctrl.installFlow(flow[1],
-                                          flow[2],
-                                          flow[3],
-                                          flow[4],
-                                          flow[5])
-                elif flow[0] == of.OFPFC_DELETE_STRICT:
-                    self.ctrl.startTimer()
-                    self.ctrl.removeFlow(flow[1],
-                                         flow[2],
-                                         flow[3],
-                                         flow[4],
-                                         flow[5])
-
-            t = time.time() - t
-            if len(obj) > 0:
-                dpid = obj[0][1]
-                self.ctrl.sendBarrier(dpid)
-                t = round(1000 * t, 3)
-                #f = open("/home/ravel/ravel/log.txt", "a")
-                #f.write("pox -- {0}\n".format(t))
-                #f.close()
+            self.ctrl.sendFlowmod(obj)
 
         self.log.debug("mq_server: **shutdown**")
 
@@ -265,4 +211,3 @@ def launch():
     rpc = RpcAdapter(ctrl, log)
 
     core.register("ravelcontroller", ctrl)
-
