@@ -2,6 +2,7 @@
 
 import importlib
 import os
+import subprocess
 
 import mininet.clean
 
@@ -58,6 +59,7 @@ class Environment(object):
         self.apps = {}
         self.loaded = {}
         self.discover()
+        self.xterms = []
 
     def start(self):
         self.net.start()
@@ -67,6 +69,19 @@ class Environment(object):
         self.net.stop()
         logger.debug("cleaning up mininet")
         mininet.clean.cleanup()
+
+        if len(self.xterms) > 0:
+            logger.debug("waiting for xterms")
+
+        for t in self.xterms:
+            t.wait()
+
+    def mkterm(self, cmds):
+        p = subprocess.Popen(cmds,
+                             shell=True,
+                             stdin=subprocess.PIPE,
+                             stdout=subprocess.PIPE)
+        self.xterms.append(p)
 
     def load_app(self, appname):
         if appname in self.loaded:

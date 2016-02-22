@@ -139,6 +139,25 @@ class RavelConsole(cmd.Cmd):
         "Reinitialize the database, deleting all data except topology"
         self.env.db.truncate()
 
+    def do_watch(self, line):
+        if not line:
+            return
+
+        args = line.split()
+        if len(args) == 0 or len(args) > 2:
+            print "Invalid syntax"
+            return
+
+        limit = ""
+        if len(args) == 2:
+            limit = "LIMIT {0}".format(args[1])
+
+        query = "'SELECT * FROM {0} {1}'".format(args[0], limit)
+        watch_arg = 'echo {0}: {1}; psql -U{3} -d {0} -c {2}'.format(
+            self.env.db.name, args[0], query, self.env.db.user)
+        watch = 'watch -c -n 2 --no-title "{0}"'.format(watch_arg)
+        self.env.mkterm('xterm -e ' + watch)
+
     def do_EOF(self, line):
         "Quit Ravel console"
         sys.stdout.write('\n')
