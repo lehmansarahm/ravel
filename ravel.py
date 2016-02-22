@@ -34,7 +34,7 @@ def parseArgs():
     parser.add_option('--db', '-d', type='string', default=DB,
                       help='postgresql username (default: %s)' % DB)
     parser.add_option('--password', '-p', action='store_true', default=False,
-                      help='postgres password')
+                      help='postgresql password')
     parser.add_option('--custom', type='string', default=None,
                      help='mininet: read custom classes or params from py file(s)')
     parser.add_option('--topo', '-t', type='string', default=None,
