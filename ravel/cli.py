@@ -13,12 +13,12 @@ from mininet.net import Mininet
 
 import mndeps
 import db
+import util
 from env import Environment, Application
 from log import logger
 
-#TODO: better reference
-BASE_SQL="ravel/sql/primitive.sql"
-APP_DIR="./apps"
+BASE_SQL = util.libpath("ravel/sql/primitive.sql")
+APP_DIR = util.libpath("apps")
 
 class Flow(object):
     def __init__(self, db, h1, h2):
@@ -63,7 +63,6 @@ class RavelConsole(cmd.Cmd):
 
     def __init__(self, env):
         self.env = env
-        self.env.start()
         cmd.Cmd.__init__(self)
 
     def default(self, line):
@@ -143,12 +142,10 @@ class RavelConsole(cmd.Cmd):
     def do_EOF(self, line):
         "Quit Ravel console"
         sys.stdout.write('\n')
-        self.env.stop()
         return True
 
     def do_exit(self, line):
         "Quit Ravel console"
-        self.env.stop()
         return True
 
     def complete_load(self, text, line, begidx, endidx):
@@ -193,4 +190,13 @@ def RavelCLI(opts):
 
     raveldb = db.RavelDb(opts.db, opts.user, BASE_SQL, passwd)
     env = Environment(raveldb, net, [APP_DIR])
-    RavelConsole(env).cmdloop()
+    env.start()
+
+    while True:
+        try:
+            RavelConsole(env).cmdloop()
+            break
+        except Exception, e:
+            logger.warning("console crashed: %s", e)
+
+    env.stop()

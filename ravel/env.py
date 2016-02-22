@@ -3,6 +3,8 @@
 import importlib
 import os
 
+import mininet.clean
+
 from log import logger, LEVELS
 import util
 
@@ -63,6 +65,8 @@ class Environment(object):
 
     def stop(self):
         self.net.stop()
+        logger.debug("cleaning up mininet")
+        mininet.clean.cleanup()
 
     def load_app(self, appname):
         if appname in self.loaded:
@@ -89,4 +93,3 @@ class Environment(object):
 
         for app in self.apps.values():
             app.init()
-
