@@ -12,5 +12,6 @@
 ### TODO
 - [ ] config file, parser
 - [ ] from config: load flow trigger/protocol
-- [ ] from config: start controller (eg, pox, ovs) 
-- [ ] start mn with remote controller
+- [ ] from config: start controller type (eg, pox, ovs) 
+- [ ] optparse deprecated
+- [*] start mn with remote controller
