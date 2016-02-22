@@ -2,6 +2,7 @@
 
 import psycopg2
 
+import util
 from log import logger
 
 ISOLEVEL = psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT
@@ -44,8 +45,6 @@ class RavelDb():
             s = open(script, 'r').read()
             logger.debug("loaded schema %s", script)
             cursor.execute(s)
-
-            # TODO: load flow triggers
         except psycopg2.DatabaseError, e:
             logger.warning("error loading schema: %s", self.fmt_errmsg(e))
 
@@ -87,9 +86,9 @@ class RavelDb():
                     ishost = 0
                 else:
                     ishost = 1
-                
-                sid = nodes[h1]
-                nid = nodes[h2]
+
+                sid = min(nodes[h1], nodes[h2])
+                nid = max(nodes[h1], nodes[h2])
                 cursor.execute("INSERT INTO tp(sid, nid, ishost, isactive) "
                                "VALUES ({0}, {1}, {2}, {3});"
                                .format(sid, nid, ishost, 1))

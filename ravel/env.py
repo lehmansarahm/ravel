@@ -99,7 +99,8 @@ class Environment(object):
     def discover(self):
         for d in self.appdirs:
             for f in os.listdir(d):
-                if f.endswith(".py"): # or sql
+                # TODO: or sql
+                if f.endswith(".py"):
                     name = os.path.splitext(f)[0]
                     path = os.path.join(d, f)
                     if name not in self.apps:

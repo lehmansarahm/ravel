@@ -18,6 +18,7 @@ from env import Environment, Application
 from log import logger
 
 BASE_SQL = util.libpath("ravel/sql/primitive.sql")
+FLOW_SQL = util.libpath("ravel/sql/flows.sql")
 APP_DIR = util.libpath("apps")
 
 class Flow(object):
@@ -28,7 +29,8 @@ class Flow(object):
 
     def _dbid(self, host):
         cursor = self.db.connect().cursor()
-        cursor.execute("SELECT id FROM nodes WHERE name='{0}';"
+        cursor.execute("SELECT u_hid FROM uhosts WHERE hid="
+                       "(SELECT hid FROM hosts WHERE name='{0}');"
                        .format(host))
         result = cursor.fetchall()
         if len(result) == 0:
@@ -42,9 +44,9 @@ class Flow(object):
             return
 
         cursor = self.db.connect().cursor()
-        cursor.execute("SELECT * FROM utm;")
+        cursor.execute("SELECT * FROM rtm;")
         fid = len(cursor.fetchall()) + 1
-        cursor.execute("INSERT INTO utm (fid, host1, host2) "
+        cursor.execute("INSERT INTO rtm (fid, host1, host2) "
                        "VALUES ({0}, {1}, {2});"
                        .format(fid, self.h1, self.h2))
 
@@ -208,6 +210,10 @@ def RavelCLI(opts):
         passwd = getpass.getpass("Enter password: ")
 
     raveldb = db.RavelDb(opts.db, opts.user, BASE_SQL, passwd)
+
+    util.update_trigger_path(FLOW_SQL, util.libpath())
+    raveldb.load_schema(FLOW_SQL)
+
     env = Environment(raveldb, net, [APP_DIR])
     env.start()
 
