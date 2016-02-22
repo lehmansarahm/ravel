@@ -7,9 +7,11 @@ import psycopg2
 import sys
 import tabulate
 import tempfile
+from functools import partial
 
 from mininet.cli import CLI
 from mininet.net import Mininet
+from mininet.node import RemoteController
 
 import mndeps
 import db
@@ -203,7 +205,10 @@ def RavelCLI(opts):
         mndeps.custom(opts.custom)
 
     topo = mndeps.build(opts.topo)
+
     net = Mininet(topo)
+#    net = Mininet(topo,
+#                  controller=partial(RemoteController, ip='127.0.0.1'))
 
     passwd = None
     if opts.password:
