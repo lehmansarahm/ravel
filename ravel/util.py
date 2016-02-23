@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import ConfigParser
 import os
 import re
 import sys
@@ -42,3 +43,42 @@ def append_path(path):
 
     if path not in sys.path:
         sys.path.append(path)
+
+class Connection:
+    Ovs = 0
+    Rpc = 1
+    Mq = 2
+    Names = { "ovs" : Ovs,
+              "rpc" : Rpc,
+              "mq" : Mq
+          }
+
+class ConfigParameters(object):
+    def __init__(self):
+        self.RpcHost = None
+        self.RpcPort = None
+        self.QueueId = None
+        self.Connection = None
+        self.PoxDir = None
+        self.read(libpath("ravel.cfg"))
+
+    def read(self, cfg):
+        parser = ConfigParser.SafeConfigParser()
+        parser.read(cfg)
+
+        if parser.has_option("of_manager", "poxdir"):
+            self.PoxDir = parser.get("of_manager", "poxdir")
+
+        if parser.has_option("of_manager", "connection"):
+            name = parser.get("of_manager", "connection").lower()
+            self.Connection = Connection.Names[name]
+
+        if parser.has_option("rpc", "rpchost"):
+            self.RpcHost = parser.get("rpc", "rpchost")
+        if parser.has_option("rpc", "rpcport"):
+            self.RpcPort = parser.getint("rpc", "rpcport")
+
+        if parser.has_option("mq", "queueid"):
+            self.QueueId = parser.getint("mq", "queueid")
+
+Config = ConfigParameters()

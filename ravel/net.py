@@ -4,48 +4,28 @@ import os
 import pickle
 import sys
 import threading
-import time
 import xmlrpclib
 from SimpleXMLRPCServer import SimpleXMLRPCServer
 
 import sysv_ipc
 
-PoxDir = "/home/croftj/src/pox"
-
 import util
-
-# from config:
-#    PoxDir  -- also load in boot()
-#    ControllerPort
-#    RpcAddress
-#    QueueId
-
-util.append_path(PoxDir)
+from ravel.util import Config, Connection
+util.append_path(Config.PoxDir)
 import pox.openflow.libopenflow_01 as of
-
-ControllerPort = 6653
-RpcHost = 'localhost'
-RpcPort = 9000
-RpcAddress = "http://{0}:{1}".format(RpcHost, RpcPort)
-QueueId = 123
 
 OFPP_FLOOD = of.OFPP_FLOOD
 OFPFC_ADD = of.OFPFC_ADD
 OFPFC_DELETE = of.OFPFC_DELETE
 OFPFC_DELETE_STRICT = of.OFPFC_DELETE_STRICT
 
-class Connection:
-    Ovs = 0
-    Rpc = 1
-    Mq = 2
-
-CurrentConnection = Connection.Mq
+RpcAddress = "http://{0}:{1}".format(Config.RpcHost, Config.RpcPort)
 
 def connectionFactory(conn):
     return connections[conn]()
 
 def installFlow(flowid, sw, ip1, mac1, ip2, mac2, outport, revoutport):
-    conn = connectionFactory(CurrentConnection)
+    conn = connectionFactory(Config.Connection)
     msg1 = OfMessage(command=OFPFC_ADD,
                      priority=10,
                      switch=sw,
@@ -117,16 +97,19 @@ class RpcAdapter(OfManagerAdapter):
     def __init__(self, ctrl, log):
         super(RpcAdapter, self).__init__(ctrl, log)
         self.log.info("rpc_server: starting")
-        self.server = SimpleXMLRPCServer((RpcHost, RpcPort),
+        self.server = SimpleXMLRPCServer((Config.RpcHost, Config.RpcPort),
                                          logRequests=False,
                                          allow_none=True)
-
-        self.server.register_function(self.ctrl.sendFlowmod)
         self.server.register_function(self.ctrl.requestStats)
         self.server.register_function(self.ctrl.sendBarrier)
         self.server.register_function(self.echo)
+        self.server.register_function(self.sendFlowmod)
         self.t = threading.Thread(target=self.run)
         self.t.start()
+
+    def sendFlowmod(self, obj):
+        msg = pickle.loads(obj)
+        self.ctrl.sendFlowmod(msg)
 
     def echo(self, string=None):
         # for testing
@@ -155,11 +138,11 @@ class MsgQueueAdapter(OfManagerAdapter):
         super(MsgQueueAdapter, self).__init__(ctrl, log)
         self.log.info("mq_server: starting")
 
-        mq = sysv_ipc.MessageQueue(QueueId, sysv_ipc.IPC_CREAT,
+        mq = sysv_ipc.MessageQueue(Config.QueueId, sysv_ipc.IPC_CREAT,
                                    mode=0777)
         mq.remove()
 
-        self.mq = sysv_ipc.MessageQueue(QueueId, sysv_ipc.IPC_CREAT,
+        self.mq = sysv_ipc.MessageQueue(Config.QueueId, sysv_ipc.IPC_CREAT,
                                         mode=0777)
 
         t = threading.Thread(target=self.run)
@@ -173,7 +156,6 @@ class MsgQueueAdapter(OfManagerAdapter):
         while self.ctrl.isRunning():
             self.log.debug("mq_server: waiting for message")
             s,_ = self.mq.receive()
-            t = time.time()
             p = s.decode()
             obj = pickle.loads(p)
             self.log.debug("mq_server: received {0}".format(len(p)))
@@ -188,7 +170,7 @@ class AdapterConnection(object):
 
 class MsgQueueConnection(AdapterConnection):
     def __init__(self):
-        self.mq = sysv_ipc.MessageQueue(QueueId, mode=07777)
+        self.mq = sysv_ipc.MessageQueue(Config.QueueId, mode=07777)
 
     def send(self, msg):
         p = pickle.dumps(msg)
