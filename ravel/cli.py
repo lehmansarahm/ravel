@@ -21,8 +21,11 @@ from log import logger
 
 BASE_SQL = util.libpath("ravel/sql/primitive.sql")
 FLOW_SQL = util.libpath("ravel/sql/flows.sql")
+
+# TODO: move to config
 APP_DIR = util.libpath("apps")
 
+# TODO: refactor
 class Flow(object):
     def __init__(self, db, h1, h2):
         self.db = db
@@ -199,6 +202,10 @@ class RavelConsole(cmd.Cmd):
     def help_p(self):
         print "syntax: p [sql statement]"
         print "-- execute PostgreSQL statement"
+
+    def help_watch(self):
+        print "syntax: watch [table] [optional: max_rows]"
+        print "-- launch another terminal to watch db table in real-time"
 
 def RavelCLI(opts, remote=False):
     if opts.custom:

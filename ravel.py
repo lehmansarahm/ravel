@@ -7,21 +7,11 @@ from optparse import OptionParser
 DB='mininet'
 DBUSER='mininet'
 
+# add ravel to path
 if 'PYTHONPATH' in os.environ:
     sys.path = os.environ['PYTHONPATH'].split(':') + sys.path
-
-def inpath(substr):
-    for p in sys.path:
-        if substr in p:
-            return True
-    return False
-
-def addpath(name, loc):
-    if os.path.exists(loc):
-        sys.path.append(loc)
-    else:
-        print "**Warning**: expected {0} directory ({1}) " \
-            "could not be added to PYTHONPATH".format(name, loc)
+    raveldir = os.path.dirname(os.path.abspath(__file__))
+    sys.path.append(os.path.abspath(raveldir))
 
 def parseArgs():
     desc = ( "Ravel console." )
@@ -58,10 +48,6 @@ def parseArgs():
     return options
     
 if __name__ == "__main__":
-    raveldir = os.path.dirname(os.path.abspath(__file__))
-    if not inpath("ravel"):
-        addpath("ravel", raveldir)
-
     from ravel.cli import RavelCLI
     from ravel.log import LEVELS, logger
     opts = parseArgs()
