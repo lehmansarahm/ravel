@@ -95,6 +95,7 @@ class RavelPoxController(object):
             dp.send(msg)
         else:
             self.log.debug("dpid {0} not in datapath list".format(dpid))
+        print msg
 
     def sendBarrier(self, dpid):
         dpid = int(dpid)
@@ -163,8 +164,9 @@ class RpcAdapter():
     def shutdown(self):
         # send rpc request to trigger handle request and end loop
         self.log.info("rpc_server: stopping")
-        proxy = xmlrpclib.ServerProxy("http://localhost:9000/", allow_none=True)
-        proxy.echo(None)
+        proxy = xmlrpclib.ServerProxy(RpcAddress, allow_none=True)
+        self.log.info("rpc_server: stopping")
+        #proxy.echo(None)
 
     def run(self):
         while core.running:
@@ -201,7 +203,8 @@ class MsgQueueAdapter():
             p = s.decode()
             obj = json.loads(p)
             self.log.debug("mq_server: received {0}".format(len(obj)))
-            self.ctrl.sendFlowmod(obj)
+            if 'command' in obj:
+                self.ctrl.sendFlowmod(obj)
 
         self.log.debug("mq_server: **shutdown**")
 

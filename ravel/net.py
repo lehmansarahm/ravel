@@ -1,24 +1,32 @@
 #!/usr/bin/env python
+
 import os
-import psycopg2
-import socket
+import pickle
 import sys
+import threading
 import time
 import xmlrpclib
+from SimpleXMLRPCServer import SimpleXMLRPCServer
+
 import sysv_ipc
-import pickle
-import json
 
 PoxDir = "/home/croft1/src/pox"
 
 import util
 
+# from config:
+#    PoxDir  -- also load in boot()
+#    ControllerPort
+#    RpcAddress
+#    QueueId
+
 util.append_path(PoxDir)
-from pox.lib.addresses import IPAddr
 import pox.openflow.libopenflow_01 as of
 
 ControllerPort = 6653
-RpcAddress = "http://localhost:9000/"
+RpcHost = 'localhost'
+RpcPort = 9000
+RpcAddress = "http://{0}:{1}".format(RpcHost, RpcPort)
 QueueId = 123
 
 OFPP_FLOOD = of.OFPP_FLOOD
@@ -26,25 +34,18 @@ OFPFC_ADD = of.OFPFC_ADD
 OFPFC_DELETE = of.OFPFC_DELETE
 OFPFC_DELETE_STRICT = of.OFPFC_DELETE_STRICT
 
-class Context:
-    Ocean = 0
-    Mininet = 1
-
-class Channel:
+class Connection:
     Ovs = 0
     Rpc = 1
     Mq = 2
-    MqProfile = 3
-    MqUnopt = 4
 
-CurrentContext = Context.Mininet
-CurrentChannel = Channel.Mq
+CurrentConnection = Connection.Mq
 
-def channelFactory(channel):
-    return channels[channel]()
+def connectionFactory(conn):
+    return connections[conn]()
 
 def installFlow(flowid, sw, ip1, mac1, ip2, mac2, outport, revoutport):
-    channel = channelFactory(CurrentChannel)
+    conn = connectionFactory(CurrentConnection)
     msg1 = OfMessage(command=OFPFC_ADD,
                      priority=10,
                      switch=sw,
@@ -69,28 +70,139 @@ def installFlow(flowid, sw, ip1, mac1, ip2, mac2, outport, revoutport):
                      match=Match(dl_src=mac2, dl_type=0x0806),
                      actions=[OFPP_FLOOD])
 
-    channel.send(msg1)
-    channel.send(msg2)
-    channel.send(arp1)
-    channel.send(arp2)
+    conn.send(msg1)
+    conn.send(msg2)
+    conn.send(arp1)
+    conn.send(arp2)
 
 def removeFlow(flowid, sw, ip1, mac1, ip2, mac2, outport, revoutport):
     raise Exception('Not implemented')
-    channel = channelFactory(CurrentChannel)
 
-class ChannelBase(object):
+class OfManager(object):
+    def __init__(self):
+        self.adapters = []
+
+    def registerAdapter(self, adapter):
+        self.adapters.append(adapter)
+
+    def shutdown(self):
+        for adapter in self.adapters:
+            adapter.shutdown()
+
+    def isRunning(self):
+        pass
+
+    def sendBarrier(self, dpid):
+        pass
+
+    def sendFlowmod(self, msg):
+        pass
+
+    def requestStats(self):
+        pass
+
+class OfManagerAdapter(object):
+    def __init__(self, ctrl, log):
+        self.ctrl = ctrl
+        self.log = log
+        self.running = False
+
+    def shutdown(self, event):
+        pass
+
+    def run(self):
+        pass
+
+class RpcAdapter(OfManagerAdapter):
+    def __init__(self, ctrl, log):
+        super(RpcAdapter, self).__init__(ctrl, log)
+        self.log.info("rpc_server: starting")
+        self.server = SimpleXMLRPCServer((RpcHost, RpcPort),
+                                         logRequests=False,
+                                         allow_none=True)
+
+        self.server.register_function(self.ctrl.sendFlowmod)
+        self.server.register_function(self.ctrl.requestStats)
+        self.server.register_function(self.ctrl.sendBarrier)
+        self.server.register_function(self.echo)
+        self.t = threading.Thread(target=self.run)
+        self.t.start()
+
+    def echo(self, string=None):
+        # for testing
+        self.log.debug("rpc_server: echo()")
+        if string is not None:
+            self.log.info(string)
+        return True
+
+    def run(self):
+        while self.ctrl.isRunning():
+            self.log.debug("rpc_server: waiting for request")
+            self.server.handle_request()
+        self.log.debug("rpc_server: done")
+
+    def handle_GoingDown(self, event):
+        self.shutdown()
+
+    def shutdown(self, event=None):
+        # send rpc request to trigger handle request and end loop
+        self.log.info("rpc_server: stopping")
+        proxy = xmlrpclib.ServerProxy(RpcAddress, allow_none=True)
+        proxy.echo(None)
+
+class MsgQueueAdapter(OfManagerAdapter):
+    def __init__(self, ctrl, log):
+        super(MsgQueueAdapter, self).__init__(ctrl, log)
+        self.log.info("mq_server: starting")
+
+        mq = sysv_ipc.MessageQueue(QueueId, sysv_ipc.IPC_CREAT,
+                                   mode=0777)
+        mq.remove()
+
+        self.mq = sysv_ipc.MessageQueue(QueueId, sysv_ipc.IPC_CREAT,
+                                        mode=0777)
+
+        t = threading.Thread(target=self.run)
+        t.start()
+
+    def shutdown(self, event=None):
+        # send an empty message to pop out of while loop
+        self.mq.send(pickle.dumps({}))
+
+    def run(self):
+        while self.ctrl.isRunning():
+            self.log.debug("mq_server: waiting for message")
+            s,_ = self.mq.receive()
+            t = time.time()
+            p = s.decode()
+            obj = pickle.loads(p)
+            self.log.debug("mq_server: received {0}".format(len(p)))
+            if obj.command is not None:
+                self.ctrl.sendFlowmod(obj)
+
+        self.log.debug("mq_server: done")
+
+class AdapterConnection(object):
     def send(self, msg):
         pass
 
-class MqChannel(ChannelBase):
+class MsgQueueConnection(AdapterConnection):
     def __init__(self):
         self.mq = sysv_ipc.MessageQueue(QueueId, mode=07777)
 
     def send(self, msg):
-        p = json.dumps(msg.to_dict(msg.switch.dpid))
+        p = pickle.dumps(msg)
         self.mq.send(p)
 
-class OvsChannel(ChannelBase):
+class RpcConnection(AdapterConnection):
+    def __init__(self, addr=RpcAddress):
+        self.proxy = xmlrpclib.ServerProxy(addr, allow_none=True)
+
+    def send(self, msg):
+        p = pickle.dumps(msg)
+        self.proxy.sendFlowmod(p)
+
+class OvsConnection(AdapterConnection):
     command = "/usr/bin/sudo /usr/bin/ovs-ofctl"
     subcmds = { OFPFC_ADD : "add-flow",
                 OFPFC_DELETE : "del-flows",
@@ -101,18 +213,18 @@ class OvsChannel(ChannelBase):
         pass
 
     def send(self, msg):
-        subcmd = OvsChannel.subcmds[msg.command]
+        subcmd = OvsConnection.subcmds[msg.command]
 
         # TODO: need to modify this for remote switches
         dest = msg.switch.name
 
         match = ""
-        if msg.nw_src:
-            match += "nw_src={0}".format(msg.nw_src)
-        if msg.nw_dst:
-            match += "nw_dst={0}".format(msg.nw_dst)
-        if msg.dl_type:
-            match += "dl_type={0}".format(msg.dl_type)
+        if msg.match.nw_src is not None:
+            match += "nw_src={0}".format(msg.match.nw_src)
+        if msg.match.nw_dst is not None:
+            match += "nw_dst={0}".format(msg.match.nw_dst)
+        if msg.match.dl_type is not None:
+            match += "dl_type={0}".format(msg.match.dl_type)
 
         # remove trailing comma, don't know if we need it yet
         match = match[:-1]
@@ -127,22 +239,12 @@ class OvsChannel(ChannelBase):
         if len(match) > 1 and len(action) > 1:
             params = "{0},{1}".format(match, action)
 
-        cmd = "{0} {1} {2} {3}".format(OvsChannel.command,
+        cmd = "{0} {1} {2} {3}".format(OvsConnection.command,
                                        subcmd,
                                        dest,
                                        params)
 
         return os.system(cmd)
-
-class RpcChannel(ChannelBase):
-    def __init__(self):
-        self.proxy = xmlrpclib.ServerProxy(RpcAddress, allow_none=True)
-
-    def set_addr(addr):
-        self.proxy = xmlrpclib.ServerProxy(addr, allow_none=True)
-
-    def send(self, msg):
-        self.proxy.sendFlowmod(msg.to_dict(msg.switch.dpid))
 
 class Switch(object):
     def __init__(self, name, ip, dpid):
@@ -151,26 +253,13 @@ class Switch(object):
         self.dpid = dpid
 
 class Match(object):
-    def __init__(self, nw_src=None, nw_dst=None, dl_src=None, dl_dst=None, dl_type=None):
+    def __init__(self, nw_src=None, nw_dst=None,
+                 dl_src=None, dl_dst=None, dl_type=None):
         self.nw_src = nw_src
         self.nw_dst = nw_dst
         self.dl_src = dl_src
         self.dl_dst = dl_dst
         self.dl_type = dl_type
-
-    def to_dict(self):
-        d = {}
-        if self.nw_src:
-            d['nw_src'] = self.nw_src
-        if self.nw_dst:
-            d['nw_dst'] = self.nw_dst
-        if self.dl_src:
-            d['dl_src'] = self.dl_src
-        if self.dl_dst:
-            d['dl_dst'] = self.dl_dst
-        if self.dl_type:
-            d['dl_type'] = self.dl_type
-        return d
 
 class OfMessage(object):
     def __init__(self, command=None, priority=1, switch=None,
@@ -180,19 +269,16 @@ class OfMessage(object):
         self.switch = switch
         self.match = match
         self.actions = actions
-        if not actions:
+        if actions is not None:
             self.actions = []
 
-    def to_dict(self, switch_prop):
-        d = {}
-        d['match'] = self.match.to_dict()
-        d['command'] = self.command
-        d['priority'] = self.priority
-        d['switch'] = switch_prop
-        d['actions'] = self.actions
-        return d
+    def __repr__(self):
+        return str(self)
 
-channels = { Channel.Mq : MqChannel,
-             Channel.Ovs : OvsChannel,
-             Channel.Rpc : RpcChannel
+    def __str__(self):
+        return "{0}: {1}".format(self.command, self.priority)
+
+connections = { Connection.Mq : MsgQueueConnection,
+                Connection.Ovs : OvsConnection,
+                Connection.Rpc : RpcConnection
          }
