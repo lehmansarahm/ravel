@@ -10,7 +10,7 @@ from SimpleXMLRPCServer import SimpleXMLRPCServer
 
 import sysv_ipc
 
-PoxDir = "/home/croft1/src/pox"
+PoxDir = "/home/croftj/src/pox"
 
 import util
 
@@ -167,7 +167,7 @@ class MsgQueueAdapter(OfManagerAdapter):
 
     def shutdown(self, event=None):
         # send an empty message to pop out of while loop
-        self.mq.send(pickle.dumps({}))
+        self.mq.send(pickle.dumps(OfMessage()))
 
     def run(self):
         while self.ctrl.isRunning():
@@ -177,7 +177,7 @@ class MsgQueueAdapter(OfManagerAdapter):
             p = s.decode()
             obj = pickle.loads(p)
             self.log.debug("mq_server: received {0}".format(len(p)))
-            if obj.command is not None:
+            if obj is not None and obj.command is not None:
                 self.ctrl.sendFlowmod(obj)
 
         self.log.debug("mq_server: done")
@@ -269,7 +269,7 @@ class OfMessage(object):
         self.switch = switch
         self.match = match
         self.actions = actions
-        if actions is not None:
+        if actions is None:
             self.actions = []
 
     def __repr__(self):
