@@ -254,6 +254,10 @@ class RavelConsole(cmd.Cmd):
         print "syntax: load [application]"
         print "-- start an application"
 
+    def help_unload(self):
+        print "syntax: unload [application]"
+        print "-- stop an application"
+
     def help_m(self):
         print "syntax: m [mininet cmd]"
         print "-- run mininet command"
