@@ -125,7 +125,7 @@ AS $$
 	SELECT name, ip, dpid INTO sw_name, sw_ip, sw_dpid FROM switches WHERE sid=OLD.sid;
 
         -- get ip addresses
-        SELECT ip, mac INTO h1ip, h2mac FROM hosts WHERE hid IN (SELECT hid FROM uhosts WHERE u_hid=uh1);
+        SELECT ip, mac INTO h1ip, h1mac FROM hosts WHERE hid IN (SELECT hid FROM uhosts WHERE u_hid=uh1);
         SELECT ip, mac INTO h2ip, h2mac FROM hosts WHERE hid IN (SELECT hid FROM uhosts WHERE u_hid=uh2);
 
         -- pass to python code

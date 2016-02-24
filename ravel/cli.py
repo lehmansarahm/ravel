@@ -60,7 +60,7 @@ class Flow(object):
             return
 
         cursor = self.db.connect().cursor()
-        cursor.execute("DELETE FROM utm WHERE host1={0} and host2={1};"
+        cursor.execute("DELETE FROM rtm WHERE host1={0} and host2={1};"
                        .format(self.h1, self.h2))
 
 class RavelConsole(cmd.Cmd):
