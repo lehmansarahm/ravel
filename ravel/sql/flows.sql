@@ -23,6 +23,9 @@ AS $$
 	h2mac varchar(17);
         outport int;
         revoutport int;
+        start_time timestamptz;
+        end_time timestamptz;
+        diff interval;
     BEGIN
         -- arguments:
         -- host1 = NEW.pid
@@ -30,6 +33,7 @@ AS $$
         -- switch_id = NEW.sid
         -- flow_id = NEW.fid
 
+        start_time := clock_timestamp();
         -- get ports
         -- note: outport -> host1 (previous hop)
         --       revoutport -> host2 (next hop)
@@ -48,8 +52,11 @@ AS $$
         SELECT ip, mac INTO h1ip, h1mac FROM hosts WHERE hid IN (SELECT hid FROM uhosts WHERE u_hid=uh1);
         SELECT ip, mac INTO h2ip, h2mac FROM hosts WHERE hid IN (SELECT hid FROM uhosts WHERE u_hid=uh2);
 
+        end_time := clock_timestamp();
+        diff := (extract(epoch from end_time) - extract(epoch from start_time));
+
         -- pass to python code
-        PERFORM add_flow_fun(NEW.fid, sw_name, sw_ip, sw_dpid, h1ip, h1mac, h2ip, h2mac, outport, revoutport);
+        PERFORM add_flow_fun(NEW.fid, sw_name, sw_ip, sw_dpid, h1ip, h1mac, h2ip, h2mac, outport, revoutport, to_char(diff, 'MS.US'));
         return NEW;
     END;
 $$ LANGUAGE plpgsql VOLATILE SECURITY DEFINER;
@@ -58,7 +65,8 @@ CREATE OR REPLACE FUNCTION add_flow_fun (flow_id integer,
        sw_name varchar(16), sw_ip varchar(16), sw_dpid varchar(16),
        h1ip varchar(16), h1mac varchar(17),
        h2ip varchar(16), h2mac varchar(17),
-       outport integer, revoutport integer)
+       outport integer, revoutport integer,
+       diff varchar(16))
 RETURNS integer
 AS $$
 import os
@@ -69,8 +77,11 @@ if 'PYTHONPATH' in os.environ:
     sys.path = os.environ['PYTHONPATH'].split(':') + sys.path
 sys.path.append('/home/croft1/src/cli-ravel')
 import ravel.net
+from ravel.profiling import PerfCounter
 
-print 'In Install'
+pc = PerfCounter('db_select', float(diff))
+pc.report()
+
 sw = ravel.net.Switch(sw_name, sw_ip, sw_dpid)
 ravel.net.installFlow(flow_id, sw, h1ip, h1mac, h2ip, h2mac, outport, revoutport)
 
@@ -103,12 +114,17 @@ AS $$
 	h2mac varchar(17);
         outport int;
         revoutport int;
+        start_time timestamptz;
+        end_time timestamptz;
+        diff interval;
     BEGIN
         -- arguments:
         -- host1 = OLD.pid
         -- host2 = OLD.nid
         -- switch_id = OLD.sid
         -- flow_id = OLD.fid
+
+        start_time := clock_timestamp();
 
         -- get ports
         -- note: outport -> host1 (previous hop)
@@ -128,8 +144,11 @@ AS $$
         SELECT ip, mac INTO h1ip, h1mac FROM hosts WHERE hid IN (SELECT hid FROM uhosts WHERE u_hid=uh1);
         SELECT ip, mac INTO h2ip, h2mac FROM hosts WHERE hid IN (SELECT hid FROM uhosts WHERE u_hid=uh2);
 
+        end_time := clock_timestamp();
+        diff := (extract(epoch from end_time) - extract(epoch from start_time));
+
         -- pass to python code
-        PERFORM del_flow_fun(OLD.fid, sw_name, sw_ip, sw_dpid, h1ip, h1mac, h2ip, h2mac, outport, revoutport);
+        PERFORM del_flow_fun(OLD.fid, sw_name, sw_ip, sw_dpid, h1ip, h1mac, h2ip, h2mac, outport, revoutport, to_char(diff, 'MS.US'));
 
         return OLD;
     END;
@@ -139,7 +158,8 @@ CREATE OR REPLACE FUNCTION del_flow_fun (flow_id integer,
        sw_name varchar(16), sw_ip varchar(16), sw_dpid varchar(16),
        h1ip varchar(16), h1mac varchar(17),
        h2ip varchar(16), h2mac varchar(17),
-       outport integer, revoutport integer)
+       outport integer, revoutport integer,
+       diff varchar(16))
 RETURNS integer
 AS $$
 import os
@@ -151,8 +171,11 @@ if 'PYTHONPATH' in os.environ:
 sys.path.append('/home/croft1/src/cli-ravel')
 
 import ravel.net
+from ravel.profiling import PerfCounter
 
-print 'In Remove'
+pc = PerfCounter('db_select', float(diff))
+pc.report()
+
 sw = ravel.net.Switch(sw_name, sw_ip, sw_dpid)
 ravel.net.removeFlow(flow_id, sw, h1ip, h1mac, h2ip, h2mac, outport, revoutport)
 

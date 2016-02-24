@@ -37,7 +37,9 @@ def is_profiled():
 class PerfCounter(object):
     def __init__(self, name, time_ms=None):
         self.name = name
-        self.time_ms = time_ms
+
+        if time_ms is not None:
+            self.time_ms = round(float(time_ms), 3)
         self.start_time = None
 
     def start(self):
@@ -82,6 +84,10 @@ class ProfiledExecution(object):
                                         mode=0777)
 
     def print_summary(self):
+        if len(self.counters) == 0:
+            print "No performance counters found"
+            return
+
         agg = OrderedDict()
         summ = 0
         for counter in self.counters:
