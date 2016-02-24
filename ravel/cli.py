@@ -16,7 +16,7 @@ from mininet.node import RemoteController
 import mndeps
 import db
 import util
-from env import Environment, Application
+from env import Environment, Application, Emptynet
 from log import logger
 
 BASE_SQL = util.libpath("ravel/sql/primitive.sql")
@@ -215,13 +215,14 @@ class RavelConsole(cmd.Cmd):
         print "syntax: watch [table] [optional: max_rows]"
         print "-- launch another terminal to watch db table in real-time"
 
-def RavelCLI(opts, remote=False):
+def RavelCLI(opts):
     if opts.custom:
         mndeps.custom(opts.custom)
 
     topo = mndeps.build(opts.topo)
-
-    if remote:
+    if opts.onlydb:
+        net = Emptynet(topo)
+    elif opts.remote:
         net = Mininet(topo,
                       controller=partial(RemoteController, ip='127.0.0.1'))
     else:
@@ -233,7 +234,7 @@ def RavelCLI(opts, remote=False):
 
     raveldb = db.RavelDb(opts.db, opts.user, BASE_SQL, passwd)
 
-    if remote:
+    if opts.remote:
         util.update_trigger_path(FLOW_SQL, util.libpath())
         raveldb.load_schema(FLOW_SQL)
 

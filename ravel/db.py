@@ -63,7 +63,7 @@ class RavelDb():
             nodes = {}
             for sw in topo.switches():
                 node_count += 1
-                dpid = net.getNodeByName(sw).defaultDpid()
+                dpid = net.getNodeByName(sw).dpid
                 ip = net.getNodeByName(sw).IP()
                 mac = net.getNodeByName(sw).MAC()
                 nodes[sw] = node_count

@@ -19,6 +19,8 @@ def parseArgs():
               '(type %prog -h for details)' )
 
     parser = OptionParser(description=desc, usage=usage)
+    parser.add_option('--onlydb', '-o', action='store_true', default=False,
+                      help='start without mininet')
     parser.add_option('--remote', '-r', action='store_true', default=False,
                       help='start remote controller')
     parser.add_option('--user', '-u', type='string', default=DBUSER,
@@ -43,6 +45,10 @@ def parseArgs():
     if not options.topo:
         parser.error("No topology specified")
 
+    if options.onlydb and options.remote:
+        parser.error("Cannot start remote controller with no network. "
+                     "Choose either --remote or --onlydb")
+
     logger.setLogLevel(options.verbosity)
 
     return options
@@ -51,4 +57,4 @@ if __name__ == "__main__":
     from ravel.cli import RavelCLI
     from ravel.log import LEVELS, logger
     opts = parseArgs()
-    RavelCLI(opts, opts.remote)
+    RavelCLI(opts)

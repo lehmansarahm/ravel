@@ -12,6 +12,23 @@ from sqlparse.tokens import Keyword
 
 from log import logger, LEVELS
 import util
+import mndeps
+
+class Emptynet(object):
+    def __init__(self, topo):
+        self.nodes = {}
+        self.topo = topo
+
+    def getNodeByName(self, node):
+        if node in self.nodes:
+            return self.nodes[node]
+        return None
+
+    def start(self):
+        mndeps.buildSkeletonTopo(self.topo, self)
+
+    def stop(self):
+        pass
 
 class AppComponent(object):
     def __init__(self, name, typ):
