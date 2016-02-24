@@ -115,6 +115,14 @@ class RavelConsole(cmd.Cmd):
             else:
                 print "Unknown application", app
 
+    def do_unload(self, line):
+        apps = line.split()
+        for app in apps:
+            if app in self.env.apps:
+                self.env.unload_app(app)
+            else:
+                print "Unknown application", app
+
     def do_m(self, line):
         if not line:
             CLI(self.env.net)
