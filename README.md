@@ -9,6 +9,7 @@
   * --user - specify db user
   * --password - specify db password
   * --remote - start mininet with connection to a remote controller
+  * --onlydb - start without mininet
 
 ### TODO
 - [ ] from config: auto start controller (eg, pox, ovs) 
