@@ -46,7 +46,10 @@ def custom(value):
             print "Could not find custom file", filename
 
 def build(opts):
-    return buildTopo(TOPOS, opts)
+    try:
+        return buildTopo(TOPOS, opts)
+    except Exception:
+        return None
 
 def buildSkeletonTopo(topo, net):
     class SkeletonNode(object):

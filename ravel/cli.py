@@ -283,6 +283,10 @@ def RavelCLI(opts):
            }
 
     topo = mndeps.build(opts.topo)
+    if topo is None:
+        print "Invalid mininet topology", opts.topo
+        return
+
     if opts.onlydb:
         net = Emptynet(topo)
     elif opts.remote:
