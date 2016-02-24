@@ -19,3 +19,7 @@
 - [x] config file, parser
 - [x] from config: load flow trigger/protocol
 - [x] start mn with remote controller
+
+### NOTES
+-To use OVS channel, must add postgres to sudoers `sudo adduser postgres sudo`
+    * Must also allow passwordless sudo: %sudo   ALL=(ALL:ALL) NOPASSWD:ALL

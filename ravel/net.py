@@ -238,33 +238,33 @@ class OvsConnection(AdapterConnection):
         # TODO: need to modify this for remote switches
         dest = msg.switch.name
 
-        match = ""
+        params = []
         if msg.match.nw_src is not None:
-            match += "nw_src={0}".format(msg.match.nw_src)
+            params.append("nw_src={0}".format(msg.match.nw_src))
         if msg.match.nw_dst is not None:
-            match += "nw_dst={0}".format(msg.match.nw_dst)
+            params.append("nw_dst={0}".format(msg.match.nw_dst))
+        if msg.match.dl_src is not None:
+            params.append("dl_src={0}".format(msg.match.dl_src))
+        if msg.match.dl_dst is not None:
+            params.append("dl_dst={0}".format(msg.match.dl_dst))
         if msg.match.dl_type is not None:
-            match += "dl_type={0}".format(msg.match.dl_type)
+            params.append("dl_type={0}".format(msg.match.dl_type))
 
-        # remove trailing comma, don't know if we need it yet
-        match = match[:-1]
+        params.append("priority={0}".format(msg.priority))
+        actions = ["flood" if a == OFPP_FLOOD else str(a) for a in msg.actions]
 
-        match = "priority={0}".format(msg.priority) + match
-        action = ""
         if msg.command == OFPFC_ADD:
-            action = "action=output:" + \
-                     ",".join([str(a) for a in msg.actions])
+            params.append("action=output:" + ",".join(actions))
 
-        params = ""
-        if len(match) > 1 and len(action) > 1:
-            params = "{0},{1}".format(match, action)
-
+        paramstr = ",".join(params)
         cmd = "{0} {1} {2} {3}".format(OvsConnection.command,
                                        subcmd,
                                        dest,
-                                       params)
+                                       paramstr)
 
-        return os.system(cmd)
+        ret = os.system(cmd)
+        print ret, cmd
+        return ret
 
 class Switch(object):
     def __init__(self, name, ip, dpid):
