@@ -25,43 +25,65 @@ FLOW_SQL = util.libpath("ravel/sql/flows.sql")
 # TODO: move to config
 APP_DIR = util.libpath("apps")
 
-# TODO: refactor
-class Flow(object):
-    def __init__(self, db, h1, h2):
-        self.db = db
-        self.h1 = self._dbid(h1)
-        self.h2 = self._dbid(h2)
+# TODO: move into net-type module, different from net triggers
+def name2dbid(db, host):
+    cursor = db.connect().cursor()
+    cursor.execute("SELECT u_hid FROM uhosts WHERE hid="
+                   "(SELECT hid FROM hosts WHERE name='{0}');"
+                   .format(host))
+    result = cursor.fetchall()
+    if len(result) == 0:
+        logger.warning("Unknown host %s", host)
+        return None
+    else:
+        return result[0][0]
 
-    def _dbid(self, host):
-        cursor = self.db.connect().cursor()
-        cursor.execute("SELECT u_hid FROM uhosts WHERE hid="
-                       "(SELECT hid FROM hosts WHERE name='{0}');"
-                       .format(host))
-        result = cursor.fetchall()
-        if len(result) == 0:
-            print "Unknown host", host
-            return None
-        else:
-            return result[0][0]
+def addFlow(db, h1, h2):
+    hid1 = name2dbid(db, h1)
+    hid2 = name2dbid(db, h2)
 
-    def insert(self):
-        if not self.h1 or not self.h2:
-            return
+    if hid1 is None or hid2 is None:
+        return None
 
-        cursor = self.db.connect().cursor()
-        cursor.execute("SELECT * FROM rtm;")
-        fid = len(cursor.fetchall()) + 1
-        cursor.execute("INSERT INTO rtm (fid, host1, host2) "
-                       "VALUES ({0}, {1}, {2});"
-                       .format(fid, self.h1, self.h2))
+    cursor = db.connect().cursor()
+    cursor.execute("SELECT * FROM rtm;")
+    fid = len(cursor.fetchall()) + 1
+    cursor.execute("INSERT INTO rtm (fid, host1, host2) "
+                   "VALUES ({0}, {1}, {2});"
+                   .format(fid, hid1, hid2))
 
-    def remove(self):
-        if not self.h1 or not self.h2:
-            return
+    return fid
 
-        cursor = self.db.connect().cursor()
-        cursor.execute("DELETE FROM rtm WHERE host1={0} and host2={1};"
-                       .format(self.h1, self.h2))
+def delFlowById(db, fid):
+    cursor = db.connect().cursor()
+
+    # does the flow exist?
+    cursor.execute("SELECT fid FROM rtm WHERE fid={0}".format(fid))
+    if len(cursor.fetchall()) == 0:
+        logger.warning("No flow installed with fid %s", fid)
+        return None
+
+    cursor.execute("DELETE FROM rtm WHERE fid={0}".format(fid))
+    return fid
+
+def delFlowByHostname(db, h1, h2):
+    # convert to fid, so we can report which fid is removed
+    hid1 = name2dbid(db, h1)
+    hid2 = name2dbid(db, h2)
+
+    if hid1 is None or hid2 is None:
+        return None
+
+    cursor = db.connect().cursor()
+    cursor.execute("SELECT fid FROM rtm WHERE host1={0} and host2={1};"
+                   .format(hid1, hid2))
+
+    result = cursor.fetchall()
+    if len(result) == 0:
+        logger.warning("No flow installed for hosts {0},{1}".format(h1, h2))
+        return None
+
+    return delFlowById(db, result[0][0])
 
 class RavelConsole(cmd.Cmd):
     prompt = "ravel> "
@@ -85,15 +107,27 @@ class RavelConsole(cmd.Cmd):
             print "Invalid syntax"
             return
 
-        Flow(self.env.db, args[0], args[1]).insert()
+        fid = addFlow(self.env.db, args[0], args[1])
+        if fid is not None:
+            print "Success: installed flow with fid", fid
+        else:
+            print "Failure: flow not installed"
 
     def do_delflow(self, line):
         args = line.split()
-        if len(args) != 2:
+
+        if len(args) == 1:
+            fid = delFlowById(self.env.db, args[0])
+        elif len(args) == 2:
+            fid = delFlowByHostname(self.env.db, args[0], args[1])
+        else:
             print "Invalid syntax"
             return
 
-        Flow(self.env.db, args[0], args[1]).remove()
+        if fid is not None:
+            print "Success: removed flow with fid", fid
+        else:
+            print "Failure: flow not removed"
 
     def do_apps(self, line):
         "List available applications"
@@ -197,7 +231,9 @@ class RavelConsole(cmd.Cmd):
 
     def help_delflow(self):
         print "syntax: delflow [node1] [host2]"
-        print "-- remove flow between host1 and host2 (mininet names)"
+        print"         delflow [flow id]"
+        print "-- remove flow between host1 and host2 (mininet names)."
+        print "   specify src, dst or flow id"
 
     def help_load(self):
         print "syntax: load [application]"
