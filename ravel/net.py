@@ -10,6 +10,7 @@ from SimpleXMLRPCServer import SimpleXMLRPCServer
 import sysv_ipc
 
 import util
+from ravel.profiling import PerfCounter
 from ravel.util import Config, Connection
 util.append_path(Config.PoxDir)
 import pox.openflow.libopenflow_01 as of
@@ -24,76 +25,49 @@ RpcAddress = "http://{0}:{1}".format(Config.RpcHost, Config.RpcPort)
 def connectionFactory(conn):
     return connections[conn]()
 
-def installFlow(flowid, sw, ip1, mac1, ip2, mac2, outport, revoutport):
+def _send_msg(command, flow_id, sw, ip1, mac1, ip2, mac2, outport, revoutport):
+    pc = PerfCounter('msg_create')
+    pc.start()
+
     conn = connectionFactory(Config.Connection)
-    msg1 = OfMessage(command=OFPFC_ADD,
+    msg1 = OfMessage(command=command,
                      priority=10,
                      switch=sw,
                      match=Match(nw_src=ip1, nw_dst=ip2, dl_type=0x0800),
                      actions=[outport])
 
-    msg2 = OfMessage(command=OFPFC_ADD,
+    msg2 = OfMessage(command=command,
                      priority=10,
                      switch=sw,
                      match=Match(nw_src=ip2, nw_dst=ip1, dl_type=0x0800),
                      actions=[revoutport])
 
-    arp1 = OfMessage(command=OFPFC_ADD,
+    arp1 = OfMessage(command=command,
                      priority=1,
                      switch=sw,
                      match=Match(dl_src=mac1, dl_type=0x0806),
                      actions=[OFPP_FLOOD])
 
-    arp2 = OfMessage(command=OFPFC_ADD,
+    arp2 = OfMessage(command=command,
                      priority=1,
                      switch=sw,
                      match=Match(dl_src=mac2, dl_type=0x0806),
                      actions=[OFPP_FLOOD])
 
+    pc.stop()
     conn.send(msg1)
     conn.send(msg2)
     conn.send(arp1)
     conn.send(arp2)
+    conn.sendBarrier(BarrierMessage(sw.dpid))
 
-    print arp1
-    print arp2
-
+def installFlow(flowid, sw, ip1, mac1, ip2, mac2, outport, revoutport):
+    _send_msg(OFPFC_ADD,
+              flowid, sw, ip1, mac1, ip2, mac2, outport, revoutport)
 
 def removeFlow(flowid, sw, ip1, mac1, ip2, mac2, outport, revoutport):
-
-    conn = connectionFactory(Config.Connection)
-    msg1 = OfMessage(command=OFPFC_DELETE_STRICT,
-                     priority=10,
-                     switch=sw,
-                     match=Match(nw_src=ip1, nw_dst=ip2, dl_type=0x0800),
-                     actions=[outport])
-
-    msg2 = OfMessage(command=OFPFC_DELETE_STRICT,
-                     priority=10,
-                     switch=sw,
-                     match=Match(nw_src=ip2, nw_dst=ip1, dl_type=0x0800),
-                     actions=[revoutport])
-
-    arp1 = OfMessage(command=OFPFC_DELETE_STRICT,
-                     priority=1,
-                     switch=sw,
-                     match=Match(dl_src=mac1, dl_type=0x0806),
-                     actions=[OFPP_FLOOD])
-
-    arp2 = OfMessage(command=OFPFC_DELETE_STRICT,
-                     priority=1,
-                     switch=sw,
-                     match=Match(dl_src=mac2, dl_type=0x0806),
-                     actions=[OFPP_FLOOD])
-
-    conn.send(msg1)
-    conn.send(msg2)
-    conn.send(arp1)
-    conn.send(arp2)
-
-    print flowid, sw, ip1, mac1, ip2, mac2, outport, revoutport
-    print arp1
-    print arp2
+    _send_msg(OFPFC_DELETE_STRICT,
+              flowid, sw, ip1, mac1, ip2, mac2, outport, revoutport)
 
 class OfManager(object):
     def __init__(self):
@@ -175,6 +149,7 @@ class MsgQueueAdapter(OfManagerAdapter):
         super(MsgQueueAdapter, self).__init__(ctrl, log)
         self.log.info("mq_server: starting")
 
+        # clear existing messages
         mq = sysv_ipc.MessageQueue(Config.QueueId, sysv_ipc.IPC_CREAT,
                                    mode=0777)
         mq.remove()
@@ -196,8 +171,13 @@ class MsgQueueAdapter(OfManagerAdapter):
             p = s.decode()
             obj = pickle.loads(p)
             self.log.debug("mq_server: received {0}".format(len(p)))
-            if obj is not None and obj.command is not None:
+
+            if isinstance(obj, BarrierMessage):
+                self.ctrl.sendBarrier(obj.dpid)
+            elif isinstance(obj, OfMessage) and obj.command is not None:
                 self.ctrl.sendFlowmod(obj)
+            else:
+                self.log.debug("unexpected object {0}".format(obj))
 
         self.log.debug("mq_server: done")
 
@@ -205,21 +185,42 @@ class AdapterConnection(object):
     def send(self, msg):
         pass
 
+    def sendBarrier(self, msg):
+        pass
+
 class MsgQueueConnection(AdapterConnection):
     def __init__(self):
+        pc = PerfCounter('mq_conn')
+        pc.start()
         self.mq = sysv_ipc.MessageQueue(Config.QueueId, mode=07777)
+        pc.stop()
 
     def send(self, msg):
+        pc = PerfCounter('mq_send')
+        pc.start()
         p = pickle.dumps(msg)
         self.mq.send(p)
+        pc.stop()
+
+    def sendBarrier(self, msg):
+        self.mq.send(pickle.dumps(msg))
 
 class RpcConnection(AdapterConnection):
     def __init__(self, addr=RpcAddress):
+        pc = PerfCounter('rpc_conn')
+        pc.start()
         self.proxy = xmlrpclib.ServerProxy(addr, allow_none=True)
+        pc.stop()
 
     def send(self, msg):
+        pc = PerfCounter('rpc_send')
+        pc.start()
         p = pickle.dumps(msg)
         self.proxy.sendFlowmod(p)
+        pc.stop()
+
+    def sendBarrier(self, msg):
+        self.proxy.sendBarrier(msg.dpid)
 
 class OvsConnection(AdapterConnection):
     command = "/usr/bin/sudo /usr/bin/ovs-ofctl"
@@ -313,6 +314,10 @@ class OfMessage(object):
         return "{0}: {1} {2}".format(self.command,
                                      self.switch,
                                      self.match)
+
+class BarrierMessage(object):
+    def __init__(self, dpid):
+        self.dpid = dpid
 
 connections = { Connection.Mq : MsgQueueConnection,
                 Connection.Ovs : OvsConnection,

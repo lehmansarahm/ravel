@@ -10,6 +10,7 @@ from pox.lib.util import dpid_to_str
 from pox.lib.util import str_to_dpid
 
 from ravel.net import OfManager, RpcAdapter, MsgQueueAdapter
+from ravel.profiling import PerfCounter
 
 log = core.getLogger()
 
@@ -19,6 +20,7 @@ class PoxManager(OfManager):
         self.log = log
         self.datapaths = {}
         self.flowstats = []
+        self.perfcounter = PerfCounter('sw_delay')
 
         core.openflow.addListeners(self, priority=0)
         self.log.info("ravel: starting pox manager")
@@ -45,6 +47,7 @@ class PoxManager(OfManager):
             self.log.info("Link up {0}".format(event.link))
 
     def _handle_BarrierIn(self, event):
+        self.perfcounter.stop()
         self.log.debug("received barrier")
 
     def _handle_FlowStatsReceived(self, event):
@@ -70,6 +73,7 @@ class PoxManager(OfManager):
             dp = self.datapaths[dpid]
             msg = of.ofp_barrier_request()
             dp.send(msg)
+            self.perfcounter.start()
             self.log.debug("dpid {0} sent barrier".format(dpid))
         else:
             self.log.debug("dpid {0} not in datapath list".format(dpid))

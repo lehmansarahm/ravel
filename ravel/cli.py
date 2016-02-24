@@ -17,6 +17,7 @@ from mininet.node import RemoteController
 import mndeps
 import db
 import util
+from profiling import ProfiledExecution
 from env import Environment, Application, Emptynet
 from log import logger
 
@@ -186,6 +187,20 @@ class RavelConsole(cmd.Cmd):
             pass
         except TypeError, e:
             print e
+
+    def do_profile(self, line):
+        "Run command and report detailed execution time"
+        if line:
+            pe = ProfiledExecution()
+            pe.start()
+            self.onecmd(line)
+
+            # wait for straggling counters to report
+            time.sleep(0.5)
+
+            pe.stop()
+            sys.stdout.write('\n')
+            pe.print_summary()
 
     def do_reinit(self, line):
         "Reinitialize the database, deleting all data except topology"
