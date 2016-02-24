@@ -34,7 +34,7 @@ def name2dbid(db, host):
                    .format(host))
     result = cursor.fetchall()
     if len(result) == 0:
-        logger.warning("Unknown host %s", host)
+        logger.warning("unknown host %s", host)
         return None
     else:
         return result[0][0]
@@ -61,7 +61,7 @@ def delFlowById(db, fid):
     # does the flow exist?
     cursor.execute("SELECT fid FROM rtm WHERE fid={0}".format(fid))
     if len(cursor.fetchall()) == 0:
-        logger.warning("No flow installed with fid %s", fid)
+        logger.warning("no flow installed with fid %s", fid)
         return None
 
     cursor.execute("DELETE FROM rtm WHERE fid={0}".format(fid))
@@ -81,7 +81,7 @@ def delFlowByHostname(db, h1, h2):
 
     result = cursor.fetchall()
     if len(result) == 0:
-        logger.warning("No flow installed for hosts {0},{1}".format(h1, h2))
+        logger.warning("no flow installed for hosts {0},{1}".format(h1, h2))
         return None
 
     return delFlowById(db, result[0][0])
@@ -298,7 +298,7 @@ def RavelCLI(opts):
     if opts.password:
         passwd = getpass.getpass("Enter password: ")
 
-    raveldb = db.RavelDb(opts.db, opts.user, BASE_SQL, passwd)
+    raveldb = db.RavelDb(opts.db, opts.user, BASE_SQL, passwd, opts.reconnect)
 
     if opts.remote:
         util.update_trigger_path(FLOW_SQL, util.libpath())

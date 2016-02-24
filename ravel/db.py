@@ -8,15 +8,32 @@ from log import logger
 ISOLEVEL = psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT
 
 class RavelDb():
-    def __init__(self, name, user, base, passwd=None):
-        self.dbname = name
+    def __init__(self, name, user, base, passwd=None, reconnect=False):
+        self.name = name
         self.user = user
         self.passwd = passwd
-        self.init(base)
+        self.cleaned = not reconnect
+
+        if not reconnect and self.num_connections() > 0:
+            logger.warning("existing connections to database, skipping reinit")
+            self.cleaned = False
+        elif not reconnect:
+            self.init(base)
+            self.cleaned = True
         
-    @property
-    def name(self):
-        return self.dbname
+    def num_connections(self):
+        conn = None
+        try:
+            cursor = self.connect().cursor()
+            cursor.execute("SELECT * FROM pg_stat_activity WHERE "
+                           "datname='{0}'".format(self.name))
+
+            # ignore cursor connection
+            return len(cursor.fetchall()) - 1
+        except psycopg2.DatabaseError, e:
+            logger.warning("error loading schema: %s", self.fmt_errmsg(e))
+
+        return 0
 
     def init(self, base):
         self.clean()

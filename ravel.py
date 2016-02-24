@@ -21,6 +21,8 @@ def parseArgs():
     parser = OptionParser(description=desc, usage=usage)
     parser.add_option('--onlydb', '-o', action='store_true', default=False,
                       help='start without mininet')
+    parser.add_option('--reconnect', '-c', action='store_true', default=False,
+                      help='reconnect to existing database, skipping reinit.')
     parser.add_option('--remote', '-r', action='store_true', default=False,
                       help='start remote controller')
     parser.add_option('--user', '-u', type='string', default=DBUSER,

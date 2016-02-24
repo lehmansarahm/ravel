@@ -165,7 +165,12 @@ class Environment(object):
 
     def start(self):
         self.net.start()
-        self.db.load_topo(self.net)
+
+        # only load topo if connecting to a clean db
+        if self.db.cleaned:
+            self.db.load_topo(self.net)
+        else:
+            logger.debug("connecting to existing db, skipping load_topo()")
 
     def stop(self):
         self.net.stop()

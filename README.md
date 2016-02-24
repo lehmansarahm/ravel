@@ -10,6 +10,7 @@
   * --password - specify db password
   * --remote - start mininet with connection to a remote controller
   * --onlydb - start without mininet
+  * --reconnect - connect to existing db session, skipping reinit
 
 ### TODO
 - [ ] from config: auto start controller (eg, pox, ovs) 
