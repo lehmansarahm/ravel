@@ -7,6 +7,7 @@ import psycopg2
 import sys
 import tabulate
 import tempfile
+import time
 from functools import partial
 
 from mininet.cli import CLI
@@ -87,11 +88,12 @@ def delFlowByHostname(db, h1, h2):
 
 class RavelConsole(cmd.Cmd):
     prompt = "ravel> "
-    intro = "RavelConsole: interactive console for Ravel."
     doc_header = "Commands (type help <topic>):"
 
     def __init__(self, env):
         self.env = env
+        self.intro = "RavelConsole: interactive console for Ravel.\n" \
+                     "Configuration:\n" + self.env.pprint()
         cmd.Cmd.__init__(self)
 
     def default(self, line):
@@ -176,9 +178,10 @@ class RavelConsole(cmd.Cmd):
             return
 
         try:
-            names = [row[0] for row in cursor.description]
             data = cursor.fetchall()
-            print tabulate.tabulate(data, headers=names)
+            if data is not None:
+                names = [row[0] for row in cursor.description]
+                print tabulate.tabulate(data, headers=names)
         except psycopg2.ProgrammingError:
             pass
         except TypeError, e:
@@ -187,6 +190,18 @@ class RavelConsole(cmd.Cmd):
     def do_reinit(self, line):
         "Reinitialize the database, deleting all data except topology"
         self.env.db.truncate()
+
+    def do_stat(self, line):
+        "Show running configuration, state"
+        print self.env.pprint()
+
+    def do_time(self, line):
+        "Run command and report execution time"
+        elapsed = time.time()
+        if line:
+            self.onecmd(line)
+        elapsed = time.time() - elapsed
+        print "\nTime: {0}ms".format(round(elapsed * 1000, 3))
 
     def do_watch(self, line):
         if not line:
@@ -255,6 +270,14 @@ def RavelCLI(opts):
     if opts.custom:
         mndeps.custom(opts.custom)
 
+    params = { 'topology' : opts.topo,
+               'pox' : 'running' if opts.remote else 'offline',
+               'mininet' : 'running' if not opts.onlydb else 'offline',
+               'database' : opts.db,
+               'username' : opts.user,
+               'app path' : [APP_DIR]
+           }
+
     topo = mndeps.build(opts.topo)
     if opts.onlydb:
         net = Emptynet(topo)
@@ -262,7 +285,14 @@ def RavelCLI(opts):
         net = Mininet(topo,
                       controller=partial(RemoteController, ip='127.0.0.1'))
     else:
-        net = Mininet(topo)
+        try:
+            net = Mininet(topo)
+        except Exception, e:
+            if not opts.remote and 'shut down the controller' in str(e):
+                print "Mininet cannot start. If running without --remote " \
+                    "flag, shut down existing controller first."
+                return
+            raise
 
     passwd = None
     if opts.password:
@@ -274,7 +304,7 @@ def RavelCLI(opts):
         util.update_trigger_path(FLOW_SQL, util.libpath())
         raveldb.load_schema(FLOW_SQL)
 
-    env = Environment(raveldb, net, [APP_DIR])
+    env = Environment(raveldb, net, [APP_DIR], params)
     env.start()
 
     while True:

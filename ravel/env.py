@@ -153,14 +153,15 @@ class Application(object):
         return True
 
 class Environment(object):
-    def __init__(self, db, net, appdirs):
+    def __init__(self, db, net, appdirs, params):
         self.db = db
         self.net = net
         self.appdirs = appdirs
         self.apps = {}
         self.loaded = {}
-        self.discover()
         self.xterms = []
+        self.params = params
+        self.discover()
 
     def start(self):
         self.net.start()
@@ -221,3 +222,11 @@ class Environment(object):
 
         for app in self.apps.values():
             app.init()
+
+    def pprint(self):
+        out = ""
+        pad = max([len(k) for k in self.params.keys()]) + 2
+        for k,v in self.params.iteritems():
+            key = "{0}:".format(k).ljust(pad, ' ')
+            out += "  {0} {1}\n".format(key, v)
+        return out
