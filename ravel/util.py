@@ -2,8 +2,12 @@
 
 import ConfigParser
 import os
+import pickle
 import re
 import sys
+import threading
+import sysv_ipc
+from sysv_ipc import ExistentialError
 
 from log import logger
 
@@ -43,6 +47,40 @@ def append_path(path):
 
     if path not in sys.path:
         sys.path.append(path)
+
+class MsgQueueReceiver(object):
+    def __init__(self, queue_id, stopmsg, msg_handler, continue_cb, log):
+        self.stopmsg = stopmsg
+        self.msg_handler = msg_handler
+        self.continue_cb = continue_cb
+        self.log = log
+        mq = sysv_ipc.MessageQueue(queue_id, sysv_ipc.IPC_CREAT,
+                                   mode=0777)
+        mq.remove()
+
+        self.mq = sysv_ipc.MessageQueue(queue_id, sysv_ipc.IPC_CREAT,
+                                        mode=0777)
+
+    def start(self):
+        t = threading.Thread(target=self._run)
+        t.start()
+
+    def shutdown(self):
+        self.mq.send(pickle.dumps(self.stopmsg))
+
+    def _run(self):
+        while self.continue_cb():
+            self.log.debug("mq_server: waiting for message")
+            try:
+                s,_ = self.mq.receive()
+                p = s.decode()
+                obj = pickle.loads(p)
+                self.log.debug("mq_server: received %s", len(p))
+                self.msg_handler(obj)
+            except ExistentialError, e:
+                self.log.warning(e)
+
+        self.log.debug("mq_server: done")
 
 class Connection:
     Ovs = 0

@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 
-import json
+import pickle
 import sysv_ipc
 import threading
 import time
 from collections import OrderedDict
 
 from log import logger
+from util import MsgQueueReceiver
 
 ProfileQueueId = 99999
 ProfileOff = "1"
@@ -38,7 +39,8 @@ class PerfCounter(object):
     def __init__(self, name, time_ms=None):
         self.name = name
 
-        if time_ms is not None:
+        self.time_ms = time_ms
+        if self.time_ms is not None:
             self.time_ms = round(float(time_ms), 3)
         self.start_time = None
 
@@ -54,17 +56,9 @@ class PerfCounter(object):
     def report(self):
         try:
             mq = sysv_ipc.MessageQueue(ProfileQueueId, mode=0777)
-            mq.send(self.to_json())
+            mq.send(pickle.dumps(self))
         except Exception, e:
             print e
-
-    def to_json(self):
-        return json.dumps((self.name, self.time_ms))
-
-    @classmethod
-    def from_json(cls, obj):
-        (name, time_ms) = json.loads(obj)
-        return PerfCounter(name, time_ms)
 
     def __repr__(self):
         return str(self)
@@ -74,14 +68,16 @@ class PerfCounter(object):
 
 class ProfiledExecution(object):
     def __init__(self):
+        self.mqserver = MsgQueueReceiver(ProfileQueueId,
+                                         None,
+                                         self.handler,
+                                         self.can_continue,
+                                         logger)
+        self.running = False
         self.counters = []
-        # clear existing messages
-        mq = sysv_ipc.MessageQueue(ProfileQueueId, sysv_ipc.IPC_CREAT,
-                                   mode=0777)
-        mq.remove()
 
-        self.mq = sysv_ipc.MessageQueue(ProfileQueueId, sysv_ipc.IPC_CREAT,
-                                        mode=0777)
+    def can_continue(self):
+        return self.running
 
     def print_summary(self):
         if len(self.counters) == 0:
@@ -90,6 +86,7 @@ class ProfiledExecution(object):
 
         agg = OrderedDict()
         summ = 0
+        print "-" * 40
         for counter in self.counters:
             summ += counter.time_ms
 
@@ -101,27 +98,20 @@ class ProfiledExecution(object):
 
         for counter, tup in agg.iteritems():
             print "{0}({1}): {2}ms".format(counter, tup[0], tup[1])
+
+        print "-" * 40
         print "Total: {0}ms".format(summ)
+
+    def start(self):
+        self.running = True
+        enable_profiling()
+        self.mqserver.start()
 
     def stop(self):
         self.running = False
-        self.mq.send(json.dumps(None))
+        self.mqserver.shutdown()
         disable_profiling()
 
-    def start(self):
-        enable_profiling()
-        self.running = True
-        t = threading.Thread(target=self.run)
-        t.start()
-
-    def run(self):
-        logger.debug("starting profile mq server")
-        while self.running:
-            try:
-                s,_ = self.mq.receive()
-                p = s.decode()
-                if p is not None and p != "null":
-                    counter = PerfCounter.from_json(p)
-                    self.counters.append(counter)
-            except ExistentialError, e:
-                logger.debug(e)
+    def handler(self, obj):
+        if obj is not None:
+            self.counters.append(obj)

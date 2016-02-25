@@ -11,7 +11,7 @@ import sysv_ipc
 
 import util
 from ravel.profiling import PerfCounter
-from ravel.util import Config, Connection
+from ravel.util import Config, Connection, MsgQueueReceiver
 util.append_path(Config.PoxDir)
 import pox.openflow.libopenflow_01 as of
 
@@ -101,9 +101,6 @@ class OfManagerAdapter(object):
     def shutdown(self, event):
         pass
 
-    def run(self):
-        pass
-
 class RpcAdapter(OfManagerAdapter):
     def __init__(self, ctrl, log):
         super(RpcAdapter, self).__init__(ctrl, log)
@@ -148,38 +145,23 @@ class MsgQueueAdapter(OfManagerAdapter):
     def __init__(self, ctrl, log):
         super(MsgQueueAdapter, self).__init__(ctrl, log)
         self.log.info("mq_server: starting")
-
-        # clear existing messages
-        mq = sysv_ipc.MessageQueue(Config.QueueId, sysv_ipc.IPC_CREAT,
-                                   mode=0777)
-        mq.remove()
-
-        self.mq = sysv_ipc.MessageQueue(Config.QueueId, sysv_ipc.IPC_CREAT,
-                                        mode=0777)
-
-        t = threading.Thread(target=self.run)
-        t.start()
+        self.server = MsgQueueReceiver(Config.QueueId,
+                                       OfMessage(),
+                                       self.msg_handler,
+                                       self.ctrl.isRunning,
+                                       self.log)
+        self.server.start()
 
     def shutdown(self, event=None):
-        # send an empty message to pop out of while loop
-        self.mq.send(pickle.dumps(OfMessage()))
+        self.server.shutdown()
 
-    def run(self):
-        while self.ctrl.isRunning():
-            self.log.debug("mq_server: waiting for message")
-            s,_ = self.mq.receive()
-            p = s.decode()
-            obj = pickle.loads(p)
-            self.log.debug("mq_server: received {0}".format(len(p)))
-
-            if isinstance(obj, BarrierMessage):
-                self.ctrl.sendBarrier(obj.dpid)
-            elif isinstance(obj, OfMessage) and obj.command is not None:
-                self.ctrl.sendFlowmod(obj)
-            else:
-                self.log.debug("unexpected object {0}".format(obj))
-
-        self.log.debug("mq_server: done")
+    def msg_handler(self, msg):
+        if isinstance(msg, BarrierMessage):
+            self.ctrl.sendBarrier(msg.dpid)
+        elif isinstance(msg, OfMessage) and msg.command is not None:
+            self.ctrl.sendFlowmod(msg)
+        else:
+            self.log.debug("unexpected object {0}".format(msg))
 
 class AdapterConnection(object):
     def send(self, msg):
