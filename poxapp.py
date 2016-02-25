@@ -5,7 +5,7 @@ import pox.openflow.libopenflow_01 as of
 from pox.core import core
 from pox.lib.recoco import *
 from pox.lib.revent import *
-from pox.lib.addresses import IPAddr, IPAddr6, EthAddr
+from pox.lib.addresses import IPAddr, EthAddr
 from pox.lib.util import dpid_to_str
 from pox.lib.util import str_to_dpid
 
