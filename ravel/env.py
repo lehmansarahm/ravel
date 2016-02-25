@@ -6,31 +6,12 @@ import re
 import subprocess
 import sys
 
-import mininet.clean
 import sqlparse
 from sqlparse.tokens import Keyword
 
 import db
-import mndeps
 import util
 from log import logger, LEVELS
-from net import MininetAdapter
-
-class Emptynet(object):
-    def __init__(self, topo):
-        self.nodes = {}
-        self.topo = topo
-
-    def getNodeByName(self, node):
-        if node in self.nodes:
-            return self.nodes[node]
-        return None
-
-    def start(self):
-        mndeps.buildSkeletonTopo(self.topo, self)
-
-    def stop(self):
-        pass
 
 class AppComponent(object):
     def __init__(self, name, typ):
@@ -155,25 +136,23 @@ class Application(object):
         return True
 
 class Environment(object):
-    def __init__(self, db, net, appdirs, params, enable_flows):
+    def __init__(self, db, provider, appdirs, params, enable_flows):
         self.db = db
-        self.net = net
         self.appdirs = appdirs
         self.apps = {}
         self.loaded = {}
         self.xterms = []
         self.params = params
         self.enable_flows = enable_flows
-        self.mn_adapter = MininetAdapter(self.db, self.net)
+        self.provider = provider
         self.discover()
 
     def start(self):
-        self.net.start()
-        self.mn_adapter.start()
+        self.provider.start()
 
         # only load topo if connecting to a clean db
         if self.db.cleaned:
-            self.db.load_topo(self.net)
+            self.db.load_topo(self.provider)
         else:
             logger.debug("connecting to existing db, skipping load_topo()")
 
@@ -188,11 +167,7 @@ class Environment(object):
         self.db.load_schema(db.TOPO_SQL)
 
     def stop(self):
-        self.net.stop()
-        self.mn_adapter.stop()
-        logger.debug("cleaning up mininet")
-        mininet.clean.cleanup()
-
+        self.provider.stop()
         if len(self.xterms) > 0:
             logger.debug("waiting for xterms")
 

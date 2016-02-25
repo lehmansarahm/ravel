@@ -9,7 +9,7 @@ from pox.lib.addresses import IPAddr, EthAddr
 from pox.lib.util import dpid_to_str
 from pox.lib.util import str_to_dpid
 
-from ravel.net import OfManager, RpcAdapter, MsgQueueAdapter
+from ravel.flows import OfManager, OfRpcSubscriber, OfMsgQueueSubscriber
 from ravel.profiling import PerfCounter
 
 log = core.getLogger()
@@ -79,10 +79,10 @@ class PoxManager(OfManager):
             self.log.debug("dpid {0} not in datapath list".format(dpid))
         return True
 
-    def registerAdapter(self, adapter):
+    def registerSubscriber(self, subscriber):
         self.log.info("registering adapter")
-        self.adapters.append(adapter)
-        core.addListener(pox.core.GoingDownEvent, adapter.shutdown)
+        self.subscribers.append(subscriber)
+        core.addListener(pox.core.GoingDownEvent, subscriber.shutdown)
 
     def isRunning(self):
         return core.running
@@ -120,8 +120,8 @@ class PoxManager(OfManager):
 
 def launch():
     ctrl = PoxManager(log)
-    mq = MsgQueueAdapter(ctrl, log)
-    ctrl.registerAdapter(mq)
-    rpc = RpcAdapter(ctrl, log)
-    ctrl.registerAdapter(rpc)
+    mq = OfMsgQueueSubscriber(ctrl, log)
+    ctrl.registerSubscriber(mq)
+    rpc = OfRpcSubscriber(ctrl, log)
+    ctrl.registerSubscriber(rpc)
     core.register("ravelcontroller", ctrl)

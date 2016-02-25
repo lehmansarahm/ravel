@@ -73,8 +73,8 @@ class RavelDb():
             if conn:
                 conn.close()
 
-    def load_topo(self, net):
-        topo = net.topo
+    def load_topo(self, provider):
+        topo = provider.topo
         conn = None
         try:
             conn = self.connect()
@@ -84,9 +84,9 @@ class RavelDb():
             nodes = {}
             for sw in topo.switches():
                 node_count += 1
-                dpid = net.getNodeByName(sw).dpid
-                ip = net.getNodeByName(sw).IP()
-                mac = net.getNodeByName(sw).MAC()
+                dpid = provider.getNodeByName(sw).dpid
+                ip = provider.getNodeByName(sw).IP()
+                mac = provider.getNodeByName(sw).MAC()
                 nodes[sw] = node_count
                 cursor.execute("INSERT INTO switches (sid, dpid, ip, mac, name) "
                                "VALUES ({0}, '{1}', '{2}', '{3}', '{4}');"
@@ -94,8 +94,8 @@ class RavelDb():
 
             for host in topo.hosts():
                 node_count += 1
-                ip = net.getNodeByName(host).IP()
-                mac = net.getNodeByName(host).MAC()
+                ip = provider.getNodeByName(host).IP()
+                mac = provider.getNodeByName(host).MAC()
                 nodes[host] = node_count
                 cursor.execute("INSERT INTO hosts (hid, ip, mac, name) "
                                "VALUES ({0}, '{1}', '{2}', '{3}');"

@@ -7,7 +7,7 @@ import time
 from collections import OrderedDict
 
 from log import logger
-from util import MsgQueueReceiver
+from network import MsgQueueSubscriber
 
 ProfileQueueId = 99999
 ProfileOff = "1"
@@ -72,16 +72,9 @@ class PerfCounter(object):
 
 class ProfiledExecution(object):
     def __init__(self):
-        self.mqserver = MsgQueueReceiver(ProfileQueueId,
-                                         None,
-                                         self.handler,
-                                         self.can_continue,
-                                         logger)
-        self.running = False
         self.counters = []
-
-    def can_continue(self):
-        return self.running
+        self.subscriber = MsgQueueSubscriber(ProfileQueueId,
+                                             self.handler)
 
     def print_summary(self):
         if len(self.counters) == 0:
@@ -107,13 +100,11 @@ class ProfiledExecution(object):
         print "Total: {0}ms".format(summ)
 
     def start(self):
-        self.running = True
         enable_profiling()
-        self.mqserver.start()
+        self.subscriber.start()
 
     def stop(self):
-        self.running = False
-        self.mqserver.shutdown()
+        self.subscriber.stop()
         disable_profiling()
 
     def handler(self, obj):

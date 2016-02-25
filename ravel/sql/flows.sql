@@ -76,14 +76,15 @@ import time
 if 'PYTHONPATH' in os.environ:
     sys.path = os.environ['PYTHONPATH'].split(':') + sys.path
 sys.path.append('/home/croft1/src/cli-ravel')
-import ravel.net
+
+import ravel.flows
 from ravel.profiling import PerfCounter
 
 pc = PerfCounter('db_select', float(diff))
 pc.report()
 
-sw = ravel.net.Switch(sw_name, sw_ip, sw_dpid)
-ravel.net.installFlow(flow_id, sw, h1ip, h1mac, h2ip, h2mac, outport, revoutport)
+sw = ravel.flows.Switch(sw_name, sw_ip, sw_dpid)
+ravel.flows.installFlow(flow_id, sw, h1ip, h1mac, h2ip, h2mac, outport, revoutport)
 
 return 0
 $$ LANGUAGE plpythonu VOLATILE SECURITY DEFINER;
@@ -170,14 +171,14 @@ if 'PYTHONPATH' in os.environ:
     sys.path = os.environ['PYTHONPATH'].split(':') + sys.path
 sys.path.append('/home/croft1/src/cli-ravel')
 
-import ravel.net
+import ravel.flows
 from ravel.profiling import PerfCounter
 
 pc = PerfCounter('db_select', float(diff))
 pc.report()
 
-sw = ravel.net.Switch(sw_name, sw_ip, sw_dpid)
-ravel.net.removeFlow(flow_id, sw, h1ip, h1mac, h2ip, h2mac, outport, revoutport)
+sw = ravel.flows.Switch(sw_name, sw_ip, sw_dpid)
+ravel.flows.removeFlow(flow_id, sw, h1ip, h1mac, h2ip, h2mac, outport, revoutport)
 
 return 0
 $$ LANGUAGE plpythonu VOLATILE SECURITY DEFINER;

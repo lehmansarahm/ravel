@@ -2,23 +2,17 @@
 
 import cmd
 import getpass
-import os
 import psycopg2
 import sys
 import tabulate
-import tempfile
 import time
 from functools import partial
-
-from mininet.cli import CLI
-from mininet.net import Mininet
-from mininet.node import RemoteController
 
 import mndeps
 import db
 import util
 import profiling
-from env import Environment, Application, Emptynet
+from env import Environment
 from log import logger
 
 # TODO: move to config
@@ -126,7 +120,13 @@ class RavelConsole(cmd.Cmd):
 
     def do_test(self, line):
         # placeholder for batch commands for testing
-        cmds = []
+        cmds = ["p insert into switches (sid) values (5);",
+                "p insert into hosts (hid) values (6);",
+                "p insert into tp values (5, 6, 0, 1, 1);"
+#                "p delete from tp where sid=5 and nid=3;",
+#                "p delete from switches where sid=5;",
+#                "p delete from hosts where hid=6;",
+        ]
         for c in cmds:
             print c
             self.onecmd(c)
@@ -176,14 +176,7 @@ class RavelConsole(cmd.Cmd):
                 print "Unknown application", app
 
     def do_m(self, line):
-        if not line:
-            CLI(self.env.net)
-        else:
-            temp = tempfile.NamedTemporaryFile(delete=False)
-            temp.write(line)
-            temp.close()
-            CLI(self.env.net, script=temp.name)
-            os.unlink(temp.name)
+        self.env.provider.cli(line)
 
     def do_p(self, line):
         cursor = self.env.db.connect().cursor()
@@ -318,26 +311,23 @@ def RavelCLI(opts):
         print "Invalid mininet topology", opts.topo
         return
 
+    passwd = None
+    if opts.password:
+        passwd = getpass.getpass("Enter password: ")
+
+    raveldb = db.RavelDb(opts.db, opts.user, db.BASE_SQL, passwd, opts.reconnect)
+    from ravel.network import MininetProvider, EmptyNetProvider
     if opts.onlydb:
-        net = Emptynet(topo)
-    elif opts.remote:
-        net = Mininet(topo,
-                      controller=partial(RemoteController, ip='127.0.0.1'))
+        net = EmptyNetProvider(raveldb, topo)
     else:
         try:
-            net = Mininet(topo)
+            net = MininetProvider(raveldb, topo, opts.remote)
         except Exception, e:
             if not opts.remote and 'shut down the controller' in str(e):
                 print "Mininet cannot start. If running without --remote " \
                     "flag, shut down existing controller first."
                 return
             raise
-
-    passwd = None
-    if opts.password:
-        passwd = getpass.getpass("Enter password: ")
-
-    raveldb = db.RavelDb(opts.db, opts.user, db.BASE_SQL, passwd, opts.reconnect)
 
     env = Environment(raveldb, net, [APP_DIR], params, opts.remote)
     env.start()
