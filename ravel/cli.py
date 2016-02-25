@@ -44,26 +44,33 @@ def addFlow(db, h1, h2):
     if hid1 is None or hid2 is None:
         return None
 
-    cursor = db.connect().cursor()
-    cursor.execute("SELECT * FROM rtm;")
-    fid = len(cursor.fetchall()) + 1
-    cursor.execute("INSERT INTO rtm (fid, host1, host2) "
-                   "VALUES ({0}, {1}, {2});"
-                   .format(fid, hid1, hid2))
-
-    return fid
+    try:
+        cursor = db.connect().cursor()
+        cursor.execute("SELECT * FROM rtm;")
+        fid = len(cursor.fetchall()) + 1
+        cursor.execute("INSERT INTO rtm (fid, host1, host2) "
+                       "VALUES ({0}, {1}, {2});"
+                       .format(fid, hid1, hid2))
+        return fid
+    except Exception, e:
+        print e
+        return None
 
 def delFlowById(db, fid):
     cursor = db.connect().cursor()
 
-    # does the flow exist?
-    cursor.execute("SELECT fid FROM rtm WHERE fid={0}".format(fid))
-    if len(cursor.fetchall()) == 0:
-        logger.warning("no flow installed with fid %s", fid)
-        return None
+    try:
+        # does the flow exist?
+        cursor.execute("SELECT fid FROM rtm WHERE fid={0}".format(fid))
+        if len(cursor.fetchall()) == 0:
+            logger.warning("no flow installed with fid %s", fid)
+            return None
 
-    cursor.execute("DELETE FROM rtm WHERE fid={0}".format(fid))
-    return fid
+        cursor.execute("DELETE FROM rtm WHERE fid={0}".format(fid))
+        return fid
+    except Exception, e:
+        print e
+        return None
 
 def delFlowByHostname(db, h1, h2):
     # convert to fid, so we can report which fid is removed
@@ -118,12 +125,8 @@ class RavelConsole(cmd.Cmd):
             print "Failure: flow not installed"
 
     def do_test(self, line):
-        cmds = ["p insert into switches (sid) values (5);",
-                "p insert into hosts (hid) values (6);",
-                "p insert into tp values (5, 6, 1, 1, 0);",
-                "p insert into tp values (5, 1, 1, 1, 0);"
-                ]
-
+        # placeholder for batch commands for testing
+        cmds = []
         for c in cmds:
             print c
             self.onecmd(c)
