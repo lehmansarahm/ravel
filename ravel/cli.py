@@ -8,15 +8,14 @@ import tabulate
 import time
 from functools import partial
 
-import mndeps
-import db
-import util
-import profiling
-from env import Environment
-from log import logger
+import ravel.mndeps
+from ravel.db import RavelDb, BASE_SQL
+from ravel.env import Environment
+from ravel.log import logger
+from ravel.util import libpath
 
 # TODO: move to config
-APP_DIR = util.libpath("apps")
+APP_DIR = libpath("apps")
 
 # TODO: move into net-type module, different from net triggers
 def name2dbid(db, host):
@@ -296,7 +295,7 @@ class RavelConsole(cmd.Cmd):
 
 def RavelCLI(opts):
     if opts.custom:
-        mndeps.custom(opts.custom)
+        ravel.mndeps.custom(opts.custom)
 
     params = { 'topology' : opts.topo,
                'pox' : 'running' if opts.remote else 'offline',
@@ -306,7 +305,7 @@ def RavelCLI(opts):
                'app path' : [APP_DIR]
            }
 
-    topo = mndeps.build(opts.topo)
+    topo = ravel.mndeps.build(opts.topo)
     if topo is None:
         print "Invalid mininet topology", opts.topo
         return
@@ -315,7 +314,12 @@ def RavelCLI(opts):
     if opts.password:
         passwd = getpass.getpass("Enter password: ")
 
-    raveldb = db.RavelDb(opts.db, opts.user, db.BASE_SQL, passwd, opts.reconnect)
+    raveldb = ravel.db.RavelDb(opts.db,
+                               opts.user,
+                               ravel.db.BASE_SQL,
+                               passwd,
+                               opts.reconnect)
+
     from ravel.network import MininetProvider, EmptyNetProvider
     if opts.onlydb:
         net = EmptyNetProvider(raveldb, topo)
@@ -328,6 +332,9 @@ def RavelCLI(opts):
                     "flag, shut down existing controller first."
                 return
             raise
+
+    if net is None:
+        print "Cannot start networ"
 
     env = Environment(raveldb, net, [APP_DIR], params, opts.remote)
     env.start()

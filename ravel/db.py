@@ -2,14 +2,14 @@
 
 import psycopg2
 
-import util
-from log import logger
+from ravel.log import logger
+from ravel.util import libpath
 
 ISOLEVEL = psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT
 
-BASE_SQL = util.libpath("ravel/sql/primitive.sql")
-FLOW_SQL = util.libpath("ravel/sql/flows.sql")
-TOPO_SQL = util.libpath("ravel/sql/topo.sql")
+BASE_SQL = libpath("ravel/sql/primitive.sql")
+FLOW_SQL = libpath("ravel/sql/flows.sql")
+TOPO_SQL = libpath("ravel/sql/topo.sql")
 
 class RavelDb():
     def __init__(self, name, user, base, passwd=None, reconnect=False):

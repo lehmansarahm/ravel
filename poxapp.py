@@ -9,7 +9,7 @@ from pox.lib.addresses import IPAddr, EthAddr
 from pox.lib.util import dpid_to_str
 from pox.lib.util import str_to_dpid
 
-from ravel.flows import OfManager, OfRpcSubscriber, OfMsgQueueSubscriber
+from ravel.flow import OfManager, OfRpcSubscriber, OfMsgQueueSubscriber
 from ravel.profiling import PerfCounter
 
 log = core.getLogger()

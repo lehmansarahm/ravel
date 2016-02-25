@@ -2,14 +2,11 @@
 
 import ConfigParser
 import os
-import pickle
 import re
 import sys
-import threading
-import sysv_ipc
-from sysv_ipc import ExistentialError
 
-from log import logger
+from ravel.log import logger
+from ravel.proto import ConnectionType
 
 def libpath(path=None):
     install_path = os.path.dirname(os.path.abspath(__file__))
@@ -48,15 +45,6 @@ def append_path(path):
     if path not in sys.path:
         sys.path.append(path)
 
-class Connection:
-    Ovs = 0
-    Rpc = 1
-    Mq = 2
-    Names = { "ovs" : Ovs,
-              "rpc" : Rpc,
-              "mq" : Mq
-          }
-
 class ConfigParameters(object):
     def __init__(self):
         self.RpcHost = None
@@ -75,7 +63,7 @@ class ConfigParameters(object):
 
         if parser.has_option("of_manager", "connection"):
             name = parser.get("of_manager", "connection").lower()
-            self.Connection = Connection.Names[name]
+            self.Connection = ConnectionType.Name[name]
 
         if parser.has_option("rpc", "rpchost"):
             self.RpcHost = parser.get("rpc", "rpchost")

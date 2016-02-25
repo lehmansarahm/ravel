@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 import logging
-from logging import Logger
 import types
+from logging import Logger
 
 LEVELS = { 'debug' : logging.DEBUG,
            'info' : logging.INFO,

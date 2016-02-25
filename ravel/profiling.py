@@ -6,8 +6,8 @@ import threading
 import time
 from collections import OrderedDict
 
-from log import logger
-from network import MsgQueueSubscriber
+from ravel.log import logger
+from ravel.network import MsgQueueSubscriber
 
 ProfileQueueId = 99999
 ProfileOff = "1"

@@ -2,7 +2,6 @@
 
 import os
 import pickle
-import sys
 import threading
 import xmlrpclib
 from SimpleXMLRPCServer import SimpleXMLRPCServer
@@ -10,13 +9,12 @@ from SimpleXMLRPCServer import SimpleXMLRPCServer
 import sysv_ipc
 from mininet.net import macColonHex, netParse, ipAdd
 
-import util
 from ravel.log import logger
+from ravel.util import Config, append_path
 from ravel.profiling import PerfCounter
-from ravel.util import Config, Connection
-from ravel.network import MsgQueueSubscriber
+from ravel.proto import MsgQueueSubscriber, ConnectionType
 
-util.append_path(Config.PoxDir)
+append_path(Config.PoxDir)
 import pox.openflow.libopenflow_01 as of
 
 OFPP_FLOOD = of.OFPP_FLOOD
@@ -303,7 +301,7 @@ class BarrierMessage(object):
     def __init__(self, dpid):
         self.dpid = dpid
 
-connections = { Connection.Mq : OfMsgQueuePublisher,
-                Connection.Ovs : OfOvsPublisher,
-                Connection.Rpc : OfRpcPublisher
+connections = { ConnectionType.Mq : OfMsgQueuePublisher,
+                ConnectionType.Ovs : OfOvsPublisher,
+                ConnectionType.Rpc : OfRpcPublisher
          }

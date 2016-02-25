@@ -10,9 +10,10 @@ import sys
 
 if 'PYTHONPATH' in os.environ:
     sys.path = os.environ['PYTHONPATH'].split(':') + sys.path
-sys.path.append('/home/croft1/src/cli-ravel')
+sys.path.append('/home/croftj/src/cli-ravel')
 
-from ravel.network import AddLinkMessage, NetworkProvider, MsgQueuePublisher
+from ravel.network import AddLinkMessage, NetworkProvider
+from ravel.proto import MsgQueuePublisher
 
 sid = TD["new"]["sid"]
 nid = TD["new"]["nid"]
@@ -39,9 +40,10 @@ import sys
 
 if 'PYTHONPATH' in os.environ:
     sys.path = os.environ['PYTHONPATH'].split(':') + sys.path
-sys.path.append('/home/croft1/src/cli-ravel')
+sys.path.append('/home/croftj/src/cli-ravel')
 
-from ravel.network import RemoveLinkMessage, NetworkProvider, MsgQueuePublisher
+from ravel.network import RemoveLinkMessage, NetworkProvider
+from ravel.proto import MsgQueuePublisher
 
 sid = TD["old"]["sid"]
 nid = TD["old"]["nid"]
@@ -71,9 +73,10 @@ import sys
 
 if 'PYTHONPATH' in os.environ:
     sys.path = os.environ['PYTHONPATH'].split(':') + sys.path
-sys.path.append('/home/croft1/src/cli-ravel')
+sys.path.append('/home/croftj/src/cli-ravel')
 
-from ravel.network import AddSwitchMessage, NetworkProvider, MsgQueuePublisher
+from ravel.network import AddSwitchMessage, NetworkProvider
+from ravel.proto import MsgQueuePublisher
 
 sid = TD["new"]["sid"]
 name = TD["new"]["name"]
@@ -101,9 +104,10 @@ import sys
 
 if 'PYTHONPATH' in os.environ:
     sys.path = os.environ['PYTHONPATH'].split(':') + sys.path
-sys.path.append('/home/croft1/src/cli-ravel')
+sys.path.append('/home/croftj/src/cli-ravel')
 
-from ravel.network import RemoveSwitchMessage, NetworkProvider, MsgQueuePublisher
+from ravel.network import RemoveSwitchMessage, NetworkProvider
+from ravel.proto import MsgQueuePublisher
 
 sid = TD["old"]["sid"]
 name = TD["old"]["name"]
@@ -133,9 +137,10 @@ import sys
 
 if 'PYTHONPATH' in os.environ:
     sys.path = os.environ['PYTHONPATH'].split(':') + sys.path
-sys.path.append('/home/croft1/src/cli-ravel')
+sys.path.append('/home/croftj/src/cli-ravel')
 
-from ravel.network import AddHostMessage, NetworkProvider, MsgQueuePublisher
+from ravel.network import AddHostMessage, NetworkProvider
+from ravel.proto import MsgQueuePublisher
 
 hid = TD["new"]["hid"]
 name = TD["new"]["name"]
@@ -162,9 +167,10 @@ import sys
 
 if 'PYTHONPATH' in os.environ:
     sys.path = os.environ['PYTHONPATH'].split(':') + sys.path
-sys.path.append('/home/croft1/src/cli-ravel')
+sys.path.append('/home/croftj/src/cli-ravel')
 
-from ravel.network import RemoveHostMessage, NetworkProvider, MsgQueuePublisher
+from ravel.network import RemoveHostMessage, NetworkProvider
+from ravel.proto import MsgQueuePublisher
 
 hid = TD["old"]["hid"]
 name = TD["old"]["name"]
