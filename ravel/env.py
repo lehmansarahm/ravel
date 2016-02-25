@@ -10,9 +10,11 @@ import mininet.clean
 import sqlparse
 from sqlparse.tokens import Keyword
 
-from log import logger, LEVELS
-import util
+import db
 import mndeps
+import util
+from log import logger, LEVELS
+from net import MininetAdapter
 
 class Emptynet(object):
     def __init__(self, topo):
@@ -153,7 +155,7 @@ class Application(object):
         return True
 
 class Environment(object):
-    def __init__(self, db, net, appdirs, params):
+    def __init__(self, db, net, appdirs, params, enable_flows):
         self.db = db
         self.net = net
         self.appdirs = appdirs
@@ -161,10 +163,13 @@ class Environment(object):
         self.loaded = {}
         self.xterms = []
         self.params = params
+        self.enable_flows = enable_flows
+        self.mn_adapter = MininetAdapter(self.db, self.net)
         self.discover()
 
     def start(self):
         self.net.start()
+        self.mn_adapter.start()
 
         # only load topo if connecting to a clean db
         if self.db.cleaned:
@@ -172,8 +177,19 @@ class Environment(object):
         else:
             logger.debug("connecting to existing db, skipping load_topo()")
 
+        # TODO: eventually we will only run mininet as remote, so remove this
+        if self.enable_flows:
+            util.update_trigger_path(db.FLOW_SQL, util.libpath())
+            self.db.load_schema(db.FLOW_SQL)
+
+        # delay loading of topo triggers until after db is loaded
+        # we only want to catch updates
+        util.update_trigger_path(db.TOPO_SQL, util.libpath())
+        self.db.load_schema(db.TOPO_SQL)
+
     def stop(self):
         self.net.stop()
+        self.mn_adapter.stop()
         logger.debug("cleaning up mininet")
         mininet.clean.cleanup()
 

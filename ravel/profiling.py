@@ -32,8 +32,12 @@ def disable_profiling():
     shm.detach()
 
 def is_profiled():
-    shm = sysv_ipc.SharedMemory(ProfileQueueId)
-    return shm.read().strip('\0') == ProfileOn
+    try:
+        shm = sysv_ipc.SharedMemory(ProfileQueueId)
+        return shm.read().strip('\0') == ProfileOn
+    except ExistentialError, e:
+        logger.warning("profile queue doesn't exist: %", e)
+        return False
 
 class PerfCounter(object):
     def __init__(self, name, time_ms=None):
@@ -51,7 +55,7 @@ class PerfCounter(object):
     def stop(self):
         if self.start_time is not None:
             self.time_ms = round((time.time() - self.start_time) * 1000, 3)
-        self.report()
+            self.report()
 
     def report(self):
         try:

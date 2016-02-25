@@ -10,7 +10,7 @@ from mininet.topolib import TreeTopo
 from mininet.util import buildTopo
 
 from mininet.net import Mininet
-from mininet.net import macColonHex, ipStr, ipParse, netParse, ipAdd
+from mininet.net import macColonHex, netParse, ipAdd
 from mininet.node import (Node, Host, OVSKernelSwitch)
 
 

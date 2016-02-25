@@ -17,12 +17,9 @@ from mininet.node import RemoteController
 import mndeps
 import db
 import util
-from profiling import ProfiledExecution
+import profiling
 from env import Environment, Application, Emptynet
 from log import logger
-
-BASE_SQL = util.libpath("ravel/sql/primitive.sql")
-FLOW_SQL = util.libpath("ravel/sql/flows.sql")
 
 # TODO: move to config
 APP_DIR = util.libpath("apps")
@@ -95,6 +92,7 @@ class RavelConsole(cmd.Cmd):
         self.env = env
         self.intro = "RavelConsole: interactive console for Ravel.\n" \
                      "Configuration:\n" + self.env.pprint()
+
         cmd.Cmd.__init__(self)
 
     def default(self, line):
@@ -103,6 +101,9 @@ class RavelConsole(cmd.Cmd):
             self.env.loaded[cmd].cmd(line[len(cmd):])
         else:
             print '*** Unknown command: %s' % line
+
+    def emptyline(self):
+        return
 
     def do_addflow(self, line):
         args = line.split()
@@ -115,6 +116,17 @@ class RavelConsole(cmd.Cmd):
             print "Success: installed flow with fid", fid
         else:
             print "Failure: flow not installed"
+
+    def do_test(self, line):
+        cmds = ["p insert into switches (sid) values (5);",
+                "p insert into hosts (hid) values (6);",
+                "p insert into tp values (5, 6, 1, 1, 0);",
+                "p insert into tp values (5, 1, 1, 1, 0);"
+                ]
+
+        for c in cmds:
+            print c
+            self.onecmd(c)
 
     def do_delflow(self, line):
         args = line.split()
@@ -184,6 +196,7 @@ class RavelConsole(cmd.Cmd):
                 names = [row[0] for row in cursor.description]
                 print tabulate.tabulate(data, headers=names)
         except psycopg2.ProgrammingError:
+            # no results, eg from an insert/delete
             pass
         except TypeError, e:
             print e
@@ -191,7 +204,7 @@ class RavelConsole(cmd.Cmd):
     def do_profile(self, line):
         "Run command and report detailed execution time"
         if line:
-            pe = ProfiledExecution()
+            pe = profiling.ProfiledExecution()
             pe.start()
             self.onecmd(line)
 
@@ -321,13 +334,9 @@ def RavelCLI(opts):
     if opts.password:
         passwd = getpass.getpass("Enter password: ")
 
-    raveldb = db.RavelDb(opts.db, opts.user, BASE_SQL, passwd, opts.reconnect)
+    raveldb = db.RavelDb(opts.db, opts.user, db.BASE_SQL, passwd, opts.reconnect)
 
-    if opts.remote:
-        util.update_trigger_path(FLOW_SQL, util.libpath())
-        raveldb.load_schema(FLOW_SQL)
-
-    env = Environment(raveldb, net, [APP_DIR], params)
+    env = Environment(raveldb, net, [APP_DIR], params, opts.remote)
     env.start()
 
     while True:

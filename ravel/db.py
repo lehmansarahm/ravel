@@ -7,6 +7,10 @@ from log import logger
 
 ISOLEVEL = psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT
 
+BASE_SQL = util.libpath("ravel/sql/primitive.sql")
+FLOW_SQL = util.libpath("ravel/sql/flows.sql")
+TOPO_SQL = util.libpath("ravel/sql/topo.sql")
+
 class RavelDb():
     def __init__(self, name, user, base, passwd=None, reconnect=False):
         self.name = name

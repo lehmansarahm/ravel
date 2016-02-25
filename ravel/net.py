@@ -8,10 +8,13 @@ import xmlrpclib
 from SimpleXMLRPCServer import SimpleXMLRPCServer
 
 import sysv_ipc
+from mininet.net import macColonHex, netParse, ipAdd
 
 import util
+from ravel.log import logger
 from ravel.profiling import PerfCounter
 from ravel.util import Config, Connection, MsgQueueReceiver
+
 util.append_path(Config.PoxDir)
 import pox.openflow.libopenflow_01 as of
 
@@ -21,6 +24,253 @@ OFPFC_DELETE = of.OFPFC_DELETE
 OFPFC_DELETE_STRICT = of.OFPFC_DELETE_STRICT
 
 RpcAddress = "http://{0}:{1}".format(Config.RpcHost, Config.RpcPort)
+MininetQueueId = 5555
+
+# TODO: move into net-type module, different from net triggers
+def dbid2name(db, nid):
+    cursor = db.connect().cursor()
+    cursor.execute("SELECT name FROM nodes WHERE id={0}".format(nid))
+    result = cursor.fetchall()
+    if len(result) == 0:
+        logger.warning("cannot find node with id %s", nid)
+    else:
+        return result[0][0]
+
+class MininetAdapter(object):
+    def __init__(self, db, net):
+        self.db = db
+        self.net = net
+        from util import MsgQueueReceiver
+        from net import MininetQueueId
+        self.server = MsgQueueReceiver(MininetQueueId,
+                                       None,
+                                       self.handler,
+                                       self.can_continue,
+                                       logger)
+
+    def can_continue(self):
+        return self.running
+
+    def start(self):
+        self.running = True
+        self.server.start()
+
+    def stop(self):
+        self.running = False
+        self.server.shutdown()
+
+    def handler(self, msg):
+        if msg is not None:
+            msg.update(self.db, self.net)
+
+class AddSwitchMessage(object):
+    def __init__(self, sid, name, dpid, ip, mac):
+        self.sid = sid
+        self.name = name
+        self.dpid = dpid
+        self.ip = ip
+        self.mac = mac
+
+    def update(self, db, net):
+        default = {}
+        if self.dpid is not None:
+            default['dpid'] = str(self.dpid)
+
+        if self.name is None:
+            self.name = 's' + str(self.sid)
+            cursor = db.connect().cursor()
+            cursor.execute("UPDATE switches SET name='{0}' WHERE sid={1}"
+                       .format(self.name, self.sid))
+
+        net.addSwitch(self.name, listenPort=6633, **default)
+
+        if self.dpid is None:
+            self.dpid = net.get(self.name).dpid
+            cursor = db.connect().cursor()
+            cursor.execute("UPDATE switches SET dpid='{0}' WHERE sid={1}"
+                       .format(self.dpid, self.sid))
+
+        sw = net.get(self.name)
+        sw.start(net.controllers)
+        net.topo.addSwitch(self.name)
+
+class RemoveSwitchMessage(object):
+    def __init__(self, sid, name):
+        self.sid = sid
+        self.name = name
+
+    def update(self, db, net):
+        swobj = net.get(self.name)
+        for intf in net.get(self.name).intfNames():
+            swobj.detach(intf)
+            del swobj.nameToIntf[intf]
+            del swobj.intfs[swport]
+        net.topo.g.node.pop(self.name, None)
+        net.switches = [s for s in net.switches if s.name != self.name]
+        del net.nameToNode[self.name]
+
+class AddHostMessage(object):
+    def __init__(self, hid, name, ip, mac):
+        self.hid = hid
+        self.name = name
+        self.ip = ip
+        self.mac = mac
+
+    def update(self, db, net):
+        if self.name is None:
+            self.name = 'h' + str(self.hid)
+            cursor = db.connect().cursor()
+            cursor.execute("UPDATE hosts SET name='{0}' WHERE hid={1}"
+                       .format(self.name, self.hid))
+
+        net.addHost(self.name)
+        host = net.get(self.name)
+        net.topo.addHost(self.name)
+
+        # delay setting ip/mac until link is added
+        if self.ip is None:
+            # TODO: reference mndeps
+            ipBase = '10.0.0.0/8'
+            ipBaseNum, prefixLen = netParse(ipBase)
+            nextIp = len(net.hosts) + 1
+            self.ip = ipAdd(nextIp, ipBaseNum=ipBaseNum, prefixLen=prefixLen)
+
+            cursor = db.connect().cursor()
+            cursor.execute("UPDATE hosts SET ip='{0}' WHERE hid={1}"
+                       .format(self.ip, self.hid))
+
+        if self.mac is None:
+            self.mac = macColonHex(nextIp)
+            cursor = db.connect().cursor()
+            cursor.execute("UPDATE hosts SET mac='{0}' WHERE hid={1}"
+                           .format(self.mac, self.hid))
+
+class RemoveHostMessage(object):
+    def __init__(self, hid, name):
+        self.hid = hid
+        self.name = name
+
+    def update(self, db, net):
+        # find adjacent switch(es)
+        sw = [intf.link.intf2.node.name for
+              intf in net.get(self.name).intfList() if
+              net.topo.isSwitch(intf.link.intf2.node.name)]
+
+        net.get(self.name).terminate()
+        net.topo.g.node.pop(self.name, None)
+        net.hosts = [h for h in net.hosts if h.name != self.name]
+        del net.nameToNode[self.name]
+
+        if len(sw) == 0:
+            logger.debug("deleting host connected to 0 switches")
+            return
+        elif len(sw) > 1:
+            raise Exception("cannot support hosts connected to %s switches",
+                            len(sw))
+
+        swname = str(sw[0])
+        swobj = net.get(swname)
+        swport = net.topo.port(swname, self.name)[0]
+        intf = str(swobj.intfList()[swport])
+        swobj.detach(intf)
+        del swobj.nameToIntf[intf]
+        del swobj.intfs[swport]
+
+class AddLinkMessage(object):
+    def __init__(self, node1, node2, isHost, isActive):
+        self.node1 = node1
+        self.node2 = node2
+        self.isHost = isHost
+        self.isActive = isActive
+
+    def _create(self, db, net, hid, name):
+        if net.topo.isSwitch(name):
+            intf = net.get(name).intfNames()[-1]
+            net.get(name).attach(intf)
+        else:
+            cursor = db.connect().cursor()
+            cursor.execute("SELECT ip, mac FROM hosts WHERE hid={0}"
+                           .format(hid))
+            results = cursor.fetchall()
+            ip = results[0][0]
+            mac = results[0][1]
+            net.get(name).setIP(ip)
+            net.get(name).setMAC(mac)
+
+    def update(self, db, net):
+        name1 = dbid2name(db, self.node1)
+        name2 = dbid2name(db, self.node2)
+        net.addLink(name1, name2)
+        net.topo.addLink(name1, name2)
+        self._create(db, net, self.node1, name1)
+        self._create(db, net, self.node2, name2)
+
+        # don't forget to update port mapping
+        isHost = 1
+        if net.topo.isSwitch(name1) and net.topo.isSwitch(name2):
+            isHost = 0
+
+        port1, port2 = net.topo.port(name1, name2)
+        cursor = db.connect().cursor()
+        cursor.execute("INSERT INTO PORTS (sid, nid, port) "
+                       "VALUES ({0}, {1}, {2}), ({1}, {0}, {3});"
+                       .format(self.node1, self.node2,
+                               port1, port2))
+
+class RemoveLinkMessage(object):
+    def __init__(self, node1, node2):
+        self.node1 = node1
+        self.node2 = node2
+
+    def _destroy(self, db, net, hid, name, port):
+        # detach switch, remove interfaces
+        # similar to remove host, switch but keeping the node
+        obj = net.get(name)
+        intf = obj.intfNames()[port]
+
+        if net.topo.isSwitch(name):
+            obj.detach(intf)
+
+        del obj.nameToIntf[intf]
+        del obj.intfs[port]
+
+    def update(self, db, net):
+        name1 = dbid2name(db, self.node1)
+        name2 = dbid2name(db, self.node2)
+        port1, port2 = net.topo.port(name1, name2)
+
+        self._destroy(db, net, self.node1, name1, port1)
+        self._destroy(db, net, self.node2, name2, port2)
+
+def addLink(sid, nid, isHost, isActive):
+    msg = AddLinkMessage(sid, nid, isHost, isActive)
+    conn = MsgQueueConnection(MininetQueueId)
+    conn.send(msg)
+
+def removeLink(sid, nid):
+    msg = RemoveLinkMessage(sid, nid)
+    conn = MsgQueueConnection(MininetQueueId)
+    conn.send(msg)
+
+def addHost(hid, name, ip, mac):
+    msg = AddHostMessage(hid, name, ip, mac)
+    conn = MsgQueueConnection(MininetQueueId)
+    conn.send(msg)
+
+def removeHost(hid, name):
+    msg = RemoveHostMessage(hid, name)
+    conn = MsgQueueConnection(MininetQueueId)
+    conn.send(msg)
+
+def addSwitch(sid, name, dpid, ip, mac):
+    msg = AddSwitchMessage(sid, name, dpid, ip, mac)
+    conn = MsgQueueConnection(MininetQueueId)
+    conn.send(msg)
+
+def removeSwitch(sid, name):
+    msg = RemoveSwitchMessage(sid, name)
+    conn = MsgQueueConnection(MininetQueueId)
+    conn.send(msg)
 
 def connectionFactory(conn):
     return connections[conn]()
@@ -171,10 +421,10 @@ class AdapterConnection(object):
         pass
 
 class MsgQueueConnection(AdapterConnection):
-    def __init__(self):
+    def __init__(self, queue_id=Config.QueueId):
         pc = PerfCounter('mq_conn')
         pc.start()
-        self.mq = sysv_ipc.MessageQueue(Config.QueueId, mode=07777)
+        self.mq = sysv_ipc.MessageQueue(queue_id, mode=07777)
         pc.stop()
 
     def send(self, msg):
