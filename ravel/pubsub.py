@@ -7,9 +7,9 @@ import xmlrpclib
 import sysv_ipc
 from SimpleXMLRPCServer import SimpleXMLRPCServer
 
+import ravel.profiling
 from ravel.log import logger
 from ravel.of import OFPP_FLOOD, OFPFC_ADD, OFPFC_DELETE, OFPFC_DELETE_STRICT
-from ravel.perf import PerfCounter
 
 class Publisher(object):
     def __init__(self, proto):
@@ -18,7 +18,7 @@ class Publisher(object):
 
     def send(self, msg):
         p = pickle.dumps(msg)
-        pc = PerfCounter(self.proto.name + "_send")
+        pc = ravel.profiling.PerfCounter(self.proto.name + "_send")
         pc.start()
         self.proto.send(p)
         pc.stop()
