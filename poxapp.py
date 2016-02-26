@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-
 import pox.openflow.libopenflow_01 as of
 from pox.core import core
 from pox.lib.recoco import *
@@ -9,8 +8,10 @@ from pox.lib.addresses import IPAddr, EthAddr
 from pox.lib.util import dpid_to_str
 from pox.lib.util import str_to_dpid
 
-from ravel.flow import OfManager, OfRpcSubscriber, OfMsgQueueSubscriber
+from ravel.util import Config
 from ravel.profiling import PerfCounter
+from ravel.pubsub import Subscriber, MsgQueueProtocol, RpcProtocol
+from ravel.of import OfManager
 
 log = core.getLogger()
 
@@ -82,7 +83,8 @@ class PoxManager(OfManager):
     def registerSubscriber(self, subscriber):
         self.log.info("registering adapter")
         self.subscribers.append(subscriber)
-        core.addListener(pox.core.GoingDownEvent, subscriber.shutdown)
+        subscriber.start()
+        core.addListener(pox.core.GoingDownEvent, subscriber.stop)
 
     def isRunning(self):
         return core.running
@@ -120,8 +122,8 @@ class PoxManager(OfManager):
 
 def launch():
     ctrl = PoxManager(log)
-    mq = OfMsgQueueSubscriber(ctrl, log)
+    mq = Subscriber(MsgQueueProtocol(Config.QueueId, ctrl))
     ctrl.registerSubscriber(mq)
-    rpc = OfRpcSubscriber(ctrl, log)
+    rpc = Subscriber(RpcProtocol(Config.RpcHost, Config.RpcPort, ctrl))
     ctrl.registerSubscriber(rpc)
     core.register("ravelcontroller", ctrl)

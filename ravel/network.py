@@ -15,7 +15,7 @@ from mininet.node import RemoteController
 import sysv_ipc
 
 from ravel.log import logger
-from ravel.proto import MsgQueueSubscriber
+from ravel.pubsub import Subscriber, MsgQueueProtocol
 
 # TODO: move to provider?
 def dbid2name(db, nid):
@@ -28,11 +28,10 @@ def dbid2name(db, nid):
         return result[0][0]
 
 class NetworkProvider(object):
-    QueueId = 5555
+    QueueId = 123456
 
     def __init__(self, subscriber_queue):
-        self.subscriber = MsgQueueSubscriber(subscriber_queue,
-                                             self._on_update)
+        self.subscriber = Subscriber(MsgQueueProtocol(subscriber_queue, self))
 
     def _on_update(self, msg):
         msg.consume(self)

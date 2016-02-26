@@ -6,7 +6,15 @@ import re
 import sys
 
 from ravel.log import logger
-from ravel.proto import ConnectionType
+
+class ConnectionType:
+    Ovs = 0
+    Rpc = 1
+    Mq = 2
+    Name = { "ovs" : Ovs,
+             "rpc" : Rpc,
+             "mq" : Mq
+         }
 
 def libpath(path=None):
     install_path = os.path.dirname(os.path.abspath(__file__))

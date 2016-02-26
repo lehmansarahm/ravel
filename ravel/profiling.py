@@ -6,8 +6,8 @@ import threading
 import time
 from collections import OrderedDict
 
+import ravel.pubsub
 from ravel.log import logger
-from ravel.network import MsgQueueSubscriber
 
 ProfileQueueId = 99999
 ProfileOff = "1"
@@ -35,7 +35,7 @@ def is_profiled():
     try:
         shm = sysv_ipc.SharedMemory(ProfileQueueId)
         return shm.read().strip('\0') == ProfileOn
-    except ExistentialError, e:
+    except sysv_ipc.ExistentialError, e:
         logger.warning("profile queue doesn't exist: %", e)
         return False
 
@@ -57,6 +57,9 @@ class PerfCounter(object):
             self.time_ms = round((time.time() - self.start_time) * 1000, 3)
             self.report()
 
+    def consume(self, consumer):
+        consumer.handler(self)
+
     def report(self):
         try:
             mq = sysv_ipc.MessageQueue(ProfileQueueId, mode=0777)
@@ -73,8 +76,8 @@ class PerfCounter(object):
 class ProfiledExecution(object):
     def __init__(self):
         self.counters = []
-        self.subscriber = MsgQueueSubscriber(ProfileQueueId,
-                                             self.handler)
+        proto = ravel.pubsub.MsgQueueProtocol(ProfileQueueId, self)
+        self.subscriber = ravel.pubsub.Subscriber(proto)
 
     def print_summary(self):
         if len(self.counters) == 0:

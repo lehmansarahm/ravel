@@ -9,6 +9,7 @@ import time
 from functools import partial
 
 import ravel.mndeps
+import ravel.profiling
 from ravel.db import RavelDb, BASE_SQL
 from ravel.env import Environment
 from ravel.log import logger
@@ -121,10 +122,14 @@ class RavelConsole(cmd.Cmd):
         # placeholder for batch commands for testing
         cmds = ["p insert into switches (sid) values (5);",
                 "p insert into hosts (hid) values (6);",
-                "p insert into tp values (5, 6, 0, 1, 1);"
-#                "p delete from tp where sid=5 and nid=3;",
-#                "p delete from switches where sid=5;",
-#                "p delete from hosts where hid=6;",
+                "p insert into tp values (5, 6, 0, 1, 1);",
+                "addflow h1 h2",
+                "delflow h1 h2",
+                "addflow h2 h9",
+                "delflow h1 h9",
+                "p delete from tp where sid=5 and nid=3;",
+                "p delete from switches where sid=5;",
+                "p delete from hosts where hid=6;",
         ]
         for c in cmds:
             print c
@@ -199,7 +204,7 @@ class RavelConsole(cmd.Cmd):
     def do_profile(self, line):
         "Run command and report detailed execution time"
         if line:
-            pe = profiling.ProfiledExecution()
+            pe = ravel.profiling.ProfiledExecution()
             pe.start()
             self.onecmd(line)
 
