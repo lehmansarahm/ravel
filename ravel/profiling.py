@@ -77,6 +77,7 @@ class ProfiledExecution(object):
     def __init__(self):
         self.counters = []
         proto = ravel.pubsub.MsgQueueProtocol(ProfileQueueId, self)
+        proto.reset()
         self.subscriber = ravel.pubsub.Subscriber(proto)
 
     def print_summary(self):

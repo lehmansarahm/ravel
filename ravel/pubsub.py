@@ -72,10 +72,6 @@ class MsgQueueProtocol(PubsubProtocol):
         self.mq = sysv_ipc.MessageQueue(self.queue_id,
                                         sysv_ipc.IPC_CREAT,
                                         mode=0777)
-#        mq.remove()
-#        self.mq = sysv_ipc.MessageQueue(self.queue_id,
-#                                        sysv_ipc.IPC_CREAT,
-#                                        mode=0777)
 
     def init_sub(self):
         try:
@@ -97,6 +93,9 @@ class MsgQueueProtocol(PubsubProtocol):
         return s.decode()
 
     def reset(self):
+        self.mq = sysv_ipc.MessageQueue(self.queue_id,
+                                        sysv_ipc.IPC_CREAT,
+                                        mode=0777)
         self.mq.remove()
         self.mq = sysv_ipc.MessageQueue(self.queue_id,
                                         sysv_ipc.IPC_CREAT,
