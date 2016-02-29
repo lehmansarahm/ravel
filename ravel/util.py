@@ -27,6 +27,7 @@ def libpath(path=None):
     return os.path.normpath(os.path.join(install_path, path))
 
 def update_trigger_path(filename, path):
+    path = os.path.expanduser(path)
     if not os.path.isfile(filename):
         logger.warning("cannot find sql file %s", filename)
         return
@@ -42,6 +43,7 @@ def update_trigger_path(filename, path):
     open(filename, 'w').write(content)
 
 def append_path(path):
+    path = os.path.expanduser(path)
     if 'PYTHONPATH' not in os.environ:
         os.environ['PYTHONPATH'] = ""
 

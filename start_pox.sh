@@ -1,8 +1,9 @@
 #!/bin/bash
 
-CWD="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-POXPATH=~/src/pox
+eval $(grep "^PoxDir=" ravel.cfg)
 
+CWD="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 export PYTHONPATH=.:$CWD
-${POXPATH}/pox.py log.level --DEBUG openflow.of_01 --port=6633 poxapp
+
+${PoxDir}/pox.py log.level --DEBUG openflow.of_01 --port=6633 poxapp
 
