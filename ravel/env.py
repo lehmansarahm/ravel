@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import cmd
 import importlib
 import os
 import re
@@ -12,6 +13,23 @@ from sqlparse.tokens import Keyword
 import db
 import util
 from log import logger, LEVELS
+
+class AppConsole(cmd.Cmd):
+    def __init__(self, cursor):
+        self.cursor = cursor
+        cmd.Cmd.__init__(self)
+
+    def emptyline(self):
+        return
+
+    def do_EOF(self, line):
+        "Quit application console"
+        sys.stdout.write('\n')
+        return True
+
+    def do_exit(self, line):
+        "Quit application console"
+        return True
 
 class AppComponent(object):
     def __init__(self, name, typ):
@@ -37,6 +55,7 @@ class Application(object):
         self.sqlfile = None
         self.module = None
         self.components = []
+        self.console = None
 
     def link(self, filename):
         if filename.endswith(".py"):
@@ -64,7 +83,7 @@ class Application(object):
                                                        cascade)
             cursor.execute(cmd)
 
-    def init(self):
+    def init(self, db):
         if not self.pyfile:
             return
 
@@ -74,16 +93,10 @@ class Application(object):
 
         try:
             self.module = importlib.import_module(self.name)
-
-            # check if quit/EOF implemented
-            if not "do_exit" in dir(self.module.console):
-                self.module.console.do_exit = self._default_exit
-
-            if not "do_EOF" in dir(self.module.console):
-                self.module.console.do_EOF = self._default_EOF
+            self.console =  self.module.console(db.connect().cursor())
 
             # force module prompt to app name
-            self.module.console.prompt = self.name + "> "
+            self.console.prompt = self.name + "> "
         except BaseException, e:
             errstr = "{0}: {1}".format(type(e).__name__, str(e))
             print errstr
@@ -122,11 +135,11 @@ class Application(object):
                         self.components.append(component)
 
     def cmd(self, line):
-        if self.module:
+        if self.console:
             if line:
-                self.module.console.onecmd(line)
+                self.console.onecmd(line)
             else:
-                self.module.console.cmdloop()
+                self.console.cmdloop()
 
     def _default_exit(self, line):
         return True
@@ -217,7 +230,7 @@ class Environment(object):
                     self.apps[name].link(path)
 
         for app in self.apps.values():
-            app.init()
+            app.init(self.db)
 
     def pprint(self):
         out = ""
