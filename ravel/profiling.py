@@ -42,11 +42,10 @@ def is_profiled():
 class PerfCounter(object):
     def __init__(self, name, time_ms=None):
         self.name = name
-
+        self.start_time = None
         self.time_ms = time_ms
         if self.time_ms is not None:
             self.time_ms = round(float(time_ms), 3)
-        self.start_time = None
 
     def start(self):
         if is_profiled():

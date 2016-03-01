@@ -122,6 +122,8 @@ class RavelConsole(cmd.Cmd):
                 "delflow h1 h2",
                 "addflow h2 h9",
                 "delflow h1 h9",
+                "profile addflow h1 h2",
+                "profile delflow h1 h2",
                 "p delete from tp where sid=5 and nid=3;",
                 "p delete from switches where sid=5;",
                 "p delete from hosts where hid=6;",
@@ -129,6 +131,7 @@ class RavelConsole(cmd.Cmd):
         for c in cmds:
             print c
             self.onecmd(c)
+            time.sleep(0.25)
 
     def do_delflow(self, line):
         args = line.split()

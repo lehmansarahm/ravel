@@ -17,7 +17,6 @@ import sysv_ipc
 from ravel.log import logger
 from ravel.messaging import ConsumableMessage, MsgQueueReceiver
 
-# TODO: move to provider?
 def dbid2name(db, nid):
     db.cursor.execute("SELECT name FROM nodes WHERE id={0}".format(nid))
     result = db.cursor.fetchall()
@@ -155,9 +154,9 @@ class MininetProvider(NetworkProvider):
             intf = self.net.get(name).intfNames()[-1]
             self.net.get(name).attach(intf)
         else:
-            db.cursor.execute("SELECT ip, mac FROM hosts WHERE hid={0}"
+            self.db.cursor.execute("SELECT ip, mac FROM hosts WHERE hid={0}"
                               .format(hid))
-            results = db.cursor.fetchall()
+            results = self.db.cursor.fetchall()
             ip = results[0][0]
             mac = results[0][1]
             self.net.get(name).setIP(ip)
