@@ -17,6 +17,8 @@ class RavelDb():
         self.user = user
         self.passwd = passwd
         self.cleaned = not reconnect
+        self._cursor = None
+        self._conn = None
 
         if not reconnect and self.num_connections() > 0:
             logger.warning("existing connections to database, skipping reinit")
@@ -24,16 +26,29 @@ class RavelDb():
         elif not reconnect:
             self.init(base)
             self.cleaned = True
-        
+
+    @property
+    def conn(self):
+        if not self._conn or self._conn.closed:
+            self._conn = psycopg2.connect(database=self.name,
+                                          user=self.user,
+                                          password=self.passwd)
+            self._conn.set_isolation_level(ISOLEVEL)
+        return self._conn
+
+    @property
+    def cursor(self):
+        if not self._cursor or self._cursor.closed:
+            self._cursor = self.conn.cursor()
+        return self._cursor
+
     def num_connections(self):
-        conn = None
         try:
-            cursor = self.connect().cursor()
-            cursor.execute("SELECT * FROM pg_stat_activity WHERE "
-                           "datname='{0}'".format(self.name))
+            self.cursor.execute("SELECT * FROM pg_stat_activity WHERE "
+                                "datname='{0}'".format(self.name))
 
             # ignore cursor connection
-            return len(cursor.fetchall()) - 1
+            return len(self.cursor.fetchall()) - 1
         except psycopg2.DatabaseError, e:
             logger.warning("error loading schema: %s", self.fmt_errmsg(e))
 
@@ -45,41 +60,20 @@ class RavelDb():
         self.add_extensions()
         self.load_schema(base)
 
-    def connect(self, db=None):
-        if db is None:
-            db = self.name
-
-        conn = psycopg2.connect(database=db,
-                                user=self.user,
-                                password=self.passwd)
-        conn.set_isolation_level(ISOLEVEL)
-        return conn
-
     def fmt_errmsg(self, exception):
         return str(exception).strip()
 
     def load_schema(self, script):
-        conn = None
         try:
-            conn = self.connect()
-            cursor = conn.cursor()
             s = open(script, 'r').read()
             logger.debug("loaded schema %s", script)
-            cursor.execute(s)
+            self.cursor.execute(s)
         except psycopg2.DatabaseError, e:
             logger.warning("error loading schema: %s", self.fmt_errmsg(e))
 
-        finally:
-            if conn:
-                conn.close()
-
     def load_topo(self, provider):
         topo = provider.topo
-        conn = None
         try:
-            conn = self.connect()
-            cursor = conn.cursor()
-
             node_count = 0
             nodes = {}
             for sw in topo.switches():
@@ -88,18 +82,18 @@ class RavelDb():
                 ip = provider.getNodeByName(sw).IP()
                 mac = provider.getNodeByName(sw).MAC()
                 nodes[sw] = node_count
-                cursor.execute("INSERT INTO switches (sid, dpid, ip, mac, name) "
-                               "VALUES ({0}, '{1}', '{2}', '{3}', '{4}');"
-                               .format(node_count, dpid, ip, mac, sw))
+                self.cursor.execute("INSERT INTO switches (sid, dpid, ip, mac, name) "
+                                    "VALUES ({0}, '{1}', '{2}', '{3}', '{4}');"
+                                    .format(node_count, dpid, ip, mac, sw))
 
             for host in topo.hosts():
                 node_count += 1
                 ip = provider.getNodeByName(host).IP()
                 mac = provider.getNodeByName(host).MAC()
                 nodes[host] = node_count
-                cursor.execute("INSERT INTO hosts (hid, ip, mac, name) "
-                               "VALUES ({0}, '{1}', '{2}', '{3}');"
-                               .format(node_count, ip, mac, host))
+                self.cursor.execute("INSERT INTO hosts (hid, ip, mac, name) "
+                                    "VALUES ({0}, '{1}', '{2}', '{3}');"
+                                    .format(node_count, ip, mac, host))
 
             for link in topo.links():
                 h1,h2 = link
@@ -110,26 +104,26 @@ class RavelDb():
 
                 sid = nodes[h1]
                 nid = nodes[h2]
-                cursor.execute("INSERT INTO tp(sid, nid, ishost, isactive) "
-                               "VALUES ({0}, {1}, {2}, {3});"
-                               .format(sid, nid, ishost, 1))
+                self.cursor.execute("INSERT INTO tp(sid, nid, ishost, isactive) "
+                                    "VALUES ({0}, {1}, {2}, {3});"
+                                    .format(sid, nid, ishost, 1))
 
-                cursor.execute("INSERT INTO ports(sid, nid, port) "
-                               "VALUES ({0}, {1}, {2}), ({1}, {0}, {3});"
-                               .format(sid, nid,
-                                       topo.port(h1, h2)[0],
-                                       topo.port(h1, h2)[1]))
+                self.cursor.execute("INSERT INTO ports(sid, nid, port) "
+                                    "VALUES ({0}, {1}, {2}), ({1}, {0}, {3});"
+                                    .format(sid, nid,
+                                            topo.port(h1, h2)[0],
+                                            topo.port(h1, h2)[1]))
 
         except psycopg2.DatabaseError, e:
             logger.warning("error loading topology: %s", self.fmt_errmsg(e))
-        finally:
-            if conn:
-                conn.close()
 
     def create(self):
         conn = None
         try:
-            conn = self.connect("postgres")
+            conn = psycopg2.connect(database="postgres",
+                                    user=self.user,
+                                    password=self.passwd)
+            conn.set_isolation_level(ISOLEVEL)
             cursor = conn.cursor()
             cursor.execute("SELECT datname FROM pg_database WHERE " +
                            "datistemplate = false;")
@@ -142,49 +136,34 @@ class RavelDb():
         except psycopg2.DatabaseError, e:
             logger.warning("error creating database: %s", self.fmt_errmsg(e))
         finally:
-            if conn:
-                conn.close()
+            conn.close()
 
     def add_extensions(self):
-        conn = None
         try:
-            conn = self.connect()
-            cursor = conn.cursor()
-            cursor.execute("SELECT 1 FROM pg_catalog.pg_namespace n JOIN " +
-                           "pg_catalog.pg_proc p ON pronamespace = n.oid " +
-                           "WHERE proname = 'pgr_dijkstra';")
-            fetch = cursor.fetchall()
+            self.cursor.execute("SELECT 1 FROM pg_catalog.pg_namespace n JOIN " +
+                                "pg_catalog.pg_proc p ON pronamespace = n.oid " +
+                                "WHERE proname = 'pgr_dijkstra';")
+            fetch = self.cursor.fetchall()
 
             if fetch == []:
-                cursor.execute("CREATE EXTENSION IF NOT EXISTS plpythonu;")
-                cursor.execute("CREATE EXTENSION IF NOT EXISTS postgis;")
-                cursor.execute("CREATE EXTENSION IF NOT EXISTS pgrouting;")
-                cursor.execute("CREATE EXTENSION plsh;")
+                self.cursor.execute("CREATE EXTENSION IF NOT EXISTS plpythonu;")
+                self.cursor.execute("CREATE EXTENSION IF NOT EXISTS postgis;")
+                self.cursor.execute("CREATE EXTENSION IF NOT EXISTS pgrouting;")
+                self.cursor.execute("CREATE EXTENSION plsh;")
                 logger.debug("created extensions")
         except psycopg2.DatabaseError, e:
             logger.warning("error loading extensions: %s", self.fmt_errmsg(e))
-        finally:
-            if conn:
-                conn.close()
             
-    def query(self, qry):
-        conn = None
-        try:
-            conn = self.connect()
-            cursor = conn.cursor()
-            cursor.execute(qry)
-            fetch = cursor.fetchall()
-            return fetch
-        except psycopg2.DatabaseError, e:
-            logger.warning("error executing query: %s", self.fmt_errmsg(e))
-        finally:
-            if conn:
-                conn.close()
-
     def clean(self):
+        # close existing connections
+        self.conn.close()
+
         conn = None
         try:
-            conn = self.connect("postgres")
+            conn = psycopg2.connect(database="postgres",
+                                    user=self.user,
+                                    password=self.passwd)
+            conn.set_isolation_level(ISOLEVEL)
             cursor = conn.cursor()
             cursor.execute("drop database %s" % self.name)
         except psycopg2.DatabaseError, e:
@@ -194,7 +173,6 @@ class RavelDb():
                 conn.close()
 
     def truncate(self):
-        conn = None
         try:
             tables = ["cf", "clock", "p1", "p2", "p3", "p_spv", "pox_hosts", 
                       "pox_switches", "pox_tp", "rtm", "rtm_clock",
@@ -202,18 +180,12 @@ class RavelDb():
                       "tm_delta", "utm", "acl_tb", "acl_tb", "lb_tb"]
             tenants = ["t1", "t2", "t3", "tacl_tb", "tenant_hosts", "tlb_tb"]
 
-            conn = self.connect()
-            cursor = conn.cursor()
-
-            cursor.execute("truncate %s;" % ", ".join(tables))
+            self.cursor.execute("truncate %s;" % ", ".join(tables))
             logger.debug("truncated tables")
 
-            cursor.execute("INSERT INTO clock values (0);")
+            self.cursor.execute("INSERT INTO clock values (0);")
             # TODO: fix
-            #cursor.execute("truncate %s;" % ", ".join(tenants))
+            #self.cursor.execute("truncate %s;" % ", ".join(tenants))
             logger.debug("truncated tenant tables")
         except psycopg2.DatabaseError, e:
             logger.warning("error truncating databases: %s", self.fmt_errmsg(e))
-        finally:
-            if conn:
-                conn.close()

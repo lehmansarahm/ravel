@@ -19,9 +19,8 @@ from ravel.messaging import ConsumableMessage, MsgQueueReceiver
 
 # TODO: move to provider?
 def dbid2name(db, nid):
-    cursor = db.connect().cursor()
-    cursor.execute("SELECT name FROM nodes WHERE id={0}".format(nid))
-    result = cursor.fetchall()
+    db.cursor.execute("SELECT name FROM nodes WHERE id={0}".format(nid))
+    result = db.cursor.fetchall()
     if len(result) == 0:
         logger.warning("cannot find node with id %s", nid)
     else:
@@ -156,10 +155,9 @@ class MininetProvider(NetworkProvider):
             intf = self.net.get(name).intfNames()[-1]
             self.net.get(name).attach(intf)
         else:
-            cursor = self.db.connect().cursor()
-            cursor.execute("SELECT ip, mac FROM hosts WHERE hid={0}"
-                           .format(hid))
-            results = cursor.fetchall()
+            db.cursor.execute("SELECT ip, mac FROM hosts WHERE hid={0}"
+                              .format(hid))
+            results = db.cursor.fetchall()
             ip = results[0][0]
             mac = results[0][1]
             self.net.get(name).setIP(ip)
@@ -191,7 +189,7 @@ class MininetProvider(NetworkProvider):
             isHost = 0
 
         port1, port2 = self.net.topo.port(name1, name2)
-        cursor = self.db.connect().cursor()
+        cursor = self.db.cursor
         cursor.execute("INSERT INTO PORTS (sid, nid, port) "
                        "VALUES ({0}, {1}, {2}), ({1}, {0}, {3});"
                        .format(msg.node1, msg.node2,
@@ -212,7 +210,7 @@ class MininetProvider(NetworkProvider):
 
         if msg.name is None:
             msg.name = 's' + str(msg.sid)
-            cursor = self.db.connect().cursor()
+            cursor = self.db.cursor
             cursor.execute("UPDATE switches SET name='{0}' WHERE sid={1}"
                        .format(msg.name, msg.sid))
 
@@ -220,7 +218,7 @@ class MininetProvider(NetworkProvider):
 
         if msg.dpid is None:
             msg.dpid = self.net.get(msg.name).dpid
-            cursor = self.db.connect().cursor()
+            cursor = self.db.cursor
             cursor.execute("UPDATE switches SET dpid='{0}' WHERE sid={1}"
                        .format(msg.dpid, msg.sid))
 
@@ -241,7 +239,7 @@ class MininetProvider(NetworkProvider):
     def addHost(self, msg):
         if msg.name is None:
             msg.name = 'h' + str(msg.hid)
-            cursor = self.db.connect().cursor()
+            cursor = self.db.cursor
             cursor.execute("UPDATE hosts SET name='{0}' WHERE hid={1}"
                        .format(msg.name, msg.hid))
 
@@ -257,13 +255,13 @@ class MininetProvider(NetworkProvider):
             nextIp = len(self.net.hosts) + 1
             msg.ip = ipAdd(nextIp, ipBaseNum=ipBaseNum, prefixLen=prefixLen)
 
-            cursor = self.db.connect().cursor()
+            cursor = self.db.cursor
             cursor.execute("UPDATE hosts SET ip='{0}' WHERE hid={1}"
                        .format(msg.ip, msg.hid))
 
         if msg.mac is None:
             msg.mac = macColonHex(nextIp)
-            cursor = self.db.connect().cursor()
+            cursor = self.db.cursor
             cursor.execute("UPDATE hosts SET mac='{0}' WHERE hid={1}"
                            .format(msg.mac, msg.hid))
 

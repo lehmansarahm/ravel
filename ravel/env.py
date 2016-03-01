@@ -67,13 +67,11 @@ class Application(object):
         return self.module is not None
 
     def load(self, db):
-        cursor = db.connect().cursor()
         # TODO: error handle
         with open(self.sqlfile) as f:
-            cursor.execute(f.read())
+            db.cursor.execute(f.read())
 
     def unload(self, db):
-        cursor = db.connect().cursor()
         for component in self.components:
             cascade = ""
             if component.typ.lower() in ['table', 'view']:
@@ -81,7 +79,7 @@ class Application(object):
             cmd = "DROP {0} IF EXISTS {1} {2};".format(component.typ,
                                                        component.name,
                                                        cascade)
-            cursor.execute(cmd)
+            db.cursor.execute(cmd)
 
     def init(self, db):
         if not self.pyfile:
@@ -93,7 +91,7 @@ class Application(object):
 
         try:
             self.module = importlib.import_module(self.name)
-            self.console =  self.module.console(db.connect().cursor())
+            self.console =  self.module.console(db.cursor)
 
             # force module prompt to app name
             self.console.prompt = self.name + "> "

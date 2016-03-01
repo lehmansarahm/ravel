@@ -20,11 +20,10 @@ APP_DIR = libpath("apps")
 
 # TODO: move into net-type module, different from net triggers
 def name2dbid(db, host):
-    cursor = db.connect().cursor()
-    cursor.execute("SELECT u_hid FROM uhosts WHERE hid="
+    db.cursor.execute("SELECT u_hid FROM uhosts WHERE hid="
                    "(SELECT hid FROM hosts WHERE name='{0}');"
                    .format(host))
-    result = cursor.fetchall()
+    result = db.cursor.fetchall()
     if len(result) == 0:
         logger.warning("unknown host %s", host)
         return None
@@ -39,10 +38,9 @@ def addFlow(db, h1, h2):
         return None
 
     try:
-        cursor = db.connect().cursor()
-        cursor.execute("SELECT * FROM rtm;")
-        fid = len(cursor.fetchall()) + 1
-        cursor.execute("INSERT INTO rtm (fid, host1, host2) "
+        db.cursor.execute("SELECT * FROM rtm;")
+        fid = len(db.cursor.fetchall()) + 1
+        db.cursor.execute("INSERT INTO rtm (fid, host1, host2) "
                        "VALUES ({0}, {1}, {2});"
                        .format(fid, hid1, hid2))
         return fid
@@ -51,16 +49,14 @@ def addFlow(db, h1, h2):
         return None
 
 def delFlowById(db, fid):
-    cursor = db.connect().cursor()
-
     try:
         # does the flow exist?
-        cursor.execute("SELECT fid FROM rtm WHERE fid={0}".format(fid))
-        if len(cursor.fetchall()) == 0:
+        db.cursor.execute("SELECT fid FROM rtm WHERE fid={0}".format(fid))
+        if len(db.cursor.fetchall()) == 0:
             logger.warning("no flow installed with fid %s", fid)
             return None
 
-        cursor.execute("DELETE FROM rtm WHERE fid={0}".format(fid))
+        db.cursor.execute("DELETE FROM rtm WHERE fid={0}".format(fid))
         return fid
     except Exception, e:
         print e
@@ -74,11 +70,10 @@ def delFlowByHostname(db, h1, h2):
     if hid1 is None or hid2 is None:
         return None
 
-    cursor = db.connect().cursor()
-    cursor.execute("SELECT fid FROM rtm WHERE host1={0} and host2={1};"
-                   .format(hid1, hid2))
+    db.cursor.execute("SELECT fid FROM rtm WHERE host1={0} and host2={1};"
+                      .format(hid1, hid2))
 
-    result = cursor.fetchall()
+    result = db.cursor.fetchall()
     if len(result) == 0:
         logger.warning("no flow installed for hosts {0},{1}".format(h1, h2))
         return None
@@ -183,8 +178,8 @@ class RavelConsole(cmd.Cmd):
         self.env.provider.cli(line)
 
     def do_p(self, line):
-        cursor = self.env.db.connect().cursor()
         try:
+            cursor = self.env.db.cursor
             cursor.execute(line)
         except psycopg2.ProgrammingError, e:
             print e
