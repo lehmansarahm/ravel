@@ -1,25 +1,35 @@
 #!/usr/bin/env python
 
-from ravel.util import Config, append_path
+OFPC_FLOW_STATS = 1
+OFPC_TABLE_STATS = 2
+OFPC_PORT_STATS = 4
 
-append_path(Config.PoxDir)
-import pox.openflow.libopenflow_01 as of
+OFPFC_ADD = 0
+OFPFC_MODIFY = 1
+OFPFC_MODIFY_STRICT = 2
+OFPFC_DELETE = 3
+OFPFC_DELETE_STRICT = 4
 
-OFPP_FLOOD = of.OFPP_FLOOD
-OFPFC_ADD = of.OFPFC_ADD
-OFPFC_DELETE = of.OFPFC_DELETE
-OFPFC_DELETE_STRICT = of.OFPFC_DELETE_STRICT
+OFPP_MAX = 65280
+OFPP_IN_PORT = 65528
+OFPP_TABLE = 65529
+OFPP_NORMA = 65530
+OFPP_FLOOD = 65531
+OFPP_ALL = 65532
+OFPP_CONTROLLER = 65533
+OFPP_LOCAL = 65534
+OFPP_NONE = 65535
 
 class OfManager(object):
     def __init__(self):
-        self.subscribers = []
+        self.receiver = []
 
-    def registerSubscriber(self, subscriber):
-        self.subscribers.append(subscriber)
+    def registerReceiver(self, receiver):
+        self.receiver.append(receiver)
 
-    def shutdown(self):
-        for subscriber in self.subscribers:
-            subscriber.shutdown()
+    def stop(self):
+        for receiver in self.receiver:
+            receiver.stop()
 
     def isRunning(self):
         pass

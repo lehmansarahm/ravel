@@ -10,7 +10,7 @@ from pox.lib.util import str_to_dpid
 
 from ravel.util import Config
 from ravel.profiling import PerfCounter
-from ravel.pubsub import Subscriber, MsgQueueProtocol, RpcProtocol
+from ravel.messaging import MsgQueueReceiver, RpcReceiver
 from ravel.of import OfManager
 
 log = core.getLogger()
@@ -80,11 +80,11 @@ class PoxManager(OfManager):
             self.log.debug("dpid {0} not in datapath list".format(dpid))
         return True
 
-    def registerSubscriber(self, subscriber):
-        self.log.info("registering adapter")
-        self.subscribers.append(subscriber)
-        subscriber.start()
-        core.addListener(pox.core.GoingDownEvent, subscriber.stop)
+    def registerReceiver(self, receiver):
+        self.log.info("registering receiver")
+        self.receiver.append(receiver)
+        receiver.start()
+        core.addListener(pox.core.GoingDownEvent, receiver.stop)
 
     def isRunning(self):
         return core.running
@@ -122,8 +122,8 @@ class PoxManager(OfManager):
 
 def launch():
     ctrl = PoxManager(log)
-    mq = Subscriber(MsgQueueProtocol(Config.QueueId, ctrl))
-    ctrl.registerSubscriber(mq)
-    rpc = Subscriber(RpcProtocol(Config.RpcHost, Config.RpcPort, ctrl))
-    ctrl.registerSubscriber(rpc)
+    mq = MsgQueueReceiver(Config.QueueId, ctrl)
+    ctrl.registerReceiver(mq)
+    rpc = RpcReceiver(Config.RpcHost, Config.RpcPort, ctrl)
+    ctrl.registerReceiver(rpc)
     core.register("ravelcontroller", ctrl)

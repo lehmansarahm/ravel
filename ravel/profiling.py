@@ -6,7 +6,7 @@ import threading
 import time
 from collections import OrderedDict
 
-import ravel.pubsub
+import ravel.messaging
 from ravel.log import logger
 
 ProfileQueueId = 99999
@@ -76,9 +76,7 @@ class PerfCounter(object):
 class ProfiledExecution(object):
     def __init__(self):
         self.counters = []
-        proto = ravel.pubsub.MsgQueueProtocol(ProfileQueueId, self)
-        proto.reset()
-        self.subscriber = ravel.pubsub.Subscriber(proto)
+        self.receiver = ravel.messaging.MsgQueueReceiver(ProfileQueueId, self)
 
     def print_summary(self):
         if len(self.counters) == 0:
@@ -105,10 +103,10 @@ class ProfiledExecution(object):
 
     def start(self):
         enable_profiling()
-        self.subscriber.start()
+        self.receiver.start()
 
     def stop(self):
-        self.subscriber.stop()
+        self.receiver.stop()
         disable_profiling()
 
     def handler(self, obj):

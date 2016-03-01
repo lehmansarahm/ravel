@@ -15,7 +15,7 @@ from mininet.node import RemoteController
 import sysv_ipc
 
 from ravel.log import logger
-from ravel.pubsub import Subscriber, MsgQueueProtocol
+from ravel.messaging import ConsumableMessage, MsgQueueReceiver
 
 # TODO: move to provider?
 def dbid2name(db, nid):
@@ -30,8 +30,8 @@ def dbid2name(db, nid):
 class NetworkProvider(object):
     QueueId = 123456
 
-    def __init__(self, subscriber_queue):
-        self.subscriber = Subscriber(MsgQueueProtocol(subscriber_queue, self))
+    def __init__(self, queue_id):
+        self.receiver = MsgQueueReceiver(queue_id, self)
 
     def _on_update(self, msg):
         msg.consume(self)
@@ -55,10 +55,10 @@ class NetworkProvider(object):
         pass
 
     def start(self):
-        self.subscriber.start()
+        self.receiver.start()
 
     def stop(self):
-        self.subscriber.stop()
+        self.receiver.stop()
 
     def cli(self, cmd):
         pass
@@ -129,10 +129,10 @@ class EmptyNetProvider(NetworkProvider):
 
     def start(self):
         self.buildTopo()
-        self.subscriber.start()
+        self.receiver.start()
 
     def stop(self):
-        self.subscriber.stop()
+        self.receiver.stop()
 
     def cli(self, cmd):
         logger.warning("no CLI available for db-only mode")
@@ -297,11 +297,11 @@ class MininetProvider(NetworkProvider):
         return self.net.getNodeByName(node)
 
     def start(self):
-        self.subscriber.start()
+        self.receiver.start()
         self.net.start()
 
     def stop(self):
-        self.subscriber.stop()
+        self.receiver.stop()
         self.net.stop()
         logger.debug("cleaning up mininet")
         mininet.clean.cleanup()
@@ -316,11 +316,7 @@ class MininetProvider(NetworkProvider):
             CLI(self.net, script=temp.name)
             os.unlink(temp.name)
 
-class TopoModMessage(object):
-    def consume(self, provider):
-        pass
-
-class AddLinkMessage(TopoModMessage):
+class AddLinkMessage(ConsumableMessage):
     def __init__(self, node1, node2, ishost, isactive):
         self.node1 = node1
         self.node2 = node2
@@ -330,7 +326,7 @@ class AddLinkMessage(TopoModMessage):
     def consume(self, provider):
         provider.addLink(self)
 
-class RemoveLinkMessage(TopoModMessage):
+class RemoveLinkMessage(ConsumableMessage):
     def __init__(self, node1, node2):
         self.node1 = node1
         self.node2 = node2
@@ -338,7 +334,7 @@ class RemoveLinkMessage(TopoModMessage):
     def consume(self, provider):
         provider.removeLink(self)
 
-class AddSwitchMessage(TopoModMessage):
+class AddSwitchMessage(ConsumableMessage):
     def __init__(self, sid, name, dpid, ip, mac):
         self.sid = sid
         self.name = name
@@ -349,7 +345,7 @@ class AddSwitchMessage(TopoModMessage):
     def consume(self, provider):
         provider.addSwitch(self)
 
-class RemoveSwitchMessage(TopoModMessage):
+class RemoveSwitchMessage(ConsumableMessage):
     def __init__(self, sid, name):
         self.sid = sid
         self.name = name
@@ -357,7 +353,7 @@ class RemoveSwitchMessage(TopoModMessage):
     def consume(self, provider):
         provider.removeSwitch(self)
 
-class AddHostMessage(TopoModMessage):
+class AddHostMessage(ConsumableMessage):
     def __init__(self, hid, name, ip, mac):
         self.hid = hid
         self.name = name
@@ -367,7 +363,7 @@ class AddHostMessage(TopoModMessage):
     def consume(self, provider):
         provider.addHost(self)
 
-class RemoveHostMessage(TopoModMessage):
+class RemoveHostMessage(ConsumableMessage):
     def __init__(self, hid, name):
         self.hid = hid
         self.name = name

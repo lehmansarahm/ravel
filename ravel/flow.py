@@ -12,17 +12,19 @@ from mininet.net import macColonHex, netParse, ipAdd
 from ravel.log import logger
 from ravel.of import OFPP_FLOOD, OFPFC_ADD, OFPFC_DELETE, OFPFC_DELETE_STRICT
 from ravel.profiling import PerfCounter
-from ravel.pubsub import Publisher, MsgQueueProtocol, RpcProtocol, OvsProtocol
+from ravel.messaging import (ConsumableMessage, MsgQueueSender, RpcSender,
+                             OvsSender)
 from ravel.util import Config, append_path, ConnectionType
 
-protos = { ConnectionType.Mq : MsgQueueProtocol(Config.QueueId, None),
-           ConnectionType.Rpc : RpcProtocol(Config.RpcHost, Config.RpcPort, None),
-           ConnectionType.Ovs : OvsProtocol()
-       }
-
 def connectionFactory(conn):
-    proto = protos[conn]
-    return Publisher(proto)
+    if conn == ConnectionType.Mq:
+        return MsgQueueSender(Config.QueueId)
+    elif conn == ConnectionType.Rpc:
+        return RpcSender(Config.RpcHost, Config.RpcPort)
+    elif conn == ConnectionType.Ovs:
+        return OvsSender()
+    else:
+        raise Exception("Unrecognized messaging protocol %s", conn)
 
 def _send_msg(command, flow_id, sw, ip1, mac1, ip2, mac2, outport, revoutport):
     pc = PerfCounter('msg_create')
@@ -97,7 +99,7 @@ class Match(object):
                                               self.dl_src,
                                               self.dl_dst,
                                               self.dl_type)
-class OfMessage(object):
+class OfMessage(ConsumableMessage):
     def __init__(self, command=None, priority=1, switch=None,
                  match=None, actions=None):
         self.command = command
@@ -119,7 +121,7 @@ class OfMessage(object):
                                      self.switch,
                                      self.match)
 
-class BarrierMessage(object):
+class BarrierMessage(ConsumableMessage):
     def __init__(self, dpid):
         self.dpid = dpid
 

@@ -13,7 +13,7 @@ if 'PYTHONPATH' in os.environ:
 sys.path.append('/home/croftj/src/cli-ravel')
 
 from ravel.network import AddLinkMessage, NetworkProvider
-from ravel.pubsub import Publisher, MsgQueueProtocol
+from ravel.messaging import MsgQueueSender
 
 sid = TD["new"]["sid"]
 nid = TD["new"]["nid"]
@@ -21,8 +21,8 @@ isHost = TD["new"]["ishost"]
 isActive = TD["new"]["ishost"]
 
 msg = AddLinkMessage(sid, nid, isHost, isActive)
-pub = Publisher(MsgQueueProtocol(NetworkProvider.QueueId))
-pub.send(msg)
+sender = MsgQueueSender(NetworkProvider.QueueId)
+sender.send(msg)
 
 return None;
 $$ LANGUAGE 'plpythonu' VOLATILE SECURITY DEFINER;
@@ -43,14 +43,14 @@ if 'PYTHONPATH' in os.environ:
 sys.path.append('/home/croftj/src/cli-ravel')
 
 from ravel.network import RemoveLinkMessage, NetworkProvider
-from ravel.pubsub import Publisher, MsgQueueProtocol
+from ravel.messaging import MsgQueueSender
 
 sid = TD["old"]["sid"]
 nid = TD["old"]["nid"]
 
 msg = RemoveLinkMessage(sid, nid)
-pub = Publisher(MsgQueueProtocol(NetworkProvider.QueueId))
-pub.send(msg)
+sender = MsgQueueSender(NetworkProvider.QueueId)
+sender.send(msg)
 
 return None;
 $$ LANGUAGE 'plpythonu' VOLATILE SECURITY DEFINER;
@@ -76,7 +76,7 @@ if 'PYTHONPATH' in os.environ:
 sys.path.append('/home/croftj/src/cli-ravel')
 
 from ravel.network import AddSwitchMessage, NetworkProvider
-from ravel.pubsub import Publisher, MsgQueueProtocol
+from ravel.messaging import MsgQueueSender
 
 sid = TD["new"]["sid"]
 name = TD["new"]["name"]
@@ -85,8 +85,8 @@ ip = TD["new"]["ip"]
 mac = TD["new"]["mac"]
 
 msg = AddSwitchMessage(sid, name, dpid, ip, mac)
-pub = Publisher(MsgQueueProtocol(NetworkProvider.QueueId))
-pub.send(msg)
+sender = MsgQueueSender(NetworkProvider.QueueId)
+sender.send(msg)
 
 return None;
 $$ LANGUAGE 'plpythonu' VOLATILE SECURITY DEFINER;
@@ -107,14 +107,14 @@ if 'PYTHONPATH' in os.environ:
 sys.path.append('/home/croftj/src/cli-ravel')
 
 from ravel.network import RemoveSwitchMessage, NetworkProvider
-from ravel.pubsub import Publisher, MsgQueueProtocol
+from ravel.messaging import MsgQueueSender
 
 sid = TD["old"]["sid"]
 name = TD["old"]["name"]
 
 msg = RemoveSwitchMessage(sid, name)
-pub = Publisher(MsgQueueProtocol(NetworkProvider.QueueId))
-pub.send(msg)
+sender = MsgQueueSender(NetworkProvider.QueueId)
+sender.send(msg)
 
 return None;
 $$ LANGUAGE 'plpythonu' VOLATILE SECURITY DEFINER;
@@ -140,7 +140,7 @@ if 'PYTHONPATH' in os.environ:
 sys.path.append('/home/croftj/src/cli-ravel')
 
 from ravel.network import AddHostMessage, NetworkProvider
-from ravel.pubsub import Publisher, MsgQueueProtocol
+from ravel.messaging import MsgQueueSender
 
 hid = TD["new"]["hid"]
 name = TD["new"]["name"]
@@ -148,8 +148,8 @@ ip = TD["new"]["ip"]
 mac = TD["new"]["mac"]
 
 msg = AddHostMessage(hid, name, ip, mac)
-pub = Publisher(MsgQueueProtocol(NetworkProvider.QueueId))
-pub.send(msg)
+sender = MsgQueueSender(NetworkProvider.QueueId)
+sender.send(msg)
 
 return None;
 $$ LANGUAGE 'plpythonu' VOLATILE SECURITY DEFINER;
@@ -170,14 +170,14 @@ if 'PYTHONPATH' in os.environ:
 sys.path.append('/home/croftj/src/cli-ravel')
 
 from ravel.network import RemoveHostMessage, NetworkProvider
-from ravel.pubsub import Publisher, MsgQueueProtocol
+from ravel.messaging import MsgQueueSender
 
 hid = TD["old"]["hid"]
 name = TD["old"]["name"]
 
 msg = RemoveHostMessage(hid, name)
-pub = Publisher(MsgQueueProtocol(NetworkProvider.QueueId))
-pub.send(msg)
+sender = MsgQueueSender(NetworkProvider.QueueId)
+sender.send(msg)
 
 return None;
 $$ LANGUAGE 'plpythonu' VOLATILE SECURITY DEFINER;
