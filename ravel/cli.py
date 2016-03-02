@@ -152,16 +152,21 @@ class RavelConsole(cmd.Cmd):
             print "Failure: flow not removed"
 
     def do_apps(self, line):
-        "List available applications"
+        "List available applications and their status"
         for app in self.env.apps.values():
             shortcut = ""
             description = ""
+
+            status = '\033[91m' + "[offline] " + '\033[0m'
+            if app.name in self.env.loaded:
+                status = '\033[92m' + "[online]  " + '\033[0m'
             if app.shortcut:
                 shortcut = " ({0})".format(app.shortcut)
             if app.description:
                 description = ": {0}".format(app.description)
 
-            print "  {0}{1}{2}".format(app.name, shortcut, description)
+            print "  {0} {1}{2}{3}".format(status, app.name,
+                                           shortcut, description)
 
     def do_load(self, line):
         apps = line.split()
@@ -279,12 +284,12 @@ class RavelConsole(cmd.Cmd):
         print "   specify src, dst or flow id"
 
     def help_load(self):
-        print "syntax: load [application]"
-        print "-- start an application"
+        print "syntax: load [app1 app2 ...]"
+        print "-- start application(s)"
 
     def help_unload(self):
-        print "syntax: unload [application]"
-        print "-- stop an application"
+        print "syntax: unload [app1 app2 ...]"
+        print "-- stop application(s)"
 
     def help_m(self):
         print "syntax: m [mininet cmd]"
