@@ -7,6 +7,7 @@ import re
 import subprocess
 import sys
 
+import psycopg2
 import sqlparse
 from sqlparse.tokens import Keyword
 
@@ -30,6 +31,38 @@ class AppConsole(cmd.Cmd):
     def do_exit(self, line):
         "Quit application console"
         return True
+
+class SqlObjMatch(object):
+    def __init__(self, typ, regex, group):
+        self.typ = typ
+        self.regex = regex
+        if not isinstance(group, list):
+            self.group = [group]
+        else:
+            self.group = group
+
+    def match(self, stmt):
+        m = re.search(self.regex, stmt, re.IGNORECASE)
+        if m:
+            name = ""
+            for num in self.group:
+                name += m.group(num)
+            return name
+        return None
+
+sqlComponents = []
+sqlComponents.append(SqlObjMatch(
+    "view",
+    r'(create|drop).* view( if exists)? (\w+)',
+    3))
+sqlComponents.append(SqlObjMatch(
+    "function",
+    r'(create|drop).* function.*? (\w+)(\(.*\))',
+    [2,3]))
+sqlComponents.append(SqlObjMatch(
+    "table",
+    r'(create|drop).* table( if exists)?( if not exists)? (\w+)',
+    4))
 
 class AppComponent(object):
     def __init__(self, name, typ):
@@ -69,16 +102,15 @@ class Application(object):
     def load(self, db):
         # TODO: error handle
         with open(self.sqlfile) as f:
-            db.cursor.execute(f.read())
+            try:
+                db.cursor.execute(f.read())
+            except psycopg2.ProgrammingError, e:
+                print "Error loading app {0}: {1}".format(self.name, e)
 
     def unload(self, db):
         for component in self.components:
-            cascade = ""
-            if component.typ.lower() in ['table', 'view']:
-                cascade = "CASCADE"
-            cmd = "DROP {0} IF EXISTS {1} {2};".format(component.typ,
-                                                       component.name,
-                                                       cascade)
+            cmd = "DROP {0} IF EXISTS {1} CASCADE;".format(component.typ,
+                                                           component.name)
             db.cursor.execute(cmd)
 
     def init(self, db):
@@ -109,23 +141,15 @@ class Application(object):
         f = open(self.sqlfile)
         parsed = sqlparse.parse(f.read())
         f.close()
-
         obj_types = ["table", "view", "function"]
         for statement in parsed:
             for token in statement.tokens:
-                typ = str(token)
                 name = None
-
-                if token.match(Keyword, "|".join(obj_types), regex=True):
-                    name = str(statement.get_name())
-
-                # sqlparse may parse postgres functions wrong, so use regex
-                if token.match(Keyword, "function"):
-                    m = re.search(r'(create|drop).* function.*? (\w+)(\(.*\))',
-                                  str(statement),
-                                  re.IGNORECASE)
-                    if m:
-                        name = m.group(2) + m.group(3)
+                typ = None
+                for comp in sqlComponents:
+                    if token.match(Keyword, comp.typ):
+                        name = comp.match(str(statement))
+                        typ = comp.typ
 
                 if name is not None:
                     component = AppComponent(name, typ)
@@ -218,6 +242,8 @@ class Environment(object):
                     self.loaded[app.shortcut] = app
 
     def discover(self):
+        new = []
+
         for d in self.appdirs:
             for f in os.listdir(d):
                 if f.endswith(".py") or f.endswith(".sql"):
@@ -225,10 +251,11 @@ class Environment(object):
                     path = os.path.join(d, f)
                     if name not in self.apps:
                         self.apps[name] = Application(name)
+                        new.append(name)
                     self.apps[name].link(path)
 
-        for app in self.apps.values():
-            app.init(self.db)
+        for name in new:
+            self.apps[name].init(self.db)
 
     def pprint(self):
         out = ""
