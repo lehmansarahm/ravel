@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+import os
+import sys
+
 from sqlalchemy import Table, Column, MetaData, create_engine
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import sessionmaker
@@ -91,13 +94,24 @@ class Topology(object):
         return self.getNodeById(self.names()[name])
 
 if __name__ == "__main__":
+    # add ravel to path
+    path = ""
+    if 'PYTHONPATH' in os.environ:
+        path = os.environ['PYTHONPATH']
+
+    sys.path = path.split(':') + sys.path
+    cwd = os.path.dirname(os.path.abspath(__file__))
+    raveldir = os.path.normpath(os.path.join(cwd, ".."))
+    print raveldir
+    sys.path.append(os.path.abspath(raveldir))
+
     from mininet.net import Mininet
-    import mndeps
-    import db
-    topo = mndeps.build("linear,2")
+    import ravel.mndeps
+    import ravel.db
+    topo = ravel.mndeps.build("linear,2")
     net = Mininet(topo)
     net.start()
-    raveldb = db.RavelDb("mininet", "mininet", "primitive.sql")
+    raveldb = ravel.db.RavelDb("mininet", "mininet", "sql/primitive.sql")
     raveldb.load_topo(net)
     net.stop()
 
