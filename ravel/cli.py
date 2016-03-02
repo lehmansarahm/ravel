@@ -43,6 +43,8 @@ def addFlow(db, h1, h2):
         db.cursor.execute("INSERT INTO rtm (fid, host1, host2) "
                        "VALUES ({0}, {1}, {2});"
                        .format(fid, hid1, hid2))
+        db.cursor.execute ("UPDATE tm set FW = 0 where fid = {0};"
+                           .format(fid, hid1, hid2))
         return fid
     except Exception, e:
         print e
