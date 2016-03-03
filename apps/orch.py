@@ -15,7 +15,7 @@ class orchConsole(AppConsole):
     def do_run(self, line):
         "run protocol"
         try:
-            self.cursor.execute ("select max (counts) from clock;")
+            self.db.cursor.execute ("select max (counts) from clock;")
             print "hello"
 
             # ct = self.cur.fetchall () [0]['max']
@@ -23,8 +23,8 @@ class orchConsole(AppConsole):
             # make cursor a dict cursors?
             ##########################################
             
-            ct = self.cursor.fetchall()[0][0]
-            self.cursor.execute ("INSERT INTO p_PGA VALUES (" + str (ct+1) + ", 'on');")
+            ct = self.db.cursor.fetchall()[0][0]
+            self.db.cursor.execute ("INSERT INTO p_PGA VALUES (" + str (ct+1) + ", 'on');")
 
         except Exception, e:
             print e

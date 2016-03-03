@@ -65,8 +65,8 @@ def discoverComponents(sql):
     return components
 
 class AppConsole(cmd.Cmd):
-    def __init__(self, cursor):
-        self.cursor = cursor
+    def __init__(self, db):
+        self.db = db
         cmd.Cmd.__init__(self)
 
     def emptyline(self):
@@ -150,7 +150,7 @@ class Application(object):
 
         try:
             self.module = importlib.import_module(self.name)
-            self.console =  self.module.console(db.cursor)
+            self.console =  self.module.console(db)
 
             # force module prompt to app name
             self.console.prompt = self.name + "> "

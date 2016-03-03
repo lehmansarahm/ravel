@@ -10,7 +10,7 @@ class SampleConsole(AppConsole):
 
     def do_sql(self, line):
         "Execute a sql statement"
-        self.cursor.execute(line)
+        self.db.cursor.execute(line)
 
 shortcut = "sp"
 description = "a sample application"
