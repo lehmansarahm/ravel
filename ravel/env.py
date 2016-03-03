@@ -177,6 +177,7 @@ class Environment(object):
         self.apps = {}
         self.loaded = {}
         self.xterms = []
+        self.xterm_files = []
         self.params = params
         self.enable_flows = enable_flows
         self.provider = provider
@@ -209,12 +210,17 @@ class Environment(object):
         for t in self.xterms:
             t.wait()
 
-    def mkterm(self, cmds):
+        # delete xterm temp files
+        for f in self.xterm_files:
+            os.unlink(f)
+
+    def mkterm(self, cmds, cmdfile):
         p = subprocess.Popen(cmds,
                              shell=True,
                              stdin=subprocess.PIPE,
                              stdout=subprocess.PIPE)
         self.xterms.append(p)
+        self.xterm_files.append(cmdfile)
 
     def unload_app(self, appname):
         app = self.apps[appname]
