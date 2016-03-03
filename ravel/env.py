@@ -55,13 +55,15 @@ class Environment(object):
         for f in self.xterm_files:
             os.unlink(f)
 
-    def mkterm(self, cmds, cmdfile):
+    def mkterm(self, cmds, cmdfile=None):
         p = subprocess.Popen(cmds,
                              shell=True,
                              stdin=subprocess.PIPE,
                              stdout=subprocess.PIPE)
+
         self.xterms.append(p)
-        self.xterm_files.append(cmdfile)
+        if cmdfile is not None:
+            self.xterm_files.append(cmdfile)
 
     def unload_app(self, appname):
         app = self.apps[appname]
@@ -102,7 +104,7 @@ class Environment(object):
                     self.apps[name].link(path)
 
         for name in new:
-            self.apps[name].init(self.db)
+            self.apps[name].init(self.db, self)
 
     def pprint(self):
         out = ""

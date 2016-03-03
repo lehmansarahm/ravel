@@ -5,6 +5,7 @@ import importlib
 import os
 import re
 import sys
+import tempfile
 
 import psycopg2
 import sqlparse
@@ -12,6 +13,34 @@ from sqlparse.tokens import Keyword
 
 import ravel.util
 from ravel.log import logger
+
+def mk_watchcmd(db, args):
+    tables = []
+    for arg in args:
+        split = arg.split(",")
+        if len(split) > 1:
+            tables.append((split[0], split[1]))
+        else:
+            tables.append((split[0], None))
+
+    queries = []
+    for t in tables:
+        limit = ""
+        if t[1] is not None:
+            limit = "LIMIT {0}".format(t[1])
+        query = "SELECT * FROM {0} {1};".format(t[0], limit)
+        queries.append(query)
+
+    temp = tempfile.NamedTemporaryFile(delete=False)
+    temp.write("\n".join(queries))
+    temp.close()
+    os.chmod(temp.name, 0666)
+
+    watch_arg = 'echo {0}: {1}; psql -U{2} -d {0} -f {3}'.format(
+        db.name, args[0], db.user, temp.name)
+    watch = 'watch -c -n 2 --no-title "{0}"'.format(watch_arg)
+    cmd = 'xterm -e ' + watch
+    return cmd, temp.name
 
 class SqlObjMatch(object):
     def __init__(self, typ, regex, group):
@@ -65,12 +94,27 @@ def discoverComponents(sql):
     return components
 
 class AppConsole(cmd.Cmd):
-    def __init__(self, db):
+    def __init__(self, db, env, components):
         self.db = db
+        self.env = env
+        self.components = components
+        self.name = self.__class__.__name__
         cmd.Cmd.__init__(self)
 
     def emptyline(self):
         return
+
+    def do_list(self, line):
+        "List application components"
+        print self.name, "components:"
+        for comp in self.components:
+            print "   ", comp
+
+    def do_watch(self, line):
+        "Watch application components"
+        w = [c.name for c in self.components if c.watchable]
+        cmd, cmdfile = mk_watchcmd(self.db, w)
+        self.env.mkterm(cmd, cmdfile)
 
     def do_EOF(self, line):
         "Quit application console"
@@ -94,6 +138,10 @@ class AppComponent(object):
         except Exception, e:
             logger.error("error removing component {0}: {1}"
                          .format(self.name, e))
+
+    @property
+    def watchable(self):
+        return self.typ.lower() in ['table', 'view']
 
     def __eq__(self, other):
         return (isinstance(other, self.__class__)) \
@@ -126,6 +174,11 @@ class Application(object):
         return self.module is not None
 
     def load(self, db):
+        if self.sqlfile is None:
+            logger.debug("loaded application %s but with no SQL file",
+                         self.name)
+            return
+
         with open(self.sqlfile) as f:
             try:
                 db.cursor.execute(f.read())
@@ -140,9 +193,17 @@ class Application(object):
 
         logger.debug("unloaded application %s", self.name)
 
-    def init(self, db):
+    def init(self, db, env):
         if not self.pyfile:
             return
+
+        # discover sql components (tables, views, functions)
+        if self.sqlfile is not None:
+            with open(self.sqlfile) as f:
+                self.components = discoverComponents(f.read())
+
+        logger.debug("discovered {0} components: {1}"
+                     .format(self.name, self.components))
 
         # if needed, add path
         filepath = os.path.dirname(self.pyfile)
@@ -150,26 +211,20 @@ class Application(object):
 
         try:
             self.module = importlib.import_module(self.name)
-            self.console =  self.module.console(db)
+            self.console =  self.module.console(db, env, self.components)
 
             # force module prompt to app name
             self.console.prompt = self.name + "> "
         except BaseException, e:
             errstr = "{0}: {1}".format(type(e).__name__, str(e))
-            print errstr
+            logger.warning("error loading %s console: %s",
+                           self.name, e)
 
         try:
             self.shortcut = self.module.shortcut
             self.description = self.module.description
         except BaseException:
             pass
-
-        # discover sql components (tables, views, functions)
-        with open(self.sqlfile) as f:
-            self.components = discoverComponents(f.read())
-
-        logger.debug("discovered {0} components: {1}"
-                     .format(self.name, self.components))
 
     def cmd(self, line):
         if self.console:

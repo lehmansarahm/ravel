@@ -6,7 +6,6 @@ import os
 import psycopg2
 import sys
 import tabulate
-import tempfile
 import time
 from functools import partial
 
@@ -247,33 +246,8 @@ class RavelConsole(cmd.Cmd):
             print "Invalid syntax"
             return
 
-        tables = []
-        for arg in args:
-            split = arg.split(",")
-            if len(split) > 1:
-                tables.append((split[0], split[1]))
-            else:
-                tables.append((split[0], None))
-
-        queries = []
-        for t in tables:
-            limit = ""
-            if t[1] is not None:
-                limit = "LIMIT {0}".format(t[1])
-
-            query = "SELECT * FROM {0} {1};".format(t[0], limit)
-            queries.append(query)
-
-        temp = tempfile.NamedTemporaryFile(delete=False)
-        temp.write("\n".join(queries))
-        temp.close()
-        os.chmod(temp.name, 0666)
-
-        watch_arg = 'echo {0}: {1}; psql -U{2} -d {0} -f {3}'.format(
-            self.env.db.name, args[0], self.env.db.user, temp.name)
-        watch = 'watch -c -n 2 --no-title "{0}"'.format(watch_arg)
-        cmd = 'xterm -e ' + watch
-        self.env.mkterm(cmd, temp.name)
+        cmd, cmdfile = ravel.app.mk_watchcmd(self.env.db, args)
+        self.env.mkterm(cmd, cmdfile)
 
     def do_EOF(self, line):
         "Quit Ravel console"
