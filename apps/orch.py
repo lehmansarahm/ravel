@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import cmd
 from ravel.app import AppConsole
 
 class orchConsole(AppConsole):
