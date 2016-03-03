@@ -2,9 +2,11 @@
 
 import cmd
 import getpass
+import os
 import psycopg2
 import sys
 import tabulate
+import tempfile
 import time
 from functools import partial
 
@@ -234,19 +236,37 @@ class RavelConsole(cmd.Cmd):
             return
 
         args = line.split()
-        if len(args) == 0 or len(args) > 2:
+        if len(args) == 0:
             print "Invalid syntax"
             return
 
-        limit = ""
-        if len(args) == 2:
-            limit = "LIMIT {0}".format(args[1])
+        tables = []
+        for arg in args:
+            split = arg.split(",")
+            if len(split) > 1:
+                tables.append((split[0], split[1]))
+            else:
+                tables.append((split[0], None))
 
-        query = "'SELECT * FROM {0} {1}'".format(args[0], limit)
-        watch_arg = 'echo {0}: {1}; psql -U{3} -d {0} -c {2}'.format(
-            self.env.db.name, args[0], query, self.env.db.user)
+        queries = []
+        for t in tables:
+            limit = ""
+            if t[1] is not None:
+                limit = "LIMIT {0}".format(t[1])
+
+            query = "SELECT * FROM {0} {1};".format(t[0], limit)
+            queries.append(query)
+
+        temp = tempfile.NamedTemporaryFile(delete=False)
+        temp.write("\n".join(queries))
+        temp.close()
+        os.chmod(temp.name, 0666)
+
+        watch_arg = 'echo {0}: {1}; psql -U{2} -d {0} -f {3}'.format(
+            self.env.db.name, args[0], self.env.db.user, temp.name)
         watch = 'watch -c -n 2 --no-title "{0}"'.format(watch_arg)
-        self.env.mkterm('xterm -e ' + watch)
+        cmd = 'xterm -e ' + watch
+        self.env.mkterm(cmd, temp.name)
 
     def do_EOF(self, line):
         "Quit Ravel console"
@@ -293,8 +313,9 @@ class RavelConsole(cmd.Cmd):
         print "-- execute PostgreSQL statement"
 
     def help_watch(self):
-        print "syntax: watch [table] [optional: max_rows]"
-        print "-- launch another terminal to watch db table in real-time"
+        print "syntax: watch [table1,max_rows(optional) table2,max_rows]"
+        print "-- launch another terminal to watch db tables in real-time"
+        print "-- example: watch hosts switches cf,5"
 
 def RavelCLI(opts):
     if opts.custom:
