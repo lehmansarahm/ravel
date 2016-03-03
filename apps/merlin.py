@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import cmd
-from ravel.env import AppConsole
+from ravel.app import AppConsole
 
 class merlinConsole(AppConsole):
     def do_echo(self, line):
