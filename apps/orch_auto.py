@@ -88,6 +88,9 @@ class orchConsole(AppConsole):
 
     def do_reset(self, line):
         "Remove orchestration protocol function"
+        if self.sql is None:
+            return
+
         components = discoverComponents(self.sql)
         for component in components:
             component.drop(self.db)
