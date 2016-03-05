@@ -258,8 +258,45 @@ class RavelConsole(cmd.Cmd):
         "Quit Ravel console"
         return True
 
+    def do_help(self, arg):
+        'List available commands with "help" or detailed help with "help cmd"'
+        # extend help to include loaded apps and their help functions
+        tokens = arg.split()
+        appname = tokens[0]
+
+        if appname in self.env.loaded:
+            app = self.env.apps[appname]
+            if len(tokens) <= 1:
+                print app.description
+                app.console.do_help("")
+            else:
+                app.console.do_help(" ".join(tokens[1:]))
+        else:
+            cmd.Cmd.do_help(self, arg)
+
+    def completenames(self, text, *ignored):
+        "Add loaded application names/shortcuts to cmd name completions"
+        completions = cmd.Cmd.completenames(self, text, ignored)
+
+        apps = self.env.loaded.keys()
+        if not text:
+            completions.extend(apps)
+        else:
+            completions.extend([d for d in apps if d.startswith(text)])
+
+        return completions
+
     def complete_load(self, text, line, begidx, endidx):
         apps = self.env.apps.keys()
+        if not text:
+            completions = apps
+        else:
+            completions = [d for d in apps if d.startswith(text)]
+
+        return completions
+
+    def complete_unload(self, text, line, begidx, endidx):
+        apps = self.env.apps.loaded.keys()
         if not text:
             completions = apps
         else:
@@ -278,12 +315,12 @@ class RavelConsole(cmd.Cmd):
         print "   specify src, dst or flow id"
 
     def help_load(self):
-        print "syntax: load [app1 app2 ...]"
-        print "-- start application(s)"
+        print "syntax: load [app1] [app2] ..."
+        print "-- start one or more applications"
 
     def help_unload(self):
-        print "syntax: unload [app1 app2 ...]"
-        print "-- stop application(s)"
+        print "syntax: unload [app1] [app2] ..."
+        print "-- stop one or more applications"
 
     def help_m(self):
         print "syntax: m [mininet cmd]"
