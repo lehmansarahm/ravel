@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 
+import os
 from itertools import tee, izip
 from ravel.app import AppConsole, discoverComponents
+from ravel.log import logger
+from ravel.util import libpath
 
 routing = """
 DROP TABLE IF EXISTS p_RT CASCADE;
@@ -86,6 +89,11 @@ class orchConsole(AppConsole):
         except Exception, e:
             print e
 
+    def do_list(self, line):
+        "List orchestrated applications and their priority"
+        for num, app in enumerate(self.ordering):
+            print "   {0}: {1}".format(num, app)
+
     def do_reset(self, line):
         "Remove orchestration protocol function"
         if self.sql is None:
@@ -95,7 +103,7 @@ class orchConsole(AppConsole):
         for component in components:
             component.drop(self.db)
 
-    def default(self, line):
+    def do_set(self, line):
         ordering = line.split()
         for app in ordering:
             if app.lower() not in self.env.apps and \
@@ -103,9 +111,24 @@ class orchConsole(AppConsole):
                 print "Unrecognized app", app
                 return
 
+        # load unloaded apps
+        loads = [app for app in ordering if app not in self.env.loaded]
+        for app in loads:
+            logger.debug("loading unloaded app %s", app)
+            self.env.load_app(app)
+
+        # TODO: set self.name instead of using 'orch_auto'
+        # unload unlisted apps
+        unlisted = [app for app in self.env.apps if app not in ordering
+                    and app != 'orch_auto']
+
+        for app in unlisted:
+            logger.debug("unloading unlisted app %s", app)
+            self.env.unload_app(app)
+
         ordering = [x.upper() for x in ordering]
 
-        # replace routing app name with rt 
+        # replace routing app name with rt
         if "ROUTING" in ordering:
             ordering[ordering.index("ROUTING")] = "RT"
 
@@ -125,10 +148,25 @@ class orchConsole(AppConsole):
         self.ordering = ordering
         self.sql = sql
 
+        log = os.path.join(libpath(), "orch_log.sql")
+        f = open(log, 'w')
+        f.write(self.sql)
+        f.close()
+
+        logger.debug("logged orchestration protocol to %s", log)
+
         try:
             self.db.cursor.execute(self.sql)
         except Exception, e:
             print e
+
+    def help_set(self):
+        print "syntax: set [app1] [app2] ..."
+        print "-- set priority for one or more applications"
+        print "-- Note: A total ordering is needed for loaded applications."
+        print "         Any unlisted applications that are loaded will be"
+        print "         unloaded.  Any listed applications that are unloaded"
+        print "         will be loaded."
 
 shortcut = "oa"
 description = "an automated orchestration protocol application"

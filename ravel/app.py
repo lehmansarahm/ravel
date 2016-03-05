@@ -98,7 +98,6 @@ class AppConsole(cmd.Cmd):
         self.db = db
         self.env = env
         self.components = components
-        self.name = self.__class__.__name__
         cmd.Cmd.__init__(self)
 
     def emptyline(self):
