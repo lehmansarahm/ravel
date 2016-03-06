@@ -263,10 +263,8 @@ class RavelConsole(cmd.Cmd):
         'List available commands with "help" or detailed help with "help cmd"'
         # extend help to include loaded apps and their help functions
         tokens = arg.split()
-        appname = tokens[0]
-
-        if appname in self.env.loaded:
-            app = self.env.apps[appname]
+        if len(tokens) > 0 and tokens[0] in self.env.loaded:
+            app = self.env.apps[tokens[0]]
             if len(tokens) <= 1:
                 print app.description
                 app.console.do_help("")

@@ -214,6 +214,7 @@ class Application(object):
 
             # force module prompt to app name
             self.console.prompt = self.name + "> "
+            self.console.doc_header = self.name + " commands (type help <topic>):"
         except BaseException, e:
             errstr = "{0}: {1}".format(type(e).__name__, str(e))
             logger.warning("error loading %s console: %s",
