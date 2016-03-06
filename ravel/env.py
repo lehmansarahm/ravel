@@ -34,7 +34,7 @@ class Environment(object):
         if self.enable_flows:
             ravel.util.update_trigger_path(ravel.db.FLOW_SQL,
                                            ravel.util.libpath())
-            self.db.load_schema(db.FLOW_SQL)
+            self.db.load_schema(ravel.db.FLOW_SQL)
 
         # delay loading of topo triggers until after db is loaded
         # we only want to catch updates
