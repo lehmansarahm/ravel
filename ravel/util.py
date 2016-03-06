@@ -70,6 +70,8 @@ def resource_file(name=None):
 
 class ConfigParameters(object):
     def __init__(self):
+        self.DbName = None
+        self.DbUser = None
         self.RpcHost = None
         self.RpcPort = None
         self.QueueId = None
@@ -87,6 +89,12 @@ class ConfigParameters(object):
         if parser.has_option("of_manager", "connection"):
             name = parser.get("of_manager", "connection").lower()
             self.Connection = ConnectionType.Name[name]
+
+        if parser.has_option("db", "db"):
+            self.DbName = parser.get("db", "db")
+
+        if parser.has_option("db", "user"):
+            self.DbUser = parser.get("db", "user")
 
         if parser.has_option("rpc", "rpchost"):
             self.RpcHost = parser.get("rpc", "rpchost")
