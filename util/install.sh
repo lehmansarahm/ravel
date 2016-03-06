@@ -6,7 +6,7 @@ set -e
 # Fail on unset var usage
 set -o nounset
 
-SRC_DIR="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd -P )"
+SRC_DIR="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )/../.." && pwd -P )"
 MN_VERSION="2.2.0"
 
 DIST=Unknown
