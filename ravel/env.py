@@ -9,7 +9,7 @@ from ravel.app import Application
 from ravel.log import logger
 
 class Environment(object):
-    def __init__(self, db, provider, appdirs, params, enable_flows):
+    def __init__(self, db, provider, appdirs, params):
         self.db = db
         self.appdirs = appdirs
         self.apps = {}
@@ -17,7 +17,6 @@ class Environment(object):
         self.xterms = []
         self.xterm_files = []
         self.params = params
-        self.enable_flows = enable_flows
         self.provider = provider
         self.discover()
 
@@ -30,11 +29,9 @@ class Environment(object):
         else:
             logger.debug("connecting to existing db, skipping load_topo()")
 
-        # TODO: eventually we will only run mininet as remote, so remove this
-        if self.enable_flows:
-            ravel.util.update_trigger_path(ravel.db.FLOW_SQL,
-                                           ravel.util.resource_file())
-            self.db.load_schema(ravel.db.FLOW_SQL)
+        ravel.util.update_trigger_path(ravel.db.FLOW_SQL,
+                                       ravel.util.resource_file())
+        self.db.load_schema(ravel.db.FLOW_SQL)
 
         # delay loading of topo triggers until after db is loaded
         # we only want to catch updates

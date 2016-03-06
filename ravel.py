@@ -24,8 +24,9 @@ def optParser():
                       help='start without mininet')
     parser.add_option('--reconnect', '-c', action='store_true', default=False,
                       help='reconnect to existing database, skipping reinit.')
-    parser.add_option('--remote', '-r', action='store_true', default=False,
-                      help='start remote controller')
+    parser.add_option('--noctl', '-n', action='store_true', default=False,
+                      help='start without controller (Mininet will still '
+                      'attempt to connect to a remote controller)')
     parser.add_option('--db', '-d', type='string', default=Config.DbName,
                       help='postgresql username (default: %s)' % Config.DbName)
     parser.add_option('--user', '-u', type='string', default=Config.DbUser,

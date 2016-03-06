@@ -5,6 +5,7 @@ import pickle
 import re
 import tempfile
 import threading
+import time
 from functools import partial
 
 import mininet.clean
@@ -136,16 +137,19 @@ class EmptyNetProvider(NetworkProvider):
         logger.warning("no CLI available for db-only mode")
 
 class MininetProvider(NetworkProvider):
-    def __init__(self, db, topo, remote=True):
+    def __init__(self, db, topo, controller):
         self.db = db
         self.topo = topo
+        self.controller = controller
 
-        if remote:
-            self.net = Mininet(topo,
-                               controller=partial(RemoteController,
-                                                  ip='127.0.0.1'))
-        else:
-            self.net = Mininet(topo)
+        # need to start controller for before instantiating Mininet
+        if self.controller is not None:
+            self.controller.start()
+            time.sleep(0.5)
+
+        self.net = Mininet(topo,
+                           controller=partial(RemoteController,
+                                              ip='127.0.0.1'))
 
         super(MininetProvider, self).__init__(NetworkProvider.QueueId)
 
@@ -300,6 +304,7 @@ class MininetProvider(NetworkProvider):
     def stop(self):
         self.receiver.stop()
         self.net.stop()
+        self.controller.stop()
         logger.debug("cleaning up mininet")
         mininet.clean.cleanup()
 

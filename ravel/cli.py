@@ -14,6 +14,7 @@ import ravel.profiling
 from ravel.db import RavelDb, BASE_SQL
 from ravel.env import Environment
 from ravel.log import logger
+from ravel.of import PoxInstance
 from ravel.util import resource_file
 
 # TODO: move to config
@@ -340,7 +341,7 @@ def RavelCLI(opts):
         ravel.mndeps.custom(opts.custom)
 
     params = { 'topology' : opts.topo,
-               'pox' : 'running' if opts.remote else 'offline',
+               'pox' : 'offline' if opts.noctl else 'running',
                'mininet' : 'running' if not opts.onlydb else 'offline',
                'database' : opts.db,
                'username' : opts.user,
@@ -362,14 +363,19 @@ def RavelCLI(opts):
                                passwd,
                                opts.reconnect)
 
+    if opts.noctl:
+        controller = None
+    else:
+        controller = PoxInstance("poxapp")
+
     from ravel.network import MininetProvider, EmptyNetProvider
     if opts.onlydb:
         net = EmptyNetProvider(raveldb, topo)
     else:
         try:
-            net = MininetProvider(raveldb, topo, opts.remote)
+            net = MininetProvider(raveldb, topo, controller)
         except Exception, e:
-            if not opts.remote and 'shut down the controller' in str(e):
+            if 'shut down the controller' in str(e):
                 print "Mininet cannot start. If running without --remote " \
                     "flag, shut down existing controller first."
                 return
@@ -378,7 +384,7 @@ def RavelCLI(opts):
     if net is None:
         print "Cannot start networ"
 
-    env = Environment(raveldb, net, [APP_DIR], params, opts.remote)
+    env = Environment(raveldb, net, [APP_DIR], params)
     env.start()
 
     while True:
