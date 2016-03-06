@@ -52,10 +52,6 @@ def parse(parser):
     if not options.topo:
         parser.error("No topology specified")
 
-    if options.onlydb and options.remote:
-        parser.error("Cannot start remote controller with no network. "
-                     "Choose either --remote or --onlydb")
-
     logger.setLogLevel(options.verbosity)
 
     return options

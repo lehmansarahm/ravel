@@ -96,7 +96,7 @@ class RavelConsole(cmd.Cmd):
         cmd.Cmd.__init__(self)
 
     def default(self, line):
-        cmd = line.split()[0]
+        cmd = line.strip().split()[0]
         if cmd in self.env.loaded:
             self.env.loaded[cmd].cmd(line[len(cmd):])
         else:
@@ -380,7 +380,7 @@ def RavelCLI(opts):
             raise
 
     if net is None:
-        print "Cannot start networ"
+        print "Cannot start network"
 
     env = Environment(raveldb, net, [APP_DIR], params)
     env.start()
