@@ -14,10 +14,10 @@ import ravel.profiling
 from ravel.db import RavelDb, BASE_SQL
 from ravel.env import Environment
 from ravel.log import logger
-from ravel.util import libpath
+from ravel.util import resource_file
 
 # TODO: move to config
-APP_DIR = libpath("apps")
+APP_DIR = resource_file("apps")
 
 # TODO: move into net-type module, different from net triggers
 def name2dbid(db, host):

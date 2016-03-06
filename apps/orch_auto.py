@@ -4,7 +4,7 @@ import os
 from itertools import tee, izip
 from ravel.app import AppConsole, discoverComponents
 from ravel.log import logger
-from ravel.util import libpath
+from ravel.util import resource_file
 
 routing = """
 DROP TABLE IF EXISTS p_RT CASCADE;
@@ -148,7 +148,7 @@ class orchConsole(AppConsole):
         self.ordering = ordering
         self.sql = sql
 
-        log = os.path.join(libpath(), "orch_log.sql")
+        log = resource_file("orch_log.sql")
         f = open(log, 'w')
         f.write(self.sql)
         f.close()

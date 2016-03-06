@@ -33,13 +33,13 @@ class Environment(object):
         # TODO: eventually we will only run mininet as remote, so remove this
         if self.enable_flows:
             ravel.util.update_trigger_path(ravel.db.FLOW_SQL,
-                                           ravel.util.libpath())
+                                           ravel.util.resource_file())
             self.db.load_schema(ravel.db.FLOW_SQL)
 
         # delay loading of topo triggers until after db is loaded
         # we only want to catch updates
         ravel.util.update_trigger_path(ravel.db.TOPO_SQL,
-                                       ravel.util.libpath())
+                                       ravel.util.resource_file())
 
         self.db.load_schema(ravel.db.TOPO_SQL)
 

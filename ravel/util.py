@@ -16,7 +16,7 @@ class ConnectionType:
              "mq" : Mq
          }
 
-def libpath(path=None):
+def _libpath(path=None):
     install_path = os.path.dirname(os.path.abspath(__file__))
     install_path = os.path.normpath(
         os.path.join(install_path, ".."))
@@ -55,6 +55,19 @@ def append_path(path):
     if path not in sys.path:
         sys.path.append(path)
 
+def resource_string(name):
+    path = os.path.join(_libpath(), name)
+    print path
+    if os.path.isfile(name):
+        return open(path, 'r').read()
+    else:
+        logger.error("cannot read file %s", path)
+
+def resource_file(name=None):
+    if name is None:
+        return _libpath()
+    return os.path.join(_libpath(), name)
+
 class ConfigParameters(object):
     def __init__(self):
         self.RpcHost = None
@@ -62,7 +75,7 @@ class ConfigParameters(object):
         self.QueueId = None
         self.Connection = None
         self.PoxDir = None
-        self.read(libpath("ravel.cfg"))
+        self.read(resource_file("ravel.cfg"))
 
     def read(self, cfg):
         parser = ConfigParser.SafeConfigParser()
