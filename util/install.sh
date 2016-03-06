@@ -62,9 +62,9 @@ function ravel {
     sudo -u postgres psql -c "CREATE DATABASE ravel;"
     sudo -u postgres psql -c "CREATE USER ravel WITH SUPERUSER;"
     sudo -u postgres psql -c "ALTER USER ravel WITH PASSWORD 'ravel';"
-    psql -Uravel -c "CREATE EXTENSION IF NOT EXISTS plpythonu;"
-    psql -Uravel -c "CREATE EXTENSION IF NOT EXISTS postgis;"
-    psql -Uravel -c "CREATE EXTENSION IF NOT EXISTS pgrouting;"
+    sudo -u postgres psql -c "CREATE EXTENSION IF NOT EXISTS plpythonu;"
+    sudo -u postgres psql -c "CREATE EXTENSION IF NOT EXISTS postgis;"
+    sudo -u postgres psql -c "CREATE EXTENSION IF NOT EXISTS pgrouting;"
 
     printf -- '\n\n' >&2
     printf -- 'Ravel requires either "trust" or "md5" authentication for\n' >&2
