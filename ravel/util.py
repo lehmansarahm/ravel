@@ -57,7 +57,6 @@ def append_path(path):
 
 def resource_string(name):
     path = os.path.join(_libpath(), name)
-    print path
     if os.path.isfile(name):
         return open(path, 'r').read()
     else:
