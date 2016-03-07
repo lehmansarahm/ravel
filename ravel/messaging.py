@@ -144,12 +144,11 @@ class OvsSender(MessageSender):
     def send(self, msg):
         pc = ravel.profiling.PerfCounter("ovs_send")
         pc.start()
-        # TODO: this is pretty ugly
-        msg = pickle.loads(msg)
 
+        msg = pickle.loads(msg)
         subcmd = OvsConnection.subcmds[msg.command]
 
-        # TODO: need to modify this for remote switches
+        # TODO: this is different for remote switches (ie, on physical network)
         dest = msg.switch.name
 
         params = []

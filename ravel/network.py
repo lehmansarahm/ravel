@@ -18,7 +18,6 @@ import sysv_ipc
 from ravel.log import logger
 from ravel.messaging import ConsumableMessage, MsgQueueReceiver
 
-# TODO: move into net-type module, different from net triggers
 def name2dbid(db, host):
     db.cursor.execute("SELECT u_hid FROM uhosts WHERE hid="
                    "(SELECT hid FROM hosts WHERE name='{0}');"
@@ -316,7 +315,6 @@ class MininetProvider(NetworkProvider):
 
         # delay setting ip/mac until link is added
         if msg.ip is None:
-            # TODO: reference mndeps
             ipBase = '10.0.0.0/8'
             ipBaseNum, prefixLen = netParse(ipBase)
             nextIp = len(self.net.hosts) + 1

@@ -3,7 +3,7 @@
 import os
 import re
 
-# XXX: newer mininet version also has MinimalTopo, TorusTopo
+# NOTE: newer mininet version also has MinimalTopo, TorusTopo
 from mininet.topo import (SingleSwitchTopo, LinearTopo,
                           SingleSwitchReversedTopo)
 from mininet.topolib import TreeTopo
