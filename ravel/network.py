@@ -18,6 +18,18 @@ import sysv_ipc
 from ravel.log import logger
 from ravel.messaging import ConsumableMessage, MsgQueueReceiver
 
+# TODO: move into net-type module, different from net triggers
+def name2dbid(db, host):
+    db.cursor.execute("SELECT u_hid FROM uhosts WHERE hid="
+                   "(SELECT hid FROM hosts WHERE name='{0}');"
+                   .format(host))
+    result = db.cursor.fetchall()
+    if len(result) == 0:
+        logger.warning("unknown host %s", host)
+        return None
+    else:
+        return result[0][0]
+
 def dbid2name(db, nid):
     db.cursor.execute("SELECT name FROM nodes WHERE id={0}".format(nid))
     result = db.cursor.fetchall()
@@ -25,6 +37,58 @@ def dbid2name(db, nid):
         logger.warning("cannot find node with id %s", nid)
     else:
         return result[0][0]
+
+def addFlow(db, h1, h2):
+    hid1 = name2dbid(db, h1)
+    hid2 = name2dbid(db, h2)
+
+    if hid1 is None or hid2 is None:
+        return None
+
+    try:
+        db.cursor.execute("SELECT * FROM rtm;")
+        fid = len(db.cursor.fetchall()) + 1
+        db.cursor.execute("INSERT INTO rtm (fid, host1, host2) "
+                       "VALUES ({0}, {1}, {2});"
+                       .format(fid, hid1, hid2))
+        db.cursor.execute ("UPDATE tm set FW = 0 where fid = {0};"
+                           .format(fid, hid1, hid2))
+        return fid
+    except Exception, e:
+        print e
+        return None
+
+def delFlowById(db, fid):
+    try:
+        # does the flow exist?
+        db.cursor.execute("SELECT fid FROM rtm WHERE fid={0}".format(fid))
+        if len(db.cursor.fetchall()) == 0:
+            logger.warning("no flow installed with fid %s", fid)
+            return None
+
+        db.cursor.execute("DELETE FROM rtm WHERE fid={0}".format(fid))
+        return fid
+    except Exception, e:
+        print e
+        return None
+
+def delFlowByHostname(db, h1, h2):
+    # convert to fid, so we can report which fid is removed
+    hid1 = name2dbid(db, h1)
+    hid2 = name2dbid(db, h2)
+
+    if hid1 is None or hid2 is None:
+        return None
+
+    db.cursor.execute("SELECT fid FROM rtm WHERE host1={0} and host2={1};"
+                      .format(hid1, hid2))
+
+    result = db.cursor.fetchall()
+    if len(result) == 0:
+        logger.warning("no flow installed for hosts {0},{1}".format(h1, h2))
+        return None
+
+    return delFlowById(db, result[0][0])
 
 class NetworkProvider(object):
     QueueId = 123456

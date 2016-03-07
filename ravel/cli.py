@@ -14,75 +14,9 @@ import ravel.profiling
 from ravel.db import RavelDb, BASE_SQL
 from ravel.env import Environment
 from ravel.log import logger
+from ravel.network import name2dbid, addFlow, delFlowById, delFlowByHostname
 from ravel.of import PoxInstance
-from ravel.util import resource_file
-
-# TODO: move to config
-APP_DIR = resource_file("apps")
-
-# TODO: move into net-type module, different from net triggers
-def name2dbid(db, host):
-    db.cursor.execute("SELECT u_hid FROM uhosts WHERE hid="
-                   "(SELECT hid FROM hosts WHERE name='{0}');"
-                   .format(host))
-    result = db.cursor.fetchall()
-    if len(result) == 0:
-        logger.warning("unknown host %s", host)
-        return None
-    else:
-        return result[0][0]
-
-def addFlow(db, h1, h2):
-    hid1 = name2dbid(db, h1)
-    hid2 = name2dbid(db, h2)
-
-    if hid1 is None or hid2 is None:
-        return None
-
-    try:
-        db.cursor.execute("SELECT * FROM rtm;")
-        fid = len(db.cursor.fetchall()) + 1
-        db.cursor.execute("INSERT INTO rtm (fid, host1, host2) "
-                       "VALUES ({0}, {1}, {2});"
-                       .format(fid, hid1, hid2))
-        db.cursor.execute ("UPDATE tm set FW = 0 where fid = {0};"
-                           .format(fid, hid1, hid2))
-        return fid
-    except Exception, e:
-        print e
-        return None
-
-def delFlowById(db, fid):
-    try:
-        # does the flow exist?
-        db.cursor.execute("SELECT fid FROM rtm WHERE fid={0}".format(fid))
-        if len(db.cursor.fetchall()) == 0:
-            logger.warning("no flow installed with fid %s", fid)
-            return None
-
-        db.cursor.execute("DELETE FROM rtm WHERE fid={0}".format(fid))
-        return fid
-    except Exception, e:
-        print e
-        return None
-
-def delFlowByHostname(db, h1, h2):
-    # convert to fid, so we can report which fid is removed
-    hid1 = name2dbid(db, h1)
-    hid2 = name2dbid(db, h2)
-
-    if hid1 is None or hid2 is None:
-        return None
-
-    db.cursor.execute("SELECT fid FROM rtm WHERE host1={0} and host2={1};"
-                      .format(hid1, hid2))
-
-    result = db.cursor.fetchall()
-    if len(result) == 0:
-        logger.warning("no flow installed for hosts {0},{1}".format(h1, h2))
-        return None
-
-    return delFlowById(db, result[0][0])
+from ravel.util import Config, resource_file
 
 class RavelConsole(cmd.Cmd):
     prompt = "ravel> "
@@ -343,7 +277,7 @@ def RavelCLI(opts):
                'mininet' : 'running' if not opts.onlydb else 'offline',
                'database' : opts.db,
                'username' : opts.user,
-               'app path' : [APP_DIR]
+               'app path' : Config.AppDirs
            }
 
     topo = ravel.mndeps.build(opts.topo)
@@ -382,7 +316,7 @@ def RavelCLI(opts):
     if net is None:
         print "Cannot start network"
 
-    env = Environment(raveldb, net, [APP_DIR], params)
+    env = Environment(raveldb, net, Config.AppDirs, params)
     env.start()
 
     while True:

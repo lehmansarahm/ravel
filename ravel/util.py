@@ -16,16 +16,6 @@ class ConnectionType:
              "mq" : Mq
          }
 
-def _libpath(path=None):
-    install_path = os.path.dirname(os.path.abspath(__file__))
-    install_path = os.path.normpath(
-        os.path.join(install_path, ".."))
-
-    if not path:
-        return install_path
-
-    return os.path.normpath(os.path.join(install_path, path))
-
 def update_trigger_path(filename, path):
     path = os.path.expanduser(path)
     if not os.path.isfile(filename):
@@ -56,19 +46,25 @@ def append_path(path):
         sys.path.append(path)
 
 def resource_string(name):
-    path = os.path.join(_libpath(), name)
+    path = resource_file(name)
     if os.path.isfile(name):
         return open(path, 'r').read()
     else:
         logger.error("cannot read file %s", path)
 
 def resource_file(name=None):
+    install_path = os.path.dirname(os.path.abspath(__file__))
+    install_path = os.path.normpath(
+        os.path.join(install_path, ".."))
+
     if name is None:
-        return _libpath()
-    return os.path.join(_libpath(), name)
+        return install_path
+
+    return os.path.abspath(os.path.join(install_path, name))
 
 class ConfigParameters(object):
     def __init__(self):
+        self.AppDirs = []
         self.DbName = None
         self.DbUser = None
         self.RpcHost = None
@@ -81,6 +77,19 @@ class ConfigParameters(object):
     def read(self, cfg):
         parser = ConfigParser.SafeConfigParser()
         parser.read(cfg)
+
+        if parser.has_option("apps", "directories"):
+            dirlist = parser.get("apps", "directories")
+            dirlist = dirlist.split(",")
+            dirlist = [d.strip() for d in dirlist]
+
+            # if path doesn't start with / or ~, assume it's relative to
+            # ravel directory
+            dirlist = [x if x[0] == '/' or x[0] == '~'
+                       else resource_file(x) for x in dirlist]
+
+            # remove duplicates
+            self.AppDirs.extend(list(set(dirlist)))
 
         if parser.has_option("of_manager", "poxdir"):
             self.PoxDir = parser.get("of_manager", "poxdir")
