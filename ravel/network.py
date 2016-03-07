@@ -87,7 +87,11 @@ def delFlowByHostname(db, h1, h2):
         logger.warning("no flow installed for hosts {0},{1}".format(h1, h2))
         return None
 
-    return delFlowById(db, result[0][0])
+    fids = [res[0] for res in result]
+    for fid in fids:
+        delFlowById(db, fid)
+
+    return ",".join([str(f) for f in fids])
 
 class NetworkProvider(object):
     QueueId = 123456
