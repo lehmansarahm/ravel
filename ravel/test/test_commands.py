@@ -27,14 +27,22 @@ class testCommands(unittest.TestCase):
         p.expect("Usage")
         p.sendeof()
 
-        p = pexpect.spawn(cmd + "--topo=single,2")
+        p = pexpect.spawn(cmd + "--topo=single,3")
         p.expect("ravel>")
         p.sendeof()
 
-        p = pexpect.spawn(cmd + "--topo=single,2 --onlydb")
+        p = pexpect.spawn(cmd + "--topo=single,3 --onlydb")
         p.expect("ravel>")
         p.sendline("m")
         p.expect("no CLI available")
+        p.sendline("exit")
+        p.sendeof()
+
+        p = pexpect.spawn(cmd + "--topo single,3 --noctl")
+        p.expect("Unable to contact the remote controller")
+        p.expect("ravel>")
+        p.sendline("exit")
+        p.sendeof()
         
     def testFlows(self):
         p = pexpect.spawn(self.ravelCmd)
