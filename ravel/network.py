@@ -304,7 +304,9 @@ class MininetProvider(NetworkProvider):
     def stop(self):
         self.receiver.stop()
         self.net.stop()
-        self.controller.stop()
+        if self.controller is not None:
+            self.controller.stop()
+
         logger.debug("cleaning up mininet")
         mininet.clean.cleanup()
 
