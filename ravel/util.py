@@ -1,4 +1,6 @@
-#!/usr/bin/env python
+"""
+Utility and helper functions
+"""
 
 import ConfigParser
 import os
@@ -8,6 +10,10 @@ import sys
 from ravel.log import logger
 
 class ConnectionType:
+    """A enum for connection protocols between database triggers and the
+       OpenFlow manager.  Types include Rpc (remote procedure call), Mq
+       (message queues), and ovs (ovs-ofctl tool)."""
+
     Ovs = 0
     Rpc = 1
     Mq = 2
@@ -16,7 +22,12 @@ class ConnectionType:
              "mq" : Mq
          }
 
+
 def update_trigger_path(filename, path):
+    """Update PYTHONPATH within a Python-based trigger implemented within the
+       SQL file specified in filename.
+       filename: the file containing the SQL trigger implementation
+       path: the path to append to PYTHONPATH"""
     path = os.path.expanduser(path)
     if not os.path.isfile(filename):
         logger.warning("cannot find sql file %s", filename)
@@ -33,6 +44,8 @@ def update_trigger_path(filename, path):
     open(filename, 'w').write(content)
 
 def append_path(path):
+    """Append a path to PYTHONPATH
+       path: the path to append to PYTHONPATH"""
     path = os.path.expanduser(path)
     if 'PYTHONPATH' not in os.environ:
         os.environ['PYTHONPATH'] = ""
@@ -46,13 +59,23 @@ def append_path(path):
         sys.path.append(path)
 
 def resource_string(name):
+    """Search for a file within the distribution and return it as a string
+       name: the name of the file as a relative path from the top-level
+       directory
+       returns: the contents of the file as a string, if it exists"""
     path = resource_file(name)
     if os.path.isfile(name):
         return open(path, 'r').read()
     else:
         logger.error("cannot read file %s", path)
+        return None
 
 def resource_file(name=None):
+    """Search for a file within the distribution and return its absolute path.
+       If no name is passed, returns the absolute path to the distribution's
+       top-level directory
+       name: the name of the file
+       returns: absolute path to the file"""
     install_path = os.path.dirname(os.path.abspath(__file__))
     install_path = os.path.normpath(
         os.path.join(install_path, ".."))
@@ -63,6 +86,7 @@ def resource_file(name=None):
     return os.path.abspath(os.path.join(install_path, name))
 
 class ConfigParameters(object):
+    "Class containing parameters parsed from Ravel's configuration file"
     def __init__(self):
         self.AppDirs = []
         self.DbName = None
@@ -75,6 +99,8 @@ class ConfigParameters(object):
         self.read(resource_file("ravel.cfg"))
 
     def read(self, cfg):
+        """Read the configuration file
+           cfg: the path to the configuration file"""
         parser = ConfigParser.SafeConfigParser()
         parser.read(cfg)
 

@@ -1,5 +1,9 @@
-#!/usr/bin/env python
+"""
+A command-line interface for Ravel.
 
+Ravel's CLI provides a user-friendly way to interact the backend
+PostgreSQL database and Mininet.
+"""
 import cmd
 import getpass
 import os
@@ -19,6 +23,8 @@ from ravel.of import PoxInstance
 from ravel.util import Config, resource_file
 
 class RavelConsole(cmd.Cmd):
+    "Command line interface for Ravel."
+
     prompt = "ravel> "
     doc_header = "Commands (type help <topic>):"
 
@@ -30,6 +36,7 @@ class RavelConsole(cmd.Cmd):
         cmd.Cmd.__init__(self)
 
     def default(self, line):
+        "Check loaded applications before raising unknown command error"
         cmd = line.strip().split()[0]
         if cmd in self.env.loaded:
             self.env.loaded[cmd].cmd(line[len(cmd):])
@@ -37,9 +44,12 @@ class RavelConsole(cmd.Cmd):
             print '*** Unknown command: %s' % line
 
     def emptyline(self):
+        "Don't repeat the last line when hitting return on empty line"
         return
 
     def do_addflow(self, line):
+        """Add a flow between two hosts, using Mininet hostnames
+           Usage: addflow [host1] [host2]"""
         args = line.split()
         if len(args) != 2:
             print "Invalid syntax"
@@ -52,7 +62,7 @@ class RavelConsole(cmd.Cmd):
             print "Failure: flow not installed"
 
     def do_test(self, line):
-        # placeholder for batch commands for testing
+        "Placeholder for batch commands for testing"
         cmds = ["p insert into switches (sid) values (5);",
                 "p insert into hosts (hid) values (6);",
                 "p insert into tp values (5, 6, 0, 1, 1);",
@@ -72,6 +82,9 @@ class RavelConsole(cmd.Cmd):
             time.sleep(0.25)
 
     def do_delflow(self, line):
+        """Delete a flow between two hosts, using flow ID or Mininet hostnames"
+           Usage: delflow [host1] [host2]
+                  delflow [flow id]"""
         args = line.split()
 
         if len(args) == 1:
@@ -105,6 +118,8 @@ class RavelConsole(cmd.Cmd):
                                            shortcut, description)
 
     def do_load(self, line):
+        """Start one or more applications
+           Usage: load [app1] [app2] ..."""
         apps = line.split()
         for app in apps:
             if app in self.env.apps:
@@ -113,6 +128,8 @@ class RavelConsole(cmd.Cmd):
                 print "Unknown application", app
 
     def do_unload(self, line):
+        """Stop one or more applications
+           Usage: unload [app1] [app2] ..."""
         apps = line.split()
         for app in apps:
             if app in self.env.apps:
@@ -121,9 +138,13 @@ class RavelConsole(cmd.Cmd):
                 print "Unknown application", app
 
     def do_m(self, line):
+        """Execute a command in Mininet
+           Usage: m [mininet cmd]"""
         self.env.provider.cli(line)
 
     def do_p(self, line):
+        """Execute a PostgreSQL statement
+           Usage: p [SQL statement]"""
         try:
             cursor = self.env.db.cursor
             cursor.execute(line)
@@ -173,6 +194,9 @@ class RavelConsole(cmd.Cmd):
         print "\nTime: {0}ms".format(round(elapsed * 1000, 3))
 
     def do_watch(self, line):
+        """Launch an xterm window to watch database tables in real-time
+           Usage: watch [table1(,max_rows)] [table2(,max_rows)] ...
+           Example: watch hosts switches cf,5"""
         if not line:
             return
 
@@ -194,8 +218,8 @@ class RavelConsole(cmd.Cmd):
         return True
 
     def do_help(self, arg):
-        'List available commands with "help" or detailed help with "help cmd"'
-        # extend help to include loaded apps and their help functions
+        "List available commands with 'help' or detailed help with 'help cmd'"
+        # extend to include loaded apps and their help methods
         tokens = arg.split()
         if len(tokens) > 0 and tokens[0] in self.env.loaded:
             app = self.env.apps[tokens[0]]
@@ -220,6 +244,7 @@ class RavelConsole(cmd.Cmd):
         return completions
 
     def complete_load(self, text, line, begidx, endidx):
+        "Complete loaded applications' names for load command"
         apps = self.env.apps.keys()
         if not text:
             completions = apps
@@ -229,6 +254,7 @@ class RavelConsole(cmd.Cmd):
         return completions
 
     def complete_unload(self, text, line, begidx, endidx):
+        "Complete unloaded applications' names for unload command"
         apps = self.env.apps.loaded.keys()
         if not text:
             completions = apps
@@ -237,38 +263,9 @@ class RavelConsole(cmd.Cmd):
 
         return completions
 
-    def help_addflow(self):
-        print "syntax: addflow [node1] [host2]"
-        print "-- add flow between host1 and host2 (mininet names)"
-
-    def help_delflow(self):
-        print "syntax: delflow [node1] [host2]"
-        print"         delflow [flow id]"
-        print "-- remove flow between host1 and host2 (mininet names)."
-        print "   specify src, dst or flow id"
-
-    def help_load(self):
-        print "syntax: load [app1] [app2] ..."
-        print "-- start one or more applications"
-
-    def help_unload(self):
-        print "syntax: unload [app1] [app2] ..."
-        print "-- stop one or more applications"
-
-    def help_m(self):
-        print "syntax: m [mininet cmd]"
-        print "-- run mininet command"
-
-    def help_p(self):
-        print "syntax: p [sql statement]"
-        print "-- execute PostgreSQL statement"
-
-    def help_watch(self):
-        print "syntax: watch [table1,max_rows(optional) table2,max_rows]"
-        print "-- launch another terminal to watch db tables in real-time"
-        print "-- example: watch hosts switches cf,5"
-
 def RavelCLI(opts):
+    """Start a RavelConsole instance given a list of command line options
+       opts: parsed OptionParser object"""
     if opts.custom:
         ravel.mndeps.custom(opts.custom)
 

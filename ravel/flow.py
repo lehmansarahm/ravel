@@ -1,4 +1,12 @@
-#!/usr/bin/env python
+"""
+Flow modification functions for external processes.
+
+Database triggers that install or remove flows in response to insertion
+or deletion of rows execute in a separate process from the Ravel CLI
+process and the OpenFlow manager.  This module contains functions for
+connecting to the OpenFlow manager, which can send flow modification
+messages to the switches.
+"""
 
 import os
 import pickle
@@ -17,6 +25,8 @@ from ravel.messaging import (ConsumableMessage, MsgQueueSender, RpcSender,
 from ravel.util import Config, append_path, ConnectionType
 
 def connectionFactory(conn):
+    """Create a new message sender instance using the specified connection
+       conn: a ConnectionType specifying the type of connection to be used"""
     if conn == ConnectionType.Mq:
         return MsgQueueSender(Config.QueueId)
     elif conn == ConnectionType.Rpc:
@@ -62,15 +72,41 @@ def _send_msg(command, flow_id, sw, ip1, mac1, ip2, mac2, outport, revoutport):
     conn.send(BarrierMessage(sw.dpid))
 
 def installFlow(flowid, sw, ip1, mac1, ip2, mac2, outport, revoutport):
+    """Construct a new add-flow message and send to the OpenFlow manager.
+       Installs the forward and reverse path
+       flowid: the flow id
+       sw: an instance of Switch
+       ip1: the source host's IP address as a string
+       mac1: the source host's MAC address as a string
+       ip2: the destination host's IP address as a string
+       mac2: the destination host's MAC address as a string
+       outport: the outport from sw for the forward flow
+       revoutoprt: the outport from sw for the reverse flow"""
     _send_msg(OFPFC_ADD,
               flowid, sw, ip1, mac1, ip2, mac2, outport, revoutport)
 
 def removeFlow(flowid, sw, ip1, mac1, ip2, mac2, outport, revoutport):
+    """Construct a new delete-flow message and send to the OpenFlow manager.
+       Removes the forward and reverse path
+       flowid: the flow id
+       sw: an instance of Switch
+       ip1: the source host's IP address as a string
+       mac1: the source host's MAC address as a string
+       ip2: the destination host's IP address as a string
+       mac2: the destination host's MAC address as a string
+       outport: the outport from sw for the forward flow
+       revoutoprt: the outport from sw for the reverse flow"""
+
     _send_msg(OFPFC_DELETE_STRICT,
               flowid, sw, ip1, mac1, ip2, mac2, outport, revoutport)
 
 class Switch(object):
+    "A representation of an OpenFlow switch"
+
     def __init__(self, name, ip, dpid):
+        """name: a Mininet-style name for the switch
+           ip: the IP address of the switch, if it is remote
+           dpid: the datapath ID of the switch"""
         self.name = name
         self.ip = ip
         self.dpid = dpid
@@ -82,8 +118,15 @@ class Switch(object):
         return str(self.dpid)
 
 class Match(object):
-    def __init__(self, nw_src=None, nw_dst=None,
+   "A match object for an OpenFlow flow modification message"
+   
+   def __init__(self, nw_src=None, nw_dst=None,
                  dl_src=None, dl_dst=None, dl_type=None):
+       """nw_src: the source node's network address
+          nw_dst: the destination node's network address
+          dl_src: the source node's datalink address
+          dl_dst: the destination node's datalink address
+          dl_type: the datalink type"""
         self.nw_src = nw_src
         self.nw_dst = nw_dst
         self.dl_src = dl_src
@@ -100,8 +143,15 @@ class Match(object):
                                               self.dl_dst,
                                               self.dl_type)
 class OfMessage(ConsumableMessage):
+    "A OpenFlow flow modification message"
+
     def __init__(self, command=None, priority=1, switch=None,
                  match=None, actions=None):
+        """command: an OpenFlow flow modification command
+           priority: the flow priority
+           switch: the switch to send the message
+           match: a match for the flow
+           actions: a list of ports to forward matching packets"""
         self.command = command
         self.priority = priority
         self.switch = switch
@@ -111,6 +161,8 @@ class OfMessage(ConsumableMessage):
             self.actions = []
 
     def consume(self, consumer):
+        """Consume the message
+           consumer: a ravel.of.OfManager instance to consume the message"""
         consumer.sendFlowmod(self)
 
     def __repr__(self):
@@ -122,8 +174,13 @@ class OfMessage(ConsumableMessage):
                                      self.match)
 
 class BarrierMessage(ConsumableMessage):
+    """An OpenFlow barrier message"""
+
     def __init__(self, dpid):
+        "dpid: the dpid of the switch to send the barrier message"
         self.dpid = dpid
 
     def consume(self, consumer):
+        """Consume the message
+           consumer: a ravel.of.OfManager instance to consume the message"""
         consumer.sendBarrier(self.dpid)

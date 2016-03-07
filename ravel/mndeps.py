@@ -1,4 +1,6 @@
-#!/usr/bin/env python
+"""
+Mininet functions for creating topologies from command-line parameters.
+"""
 
 import os
 import re
@@ -16,6 +18,9 @@ TOPOS = { 'linear': LinearTopo,
       }
 
 def setCustom(name, value):
+    """Set custom parameters for Mininet
+       name: parameter name
+       value: parameter value"""
     if name in ('topos', 'switches', 'hosts', 'controllers'):
         param = name.upper()
         globals()[param].update(value)
@@ -25,6 +30,8 @@ def setCustom(name, value):
         globals()[name] = value
 
 def custom(value):
+    """Parse custom parameters
+       value: string containing custom parameters"""
     files = []
     if os.path.isfile(value):
         files.append(value)
@@ -41,6 +48,8 @@ def custom(value):
             print "Could not find custom file", filename
 
 def build(opts):
+    """Build Mininet topology from custom and topo parameters
+       opts: Mininet topology parameters"""
     try:
         return buildTopo(TOPOS, opts)
     except Exception:

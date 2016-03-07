@@ -1,4 +1,7 @@
-#!/usr/bin/env python
+"""
+Classes for the communicating with and controlling the underlying OpenFlow
+network.
+"""
 
 import os
 import signal
@@ -29,34 +32,54 @@ OFPP_LOCAL = 65534
 OFPP_NONE = 65535
 
 class OfManager(object):
+    """Manange communication with an OpenFlow controller.  The manager receives
+       flow modification messages from the database triggers on changes to
+       database tables.  The underlying controller implementation
+       serves as a proxy for sending the switches messages and receiving
+       link status updates from the network"""
+
     def __init__(self):
         self.receiver = []
 
     def registerReceiver(self, receiver):
+        """Add a new message receiver
+           receiver: a ravel.messaging.MessageReceiver instance"""
         self.receiver.append(receiver)
 
     def stop(self):
+        "Stop the manager (and stop receiving messages from the database)"
         for receiver in self.receiver:
             receiver.stop()
 
     def isRunning(self):
+        "returns: true if the manager is running"
         pass
 
     def sendBarrier(self, dpid):
+        """Send a barrier to the underlying controller implementation
+           dpid: the datapath ID of the switch to receive the message"""
         pass
 
     def sendFlowmod(self, msg):
+        """Send a flow modification to the underlying controller implementation
+           msg: a ravel.flow.OfMessage instance"""
         pass
 
     def requestStats(self):
+        """Send the switches a port stats request"""
         pass
 
 class PoxInstance(object):
+    "A representation of a Pox process"
+
     def __init__(self, app):
+        "app: the Pox application to be run"
         self.app = app
         self.proc = None
 
     def start(self, cargs=None):
+        """Start the Pox process
+           cargs: arguments to pass to the controller"""
         pox = os.path.join(ravel.util.Config.PoxDir, "pox.py")
         if cargs is None:
             cargs = ["log.level",
@@ -75,5 +98,6 @@ class PoxInstance(object):
                                      stderr=open("/tmp/pox.err", "wb"))
 
     def stop(self):
+        "Stop the Pox process"
         if self.proc is not None:
             os.kill(self.proc.pid, signal.SIGINT)

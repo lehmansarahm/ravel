@@ -1,5 +1,6 @@
-#!/usr/bin/env python
-
+"""
+The executing environment for the Ravel CLI
+"""
 import os
 import subprocess
 
@@ -9,7 +10,13 @@ from ravel.app import Application
 from ravel.log import logger
 
 class Environment(object):
+    """The executing environment for the Ravel CLI"""
+
     def __init__(self, db, provider, appdirs, params):
+        """db: a ravel.db.RavelDb instance
+           provider: a ravel.network.NetworkProvider instance
+           appdirs: a list of directories to search for applications
+           params: dictionary of startup parameters, such as db name, user"""
         self.db = db
         self.appdirs = appdirs
         self.apps = {}
@@ -21,6 +28,7 @@ class Environment(object):
         self.discover()
 
     def start(self):
+        "Start the environment, initialize the database and network provider"
         self.provider.start()
 
         # only load topo if connecting to a clean db
@@ -41,6 +49,7 @@ class Environment(object):
         self.db.load_schema(ravel.db.TOPO_SQL)
 
     def stop(self):
+        "Stop the environment, including the database and network provider"
         self.provider.stop()
         if len(self.xterms) > 0:
             logger.debug("waiting for xterms")
@@ -53,6 +62,10 @@ class Environment(object):
             os.unlink(f)
 
     def mkterm(self, cmds, cmdfile=None):
+        """Create a new xterm process for the specified command
+           cmds: string containing the command(s) to pass to xterm
+           cmdfile: if the command requires a temporary file, a path
+           to the file, which should be deleted when the environment stops"""
         p = subprocess.Popen(cmds,
                              shell=True,
                              stdin=subprocess.PIPE,
@@ -63,6 +76,8 @@ class Environment(object):
             self.xterm_files.append(cmdfile)
 
     def unload_app(self, appname):
+        """Unload an application from the environment
+           appname: the application to load"""
         app = self.apps[appname]
         app.unload(self.db)
 
@@ -73,6 +88,8 @@ class Environment(object):
             del self.loaded[app.shortcut]
 
     def load_app(self, appname):
+        """Load an application in the environment
+           appname: the application to unload"""
         if appname in self.loaded:
             return
 
@@ -88,6 +105,8 @@ class Environment(object):
                     self.loaded[app.shortcut] = app
 
     def discover(self):
+        """Search for new applications in the list of directories specified
+           in the constructor"""
         new = []
 
         for d in self.appdirs:
@@ -104,6 +123,7 @@ class Environment(object):
             self.apps[name].init(self.db, self)
 
     def pprint(self):
+        "Pretty print the list of startup parameters"
         out = ""
         pad = max([len(k) for k in self.params.keys()]) + 2
         for k,v in self.params.iteritems():
