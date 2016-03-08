@@ -10,6 +10,7 @@ if 'PYTHONPATH' in os.environ:
     raveldir = os.path.dirname(os.path.abspath(__file__))
     sys.path.append(os.path.abspath(raveldir))
 
+from ravel.clean import clean
 from ravel.cli import RavelCLI
 from ravel.log import LEVELS, logger
 from ravel.util import Config
@@ -20,9 +21,11 @@ def optParser():
               '(type %prog -h for details)' )
 
     parser = OptionParser(description=desc, usage=usage)
+    parser.add_option('--clean', '-c', action='store_true', default=False,
+                      help='clean Ravel and Mininet')
     parser.add_option('--onlydb', '-o', action='store_true', default=False,
                       help='start without mininet')
-    parser.add_option('--reconnect', '-c', action='store_true', default=False,
+    parser.add_option('--reconnect', '-r', action='store_true', default=False,
                       help='reconnect to existing database, skipping reinit.')
     parser.add_option('--noctl', '-n', action='store_true', default=False,
                       help='start without controller (Mininet will still '
@@ -43,24 +46,24 @@ def optParser():
 
     return parser
 
-def parse(parser):
-    options, args = parser.parse_args()
-    if args:
-        parser.print_help()
-        sys.exit(0)
-
-    if not options.topo:
-        parser.error("No topology specified")
-
-    logger.setLogLevel(options.verbosity)
-
-    return options
-
 if __name__ == "__main__":
     parser = optParser()
     if len(sys.argv) == 1:
         parser.print_help()
         sys.exit(0)
 
-    opts = parse(parser)
+    opts, args = parser.parse_args()
+    if args:
+        parser.print_help()
+        sys.exit(0)
+
+    logger.setLogLevel(opts.verbosity)
+
+    if opts.clean:
+        clean()
+        sys.exit(0)
+
+    if not opts.topo:
+        parser.error("No topology specified")
+
     RavelCLI(opts)
