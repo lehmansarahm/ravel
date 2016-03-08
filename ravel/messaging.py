@@ -108,7 +108,7 @@ class MsgQueueReceiver(MessageReceiver):
         """Stop the receiver thread
            event: an optional quit message"""
         self.running = False
-        self.mq.send(pickle.dumps(event))
+        self.mq.send(pickle.dumps(None))
 
 class RpcSender(MessageSender):
     "A remote procedure call-based message sender"

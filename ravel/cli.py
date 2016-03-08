@@ -18,7 +18,7 @@ import ravel.profiling
 from ravel.db import RavelDb, BASE_SQL
 from ravel.env import Environment
 from ravel.log import logger
-from ravel.network import name2dbid, addFlow, delFlowById, delFlowByHostname
+from ravel.network import name2uid, addFlow, delFlowById, delFlowByHostname
 from ravel.of import PoxInstance
 from ravel.util import Config, resource_file
 
@@ -79,7 +79,7 @@ class RavelConsole(cmd.Cmd):
         for c in cmds:
             print c
             self.onecmd(c)
-            time.sleep(0.25)
+            time.sleep(1)
 
     def do_delflow(self, line):
         """Delete a flow between two hosts, using flow ID or Mininet hostnames"
