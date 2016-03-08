@@ -28,8 +28,8 @@ from mininet.net import Mininet
 from mininet.node import RemoteController
 import sysv_ipc
 
+import ravel.messaging
 from ravel.log import logger
-from ravel.messaging import ConsumableMessage, MsgQueueReceiver
 
 def name2uid(db, host):
     """Convert a host's name to its u_hid (from Ravel's uhosts table).
@@ -148,7 +148,7 @@ class NetworkProvider(object):
         """queue_id: an integer id to be used for the database to communicate
            with the provider for updates to the topology inserted into the
            database"""
-        self.receiver = MsgQueueReceiver(queue_id, self)
+        self.receiver = ravel.messaging.MsgQueueReceiver(queue_id, self)
 
     def _on_update(self, msg):
         msg.consume(self)
@@ -495,7 +495,7 @@ class MininetProvider(NetworkProvider):
             CLI(self.net, script=temp.name)
             os.unlink(temp.name)
 
-class AddLinkMessage(ConsumableMessage):
+class AddLinkMessage(ravel.messaging.ConsumableMessage):
     "A consumable message for adding a new link"
 
     def __init__(self, node1, node2, ishost, isactive):
@@ -513,7 +513,7 @@ class AddLinkMessage(ConsumableMessage):
            provider: a NetworkProvider object to consume the message"""
         provider.addLink(self)
 
-class RemoveLinkMessage(ConsumableMessage):
+class RemoveLinkMessage(ravel.messaging.ConsumableMessage):
     "A consumable message for removing a link"
 
     def __init__(self, node1, node2):
@@ -527,7 +527,7 @@ class RemoveLinkMessage(ConsumableMessage):
            provider: a NetworkProvider object to consume the message"""
         provider.removeLink(self)
 
-class AddSwitchMessage(ConsumableMessage):
+class AddSwitchMessage(ravel.messaging.ConsumableMessage):
     "A consumable message for adding a switch"
 
     def __init__(self, sid, name, dpid, ip, mac):
@@ -547,7 +547,7 @@ class AddSwitchMessage(ConsumableMessage):
            provider: a NetworkProvider object to consume the message"""
         provider.addSwitch(self)
 
-class RemoveSwitchMessage(ConsumableMessage):
+class RemoveSwitchMessage(ravel.messaging.ConsumableMessage):
     "A consumable message for removing a switch"
 
     def __init__(self, sid, name):
@@ -561,7 +561,7 @@ class RemoveSwitchMessage(ConsumableMessage):
            provider: a NetworkProvider object to consume the message"""
         provider.removeSwitch(self)
 
-class AddHostMessage(ConsumableMessage):
+class AddHostMessage(ravel.messaging.ConsumableMessage):
     "A consumable message for adding a host"
 
     def __init__(self, hid, name, ip, mac):
@@ -579,7 +579,7 @@ class AddHostMessage(ConsumableMessage):
            provider: a NetworkProvider object to consume the message"""
         provider.addHost(self)
 
-class RemoveHostMessage(ConsumableMessage):
+class RemoveHostMessage(ravel.messaging.ConsumableMessage):
     "A consumable message for removing a host"
     def __init__(self, hid, name):
         """hid: the id of the host

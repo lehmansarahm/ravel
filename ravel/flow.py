@@ -17,11 +17,11 @@ from SimpleXMLRPCServer import SimpleXMLRPCServer
 import sysv_ipc
 from mininet.net import macColonHex, netParse, ipAdd
 
+import ravel.messaging
 from ravel.log import logger
 from ravel.of import OFPP_FLOOD, OFPFC_ADD, OFPFC_DELETE, OFPFC_DELETE_STRICT
 from ravel.profiling import PerfCounter
-from ravel.messaging import (ConsumableMessage, MsgQueueSender, RpcSender,
-                             OvsSender)
+from ravel.messaging import MsgQueueSender, RpcSender, OvsSender
 from ravel.util import Config, append_path, ConnectionType
 
 def connectionFactory(conn):
@@ -143,7 +143,7 @@ class Match(object):
                                               self.dl_dst,
                                               self.dl_type)
 
-class OfMessage(ConsumableMessage):
+class OfMessage(ravel.messaging.ConsumableMessage):
     "A OpenFlow flow modification message"
 
     def __init__(self, command=None, priority=1, switch=None,
@@ -174,7 +174,7 @@ class OfMessage(ConsumableMessage):
                                      self.switch,
                                      self.match)
 
-class BarrierMessage(ConsumableMessage):
+class BarrierMessage(ravel.messaging.ConsumableMessage):
     """An OpenFlow barrier message"""
 
     def __init__(self, dpid):
