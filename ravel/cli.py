@@ -295,20 +295,18 @@ def RavelCLI(opts):
     if opts.noctl:
         controller = None
     else:
+        if PoxInstance.is_running():
+            print "Pox instance is already running.  Please shut down " \
+                "existing controller first."
+            return
+
         controller = PoxInstance("poxapp")
 
     from ravel.network import MininetProvider, EmptyNetProvider
     if opts.onlydb:
         net = EmptyNetProvider(raveldb, topo)
     else:
-        try:
-            net = MininetProvider(raveldb, topo, controller)
-        except Exception, e:
-            if 'shut down the controller' in str(e):
-                print "Mininet cannot start. If running without --remote " \
-                    "flag, shut down existing controller first."
-                return
-            raise
+        net = MininetProvider(raveldb, topo, controller)
 
     if net is None:
         print "Cannot start network"

@@ -4,6 +4,7 @@ network.
 """
 
 import os
+import re
 import signal
 import subprocess
 import sys
@@ -76,6 +77,16 @@ class PoxInstance(object):
         "app: the Pox application to be run"
         self.app = app
         self.proc = None
+
+    @classmethod
+    def is_running(cls):
+        """Check if this or another Pox instance is running
+           returns: true if pox is running, false otherwise"""
+        output = os.popen("ps awx").read()
+        if "pox.py" in output:
+            return True
+        else:
+            return False
 
     def start(self, cargs=None):
         """Start the Pox process
