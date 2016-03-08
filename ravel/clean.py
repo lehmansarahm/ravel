@@ -11,8 +11,5 @@ def clean():
     logger.info("killing Pox controller instance")
     os.system("pkill -9 -f pox.py")
 
-    logger.info("killing Ravel CLI instance")
-    os.system("pkill -9 -f ravel.py")
-
     logger.info("cleaning Mininet")
     mininet.clean.cleanup()
