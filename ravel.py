@@ -21,24 +21,24 @@ def optParser():
 
     parser = OptionParser(description=desc, usage=usage)
     parser.add_option("--clean", "-c", action="store_true", default=False,
-                      help="clean Ravel and Mininet")
+                      help="cleanup Ravel and Mininet")
     parser.add_option("--onlydb", "-o", action="store_true", default=False,
-                      help="start without mininet")
+                      help="start without Mininet")
     parser.add_option("--reconnect", "-r", action="store_true", default=False,
-                      help="reconnect to existing database, skipping reinit.")
+                      help="reconnect to existing database, skipping db reinit")
     parser.add_option("--noctl", "-n", action="store_true", default=False,
                       help="start without controller (Mininet will still "
                       "attempt to connect to a remote controller)")
     parser.add_option("--db", "-d", type="string", default=Config.DbName,
-                      help="postgresql username (default: %s)" % Config.DbName)
+                      help="Postgresql database name (default: %s)" % Config.DbName)
     parser.add_option("--user", "-u", type="string", default=Config.DbUser,
-                      help="postgresql username (default: %s)" % Config.DbUser)
+                      help="Postgresql username (default: %s)" % Config.DbUser)
     parser.add_option("--password", "-p", action="store_true", default=False,
                       help="prompt for postgresql password")
     parser.add_option("--custom", type="string", default=None,
-                     help="mininet: read custom classes or params from py file(s)")
+                     help="read custom classes or params from py file(s) for Mininet")
     parser.add_option("--topo", "-t", type="string", default=None,
-                      help="mininet: topology argument")
+                      help="Mininet topology argument")
     parser.add_option("--verbosity", "-v",  type="choice",
                       choices=LEVELS.keys(), default="info",
                       help="|".join(LEVELS.keys()))
