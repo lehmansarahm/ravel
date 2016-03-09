@@ -4,9 +4,9 @@ INSTALL RAVEL
 See http://ravel-net.org/download for pre-packaged VMs.
 
 
+
 INSTALL FROM SOURCE
 -------------------
-
 To install Ravel from source, first check out a copy of the code:
 
     git clone REPO_LINK
@@ -24,9 +24,9 @@ Options for `install.sh` are:
           extensions
 
 
+
 CONFIGURE POSTGRESQL
 --------------------
-
 By default, PostgreSQL uses peer authentication, in which the client's username
 authenticates a connection to the database.  Ravel requires either trust (any
 user can connect) or_md5 (password-based) authentication.
@@ -45,7 +45,7 @@ to make this change automatically.
 
 
 OPTIONAL: CONFIGURE OVS-OFCTL
-
+-----------------------------
 Ravel supports multiple protocols for database triggers to interact with
 OpenFlow switches.  This allows changes in the database to be propagated to the
 network.  Supported protocols, which can be configured in ravel.cfg, are:

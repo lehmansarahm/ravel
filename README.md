@@ -26,35 +26,31 @@ Ravel commmand-line arguments:
   * `--password`, `-p`: force prompt for PostgreSQL password
   * `--topo`, `-t`: specify a Mininet topology argument
   * `--custom`, `-c`: specify custom classes or params for Mininet
-  * `--verbosity`, -v`: set logging output verbosity (debug|info|warning|critical|error)
+  * `--verbosity`, `-v`: set logging output verbosity (debug|info|warning|critical|error)
 
 For example, to run Ravel with Mininet in the background, on a topology with a single switch and two hosts:
 
-    `sudo ./ravel.py --topo=single,3`
+    sudo ./ravel.py --topo=single,3
 
 To run only the database component of Ravel (i.e., no Mininet) on the same topology, connecting to the database `mydb` with username `myuser`:
 
-    `sudo ./rave.py --topo=single,3 --onlydb --db=mydb --user=myuser`
+    sudo ./ravel.py --topo=single,3 --onlydb --db=mydb --user=myuser
 
 
 ### Ravel Commands
 
 The Ravel CLI has a number of commands to monitor and control the applications and the network:
 
-  * help - show list of commands
-  * apps - list discovered applications
-  * stat - show running configuration
-  * load - load application into the database
-  * unload - unload application from the database
-  * addflow - install a new flow between two hosts
-  * delflow - remove a flow by hosts or flow id
-  * m - execute Mininet command
-  * p - execute SQL statement
-  * time - print execution time
-  * profile - print detailed execution time
-  * reinit - truncate database tables except topology
-  * watch - spawn new xterm watching database tables
-
-### NOTES
-- To use OVS channel, must add postgres to sudoers `sudo adduser postgres sudo`
-- Must also allow passwordless sudo: %sudo   ALL=(ALL:ALL) NOPASSWD:ALL  
+  * `help`: show list of commands
+  * `apps`: list discovered applications
+  * `stat`: show running configuration
+  * `load`: load application into the database
+  * `unload`: unload application from the database
+  * `addflow`: install a new flow between two hosts
+  * `delflow`: remove a flow by hosts or flow id
+  * `m`: execute Mininet command
+  * `p`: execute SQL statement
+  * `time`: print execution time
+  * `profile`: print detailed execution time
+  * `reinit`: truncate database tables except topology
+  * `watch`: spawn new xterm watching database tables
