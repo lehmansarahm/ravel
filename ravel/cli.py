@@ -300,7 +300,7 @@ def RavelCLI(opts):
                 "existing controller first."
             return
 
-        controller = PoxInstance("poxapp")
+        controller = PoxInstance("ravel.controller.poxmgr")
 
     from ravel.network import MininetProvider, EmptyNetProvider
     if opts.onlydb:
