@@ -4,7 +4,6 @@ INSTALL RAVEL
 See http://ravel-net.org/download for pre-packaged VMs.
 
 
-
 INSTALL FROM SOURCE
 -------------------
 To install Ravel from source, first check out a copy of the code:
@@ -22,7 +21,6 @@ Options for `install.sh` are:
     * -p: install only PostgreSQL
     * -r: install Python libraries required by Ravel, configure PostgreSQL and
           extensions
-
 
 
 CONFIGURE POSTGRESQL
