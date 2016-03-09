@@ -26,7 +26,7 @@ def enable_profiling():
                                 flags=sysv_ipc.IPC_CREAT,
                                 mode=0777,
                                 size=sysv_ipc.PAGE_SIZE,
-                                init_character=' ')
+                                init_character=" ")
     shm.write(str(ProfileOn))
     shm.detach()
 
@@ -36,7 +36,7 @@ def disable_profiling():
                                 flags=sysv_ipc.IPC_CREAT,
                                 mode=07777,
                                 size=sysv_ipc.PAGE_SIZE,
-                                init_character=' ')
+                                init_character=" ")
     shm.write(str(ProfileOff))
     shm.detach()
 
@@ -44,7 +44,7 @@ def is_profiled():
     "Check if profiling is enabled"
     try:
         shm = sysv_ipc.SharedMemory(ProfileQueueId)
-        return shm.read().strip('\0') == ProfileOn
+        return shm.read().strip("\0") == ProfileOn
     except sysv_ipc.ExistentialError, e:
         logger.warning("profile queue doesn't exist: %", e)
         return False

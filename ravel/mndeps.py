@@ -11,20 +11,20 @@ from mininet.topo import (SingleSwitchTopo, LinearTopo,
 from mininet.topolib import TreeTopo
 from mininet.util import buildTopo
 
-TOPOS = { 'linear': LinearTopo,
-          'reversed': SingleSwitchReversedTopo,
-          'single': SingleSwitchTopo,
-          'tree': TreeTopo
+TOPOS = { "linear": LinearTopo,
+          "reversed": SingleSwitchReversedTopo,
+          "single": SingleSwitchTopo,
+          "tree": TreeTopo
       }
 
 def setCustom(name, value):
     """Set custom parameters for Mininet
        name: parameter name
        value: parameter value"""
-    if name in ('topos', 'switches', 'hosts', 'controllers'):
+    if name in ("topos", "switches", "hosts", "controllers"):
         param = name.upper()
         globals()[param].update(value)
-    elif name == 'validate':
+    elif name == "validate":
         validate = value
     else:
         globals()[name] = value
@@ -36,7 +36,7 @@ def custom(value):
     if os.path.isfile(value):
         files.append(value)
     else:
-        files += value.split(',')
+        files += value.split(",")
 
     for filename in files:
         customs = {}

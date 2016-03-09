@@ -33,24 +33,24 @@ def update_trigger_path(filename, path):
         logger.warning("cannot find sql file %s", filename)
         return
 
-    with open(filename, 'r') as f:
+    with open(filename, "r") as f:
         lines = []
         content = f.read()
 
-    newstr = "sys.path.append('{0}')".format(path)
+    newstr = 'sys.path.append("{0}")'.format(path)
     pattern = re.compile(r"sys.path.append\(\S+\)")
     content = re.sub(pattern, newstr, content)
 
-    open(filename, 'w').write(content)
+    open(filename, "w").write(content)
 
 def append_path(path):
     """Append a path to PYTHONPATH
        path: the path to append to PYTHONPATH"""
     path = os.path.expanduser(path)
-    if 'PYTHONPATH' not in os.environ:
-        os.environ['PYTHONPATH'] = ""
+    if "PYTHONPATH" not in os.environ:
+        os.environ["PYTHONPATH"] = ""
 
-    sys.path = os.environ['PYTHONPATH'].split(':') + sys.path
+    sys.path = os.environ["PYTHONPATH"].split(":") + sys.path
 
     if path is None or path == "":
         path = "."
@@ -65,7 +65,7 @@ def resource_string(name):
        returns: the contents of the file as a string, if it exists"""
     path = resource_file(name)
     if os.path.isfile(name):
-        return open(path, 'r').read()
+        return open(path, "r").read()
     else:
         logger.error("cannot read file %s", path)
         return None
@@ -111,7 +111,7 @@ class ConfigParameters(object):
 
             # if path doesn't start with / or ~, assume it's relative to
             # ravel directory
-            dirlist = [x if x[0] == '/' or x[0] == '~'
+            dirlist = [x if x[0] == "/" or x[0] == "~"
                        else resource_file(x) for x in dirlist]
 
             # remove duplicates

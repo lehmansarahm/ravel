@@ -73,14 +73,14 @@ import os
 import sys
 import time
 
-if 'PYTHONPATH' in os.environ:
-    sys.path = os.environ['PYTHONPATH'].split(':') + sys.path
-sys.path.append('/home/croftj/src/cli-ravel')
+if "PYTHONPATH" in os.environ:
+    sys.path = os.environ["PYTHONPATH"].split(":") + sys.path
+sys.path.append("/home/croftj/src/cli-ravel")
 
 from ravel.flow import installFlow, Switch
 from ravel.profiling import PerfCounter
 
-pc = PerfCounter('db_select', float(diff))
+pc = PerfCounter("db_select", float(diff))
 pc.report()
 
 sw = Switch(sw_name, sw_ip, sw_dpid)
@@ -89,7 +89,6 @@ installFlow(flow_id, sw, h1ip, h1mac, h2ip, h2mac, outport, revoutport)
 return 0
 $$ LANGUAGE plpythonu VOLATILE SECURITY DEFINER;
 
---DROP TRIGGER add_flow_trigger ON cf;
 CREATE TRIGGER add_flow_trigger
      AFTER INSERT ON cf
      FOR EACH ROW
@@ -167,14 +166,14 @@ import os
 import sys
 import time
 
-if 'PYTHONPATH' in os.environ:
-    sys.path = os.environ['PYTHONPATH'].split(':') + sys.path
-sys.path.append('/home/croftj/src/cli-ravel')
+if "PYTHONPATH" in os.environ:
+    sys.path = os.environ["PYTHONPATH"].split(":") + sys.path
+sys.path.append("/home/croftj/src/cli-ravel")
 
 from ravel.flow import removeFlow, Switch
 from ravel.profiling import PerfCounter
 
-pc = PerfCounter('db_select', float(diff))
+pc = PerfCounter("db_select", float(diff))
 pc.report()
 
 sw = Switch(sw_name, sw_ip, sw_dpid)
@@ -183,8 +182,6 @@ removeFlow(flow_id, sw, h1ip, h1mac, h2ip, h2mac, outport, revoutport)
 return 0
 $$ LANGUAGE plpythonu VOLATILE SECURITY DEFINER;
 
-
---DROP TRIGGER del_flow_trigger ON cf;
 CREATE TRIGGER del_flow_trigger
      AFTER DELETE ON cf
      FOR EACH ROW

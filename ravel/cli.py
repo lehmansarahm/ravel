@@ -41,7 +41,7 @@ class RavelConsole(cmd.Cmd):
         if cmd in self.env.loaded:
             self.env.loaded[cmd].cmd(line[len(cmd):])
         else:
-            print '*** Unknown command: %s' % line
+            print "*** Unknown command:", line
 
     def emptyline(self):
         "Don't repeat the last line when hitting return on empty line"
@@ -106,9 +106,9 @@ class RavelConsole(cmd.Cmd):
             shortcut = ""
             description = ""
 
-            status = '\033[91m' + "[offline] " + '\033[0m'
+            status = "\033[91m[offline]\033[0m"
             if app.name in self.env.loaded:
-                status = '\033[92m' + "[online]  " + '\033[0m'
+                status = "\033[92m[online]\033[0m"
             if app.shortcut:
                 shortcut = " ({0})".format(app.shortcut)
             if app.description:
@@ -174,7 +174,7 @@ class RavelConsole(cmd.Cmd):
             time.sleep(0.5)
 
             pe.stop()
-            sys.stdout.write('\n')
+            sys.stdout.write("\n")
             pe.print_summary()
 
     def do_reinit(self, line):
@@ -210,7 +210,7 @@ class RavelConsole(cmd.Cmd):
 
     def do_EOF(self, line):
         "Quit Ravel console"
-        sys.stdout.write('\n')
+        sys.stdout.write("\n")
         return True
 
     def do_exit(self, line):
@@ -269,12 +269,12 @@ def RavelCLI(opts):
     if opts.custom:
         ravel.mndeps.custom(opts.custom)
 
-    params = { 'topology' : opts.topo,
-               'pox' : 'offline' if opts.noctl else 'running',
-               'mininet' : 'running' if not opts.onlydb else 'offline',
-               'database' : opts.db,
-               'username' : opts.user,
-               'app path' : Config.AppDirs
+    params = { "topology" : opts.topo,
+               "pox" : "offline" if opts.noctl else "running",
+               "mininet" : "offline" if opts.onlydb else "running",
+               "database" : opts.db,
+               "username" : opts.user,
+               "app path" : Config.AppDirs
            }
 
     topo = ravel.mndeps.build(opts.topo)

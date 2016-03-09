@@ -101,7 +101,7 @@ class PoxInstance(object):
 
         ravel.util.append_path(ravel.util.resource_file())
         env = os.environ.copy()
-        env['PYTHONPATH'] = ":".join(sys.path)
+        env["PYTHONPATH"] = ":".join(sys.path)
         logger.debug("pox with params: %s", " ".join(cargs))
         self.proc = subprocess.Popen([pox] + cargs,
                                      env=env,

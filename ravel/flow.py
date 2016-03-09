@@ -37,7 +37,7 @@ def connectionFactory(conn):
         raise Exception("Unrecognized messaging protocol %s", conn)
 
 def _send_msg(command, flow_id, sw, ip1, mac1, ip2, mac2, outport, revoutport):
-    pc = PerfCounter('msg_create')
+    pc = PerfCounter("msg_create")
     pc.start()
     conn = connectionFactory(Config.Connection)
     msg1 = OfMessage(command=command,

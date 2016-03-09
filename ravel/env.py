@@ -127,6 +127,6 @@ class Environment(object):
         out = ""
         pad = max([len(k) for k in self.params.keys()]) + 2
         for k,v in self.params.iteritems():
-            key = "{0}:".format(k).ljust(pad, ' ')
+            key = "{0}:".format(k).ljust(pad, " ")
             out += "  {0} {1}\n".format(key, v)
         return out

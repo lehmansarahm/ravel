@@ -40,10 +40,10 @@ def mk_watchcmd(db, args):
     temp.close()
     os.chmod(temp.name, 0666)
 
-    watch_arg = 'echo {0}: {1}; psql -U{2} -d {0} -f {3}'.format(
+    watch_arg = "echo {0}: {1}; psql -U{2} -d {0} -f {3}".format(
         db.name, args[0], db.user, temp.name)
     watch = 'watch -c -n 2 --no-title "{0}"'.format(watch_arg)
-    cmd = 'xterm -e ' + watch
+    cmd = "xterm -e " + watch
     return cmd, temp.name
 
 class SqlObjMatch(object):
@@ -75,15 +75,15 @@ class SqlObjMatch(object):
 sqlComponents = []
 sqlComponents.append(SqlObjMatch(
     "view",
-    r'(create|drop).* view( if exists)? (\w+)',
+    r"(create|drop).* view( if exists)? (\w+)",
     3))
 sqlComponents.append(SqlObjMatch(
     "function",
-    r'(create|drop).* function.*? (\w+)(\(.*\))',
+    r"(create|drop).* function.*? (\w+)(\(.*\))",
     [2,3]))
 sqlComponents.append(SqlObjMatch(
     "table",
-    r'(create|drop).* table( if exists)?( if not exists)? (\w+)',
+    r"(create|drop).* table( if exists)?( if not exists)? (\w+)",
     4))
 
 def discoverComponents(sql):
@@ -137,7 +137,7 @@ class AppConsole(cmd.Cmd):
 
     def do_EOF(self, line):
         "Quit application console"
-        sys.stdout.write('\n')
+        sys.stdout.write("\n")
         return True
 
     def do_exit(self, line):
@@ -171,7 +171,7 @@ class AppComponent(object):
     def watchable(self):
         """returns: true if the component is an object that can be watched with
            a select query"""
-        return self.typ.lower() in ['table', 'view']
+        return self.typ.lower() in ["table", "view"]
 
     def __eq__(self, other):
         return (isinstance(other, self.__class__)) \

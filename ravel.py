@@ -5,8 +5,8 @@ import sys
 from optparse import OptionParser
 
 # add ravel to path
-if 'PYTHONPATH' in os.environ:
-    sys.path = os.environ['PYTHONPATH'].split(':') + sys.path
+if "PYTHONPATH" in os.environ:
+    sys.path = os.environ["PYTHONPATH"].split(":") + sys.path
     raveldir = os.path.dirname(os.path.abspath(__file__))
     sys.path.append(os.path.abspath(raveldir))
 
@@ -16,33 +16,32 @@ from ravel.log import LEVELS, logger
 from ravel.util import Config
 
 def optParser():
-    desc = ( "Ravel console." )
-    usage = ( '%prog [options]\n'
-              '(type %prog -h for details)' )
+    desc = "Ravel console"
+    usage = "%prog [options]\ntype %prog -h for details"
 
     parser = OptionParser(description=desc, usage=usage)
-    parser.add_option('--clean', '-c', action='store_true', default=False,
-                      help='clean Ravel and Mininet')
-    parser.add_option('--onlydb', '-o', action='store_true', default=False,
-                      help='start without mininet')
-    parser.add_option('--reconnect', '-r', action='store_true', default=False,
-                      help='reconnect to existing database, skipping reinit.')
-    parser.add_option('--noctl', '-n', action='store_true', default=False,
-                      help='start without controller (Mininet will still '
-                      'attempt to connect to a remote controller)')
-    parser.add_option('--db', '-d', type='string', default=Config.DbName,
-                      help='postgresql username (default: %s)' % Config.DbName)
-    parser.add_option('--user', '-u', type='string', default=Config.DbUser,
-                      help='postgresql username (default: %s)' % Config.DbUser)
-    parser.add_option('--password', '-p', action='store_true', default=False,
-                      help='prompt for postgresql password')
-    parser.add_option('--custom', type='string', default=None,
-                     help='mininet: read custom classes or params from py file(s)')
-    parser.add_option('--topo', '-t', type='string', default=None,
-                      help='mininet: topology argument')
-    parser.add_option('--verbosity', '-v',  type='choice',
-                      choices=LEVELS.keys(), default='info',
-                      help='|'.join(LEVELS.keys()))
+    parser.add_option("--clean", "-c", action="store_true", default=False,
+                      help="clean Ravel and Mininet")
+    parser.add_option("--onlydb", "-o", action="store_true", default=False,
+                      help="start without mininet")
+    parser.add_option("--reconnect", "-r", action="store_true", default=False,
+                      help="reconnect to existing database, skipping reinit.")
+    parser.add_option("--noctl", "-n", action="store_true", default=False,
+                      help="start without controller (Mininet will still "
+                      "attempt to connect to a remote controller)")
+    parser.add_option("--db", "-d", type="string", default=Config.DbName,
+                      help="postgresql username (default: %s)" % Config.DbName)
+    parser.add_option("--user", "-u", type="string", default=Config.DbUser,
+                      help="postgresql username (default: %s)" % Config.DbUser)
+    parser.add_option("--password", "-p", action="store_true", default=False,
+                      help="prompt for postgresql password")
+    parser.add_option("--custom", type="string", default=None,
+                     help="mininet: read custom classes or params from py file(s)")
+    parser.add_option("--topo", "-t", type="string", default=None,
+                      help="mininet: topology argument")
+    parser.add_option("--verbosity", "-v",  type="choice",
+                      choices=LEVELS.keys(), default="info",
+                      help="|".join(LEVELS.keys()))
 
     return parser
 

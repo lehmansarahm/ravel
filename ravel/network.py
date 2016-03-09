@@ -234,22 +234,22 @@ class EmptyNetProvider(NetworkProvider):
                 self.dpid = self.defaultDpid()
 
             def defaultDpid(self):
-                nums = re.findall(r'\d+', self.name)
+                nums = re.findall(r"\d+", self.name)
                 if nums:
                     dpid = hex(int(nums[0]))[2:]
                 else:
                     raise Exception("Unable to device default DPID")
 
-                return '0' * (self.dpidLen - len(dpid)) + dpid
+                return "0" * (self.dpidLen - len(dpid)) + dpid
 
-        ipBase = '10.0.0.0/8'
+        ipBase = "10.0.0.0/8"
         ipBaseNum, prefixLen = netParse(ipBase)
         nextIp = 1
-        defaults = { 'ip' : ipAdd(nextIp,
+        defaults = { "ip" : ipAdd(nextIp,
                                   ipBaseNum=ipBaseNum,
                                   prefixLen=prefixLen) +
-                     '/%s' % prefixLen,
-                     'mac' : macColonHex(nextIp)
+                     "/%s" % prefixLen,
+                     "mac" : macColonHex(nextIp)
                  }
 
         for host in self.topo.hosts():
@@ -261,7 +261,7 @@ class EmptyNetProvider(NetworkProvider):
             nextIp += 1
 
         for switch in self.topo.switches():
-            s = SkeletonSwitch(switch, '127.0.0.1', macColonHex(nextIp))
+            s = SkeletonSwitch(switch, "127.0.0.1", macColonHex(nextIp))
             self.nodes[switch] = s
             nextIp += 1
 
@@ -305,7 +305,7 @@ class MininetProvider(NetworkProvider):
 
         self.net = Mininet(topo,
                            controller=partial(RemoteController,
-                                              ip='127.0.0.1'))
+                                              ip="127.0.0.1"))
 
         super(MininetProvider, self).__init__(NetworkProvider.QueueId)
 
@@ -371,10 +371,10 @@ class MininetProvider(NetworkProvider):
            msg: an AddSwitchMessage object"""
         default = {}
         if msg.dpid is not None:
-            default['dpid'] = str(msg.dpid)
+            default["dpid"] = str(msg.dpid)
 
         if msg.name is None:
-            msg.name = 's' + str(msg.sid)
+            msg.name = "s" + str(msg.sid)
             cursor = self.db.cursor
             cursor.execute("UPDATE switches SET name='{0}' WHERE sid={1}"
                        .format(msg.name, msg.sid))
@@ -407,7 +407,7 @@ class MininetProvider(NetworkProvider):
         """Add a host to the Mininet topology
            msg: an AddHostMessage object"""
         if msg.name is None:
-            msg.name = 'h' + str(msg.hid)
+            msg.name = "h" + str(msg.hid)
             cursor = self.db.cursor
             cursor.execute("UPDATE hosts SET name='{0}' WHERE hid={1}"
                        .format(msg.name, msg.hid))
@@ -418,7 +418,7 @@ class MininetProvider(NetworkProvider):
 
         # delay setting ip/mac until link is added
         if msg.ip is None:
-            ipBase = '10.0.0.0/8'
+            ipBase = "10.0.0.0/8"
             ipBaseNum, prefixLen = netParse(ipBase)
             nextIp = len(self.net.hosts) + 1
             msg.ip = ipAdd(nextIp, ipBaseNum=ipBaseNum, prefixLen=prefixLen)

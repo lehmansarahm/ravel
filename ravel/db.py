@@ -83,7 +83,7 @@ class RavelDb():
         """Load the specified schema into the database"
            script: path to a SQL script"""
         try:
-            s = open(script, 'r').read()
+            s = open(script, "r").read()
             logger.debug("loaded schema %s", script)
             self.cursor.execute(s)
         except psycopg2.DatabaseError, e:
