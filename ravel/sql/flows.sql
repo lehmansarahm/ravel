@@ -1,70 +1,104 @@
--------------------------------------------------------
--- add flow
--------------------------------------------------------
+------------------------------------------------------------
+-- FLOW MODIFICATION FUNCTIONS
+------------------------------------------------------------
 
---DROP TABLE IF EXISTS ports CASCADE;
---CREATE UNLOGGED TABLE ports AS
---       SELECT switches.sid, t.nid, t.port
---       FROM switches, get_port(switches.sid) t ;
---CREATE INDEX ON ports(sid, nid);
-
-CREATE OR REPLACE FUNCTION add_flow_wrapper ()
+/* Add flow preprocessing - gather match fields to install a flow
+ * in a single switch (a flow with n hops will invoke this function
+ * n times)
+ * NEW.fid: flow id
+ * NEW.sid: id of the switch where the flow is to be installed
+ * NEW.pid: host1, the previous-hop node
+ * NEW.nid: host2, the next-hop node
+ */
+CREATE OR REPLACE FUNCTION add_flow_pre ()
 RETURNS TRIGGER
 AS $$
     DECLARE
         sw_name varchar(16);
-	sw_ip varchar(16);
-	sw_dpid varchar(16);
-        uh1 int;
-        uh2 int;
-        h1ip varchar(16);
-	h1mac varchar(17);
-        h2ip varchar(16);
-	h2mac varchar(17);
+        sw_ip varchar(16);
+        sw_dpid varchar(16);
+
+        src_uid int;
+        src_ip varchar(16);
+        src_mac varchar(17);
+
+        dst_uid int;
+        dst_ip varchar(16);
+        dst_mac varchar(17);
+
         outport int;
         revoutport int;
+
         start_time timestamptz;
         end_time timestamptz;
         diff interval;
+
     BEGIN
-        -- arguments:
-        -- host1 = NEW.pid
-        -- host2 = NEW.nid
-        -- switch_id = NEW.sid
-        -- flow_id = NEW.fid
-
         start_time := clock_timestamp();
-        -- get ports
-        -- note: outport -> host1 (previous hop)
-        --       revoutport -> host2 (next hop)
-	SELECT port INTO outport FROM ports WHERE sid=NEW.sid and nid=NEW.nid;
-	SELECT port INTO revoutport FROM ports WHERE sid=NEW.sid and nid=NEW.pid;
---        SELECT port INTO outport FROM get_port(NEW.sid) WHERE nid=NEW.pid;
---        SELECT port INTO revoutport FROM get_port(NEW.sid) WHERE nid=NEW.nid;
 
-        -- get uids from flow id
-        SELECT host1, host2 INTO uh1, uh2 FROM utm WHERE fid=NEW.fid;
+        SELECT port INTO outport
+               FROM ports
+               WHERE sid=NEW.sid AND nid=NEW.nid;
 
-	-- get switch info
-	SELECT name, ip, dpid INTO sw_name, sw_ip, sw_dpid FROM switches WHERE sid=NEW.sid;
+        SELECT port INTO revoutport
+               FROM ports
+               WHERE sid=NEW.sid AND nid=NEW.pid;
 
-        -- get ip, mac addresses
-        SELECT ip, mac INTO h1ip, h1mac FROM hosts WHERE hid IN (SELECT hid FROM uhosts WHERE u_hid=uh1);
-        SELECT ip, mac INTO h2ip, h2mac FROM hosts WHERE hid IN (SELECT hid FROM uhosts WHERE u_hid=uh2);
+        /* get src, dst host uids */
+        SELECT host1, host2 INTO src_uid, dst_uid
+               FROM utm
+               WHERE fid=NEW.fid;
 
+        SELECT name, ip, dpid INTO sw_name, sw_ip, sw_dpid
+               FROM switches
+               WHERE sid=NEW.sid;
+
+        /* get src, dst addresses */
+        SELECT ip, mac INTO src_ip, src_mac
+               FROM hosts
+               WHERE hid IN (
+                     SELECT hid FROM uhosts WHERE u_hid=src_uid
+                     );
+
+        SELECT ip, mac INTO dst_ip, dst_mac
+               FROM hosts
+               WHERE hid IN (
+                     SELECT hid FROM uhosts WHERE u_hid=dst_uid
+                     );
+
+        /* for profiling */
         end_time := clock_timestamp();
-        diff := (extract(epoch from end_time) - extract(epoch from start_time));
+        diff := (EXTRACT(epoch FROM end_time) - EXTRACT(epoch FROM start_time));
 
-        -- pass to python code
-        PERFORM add_flow_fun(NEW.fid, sw_name, sw_ip, sw_dpid, h1ip, h1mac, h2ip, h2mac, outport, revoutport, to_char(diff, 'MS.US'));
+        PERFORM add_flow_fun(NEW.fid,
+                             sw_name, sw_ip, sw_dpid,
+                             src_ip, src_mac,
+                             dst_ip, dst_mac,
+                             outport, revoutport,
+                             to_char(diff, 'MS.US'));
+
         return NEW;
     END;
 $$ LANGUAGE plpgsql VOLATILE SECURITY DEFINER;
 
+
+/* Add flow - proxy for ravel.flow.installFlow
+ * flow_id: id of flow to be installed
+ * sw_name: switch name (in Mininet)
+ * sw_ip: switch IP address (if a physical, remote switch)
+ * sw_mac: switch MAC address
+ * src_ip: source IP address
+ * src_mac: source MAC address
+ * dst_ip: destination IP address
+ * src_mac: destination MAC address
+ * outport: outport on sw_name for the forward flow (src->dst)
+ * revoutport: outport on sw_name for the reverse flow (dst->src)
+ * diff: time to query for flow fields
+ */
 CREATE OR REPLACE FUNCTION add_flow_fun (flow_id integer,
        sw_name varchar(16), sw_ip varchar(16), sw_dpid varchar(16),
-       h1ip varchar(16), h1mac varchar(17),
-       h2ip varchar(16), h2mac varchar(17),
+       src_ip varchar(16), src_mac varchar(17),
+       dst_ip varchar(16), dst_mac varchar(17),
        outport integer, revoutport integer,
        diff varchar(16))
 RETURNS integer
@@ -82,82 +116,119 @@ from ravel.profiling import PerfCounter
 
 pc = PerfCounter("db_select", float(diff))
 pc.report()
-
 sw = Switch(sw_name, sw_ip, sw_dpid)
-installFlow(flow_id, sw, h1ip, h1mac, h2ip, h2mac, outport, revoutport)
+installFlow(flow_id, sw, src_ip, src_mac, dst_ip, dst_mac, outport, revoutport)
 
 return 0
 $$ LANGUAGE plpythonu VOLATILE SECURITY DEFINER;
 
+
+/* Add flow trigger - for each per-switch rule, invoke add_flow_pre
+ * to install flow in that switch
+ */
 CREATE TRIGGER add_flow_trigger
-     AFTER INSERT ON cf
-     FOR EACH ROW
-   EXECUTE PROCEDURE add_flow_wrapper();
+       AFTER INSERT ON cf
+       FOR EACH ROW
+       EXECUTE PROCEDURE add_flow_pre();
 
 
-
--------------------------------------------------------
--- del flow
--------------------------------------------------------
-CREATE OR REPLACE FUNCTION del_flow_wrapper ()
+/* Delete flow preprocessing - gather match fields to install a flow
+ * in a single switch (a flow with n hops will invoke this function
+ * n times)
+ * OLD.fid: flow id
+ * OLD.sid: id of the switch where the flow is to be removed
+ * OLD.pid: host1, the previous-hop node
+ * OLD.nid: host2, the next-hop node
+ */
+CREATE OR REPLACE FUNCTION del_flow_pre ()
 RETURNS TRIGGER
 AS $$
     DECLARE
         sw_name varchar(16);
-	sw_ip varchar(16);
-	sw_dpid varchar(16);
-        uh1 int;
-        uh2 int;
-        h1ip varchar(16);
-	h1mac varchar(17);
-        h2ip varchar(16);
-	h2mac varchar(17);
+        sw_ip varchar(16);
+        sw_dpid varchar(16);
+
+        src_uid int;
+        src_ip varchar(16);
+        src_mac varchar(17);
+
+        dst_uid int;
+        dst_ip varchar(16);
+        dst_mac varchar(17);
+
         outport int;
         revoutport int;
+
         start_time timestamptz;
         end_time timestamptz;
         diff interval;
     BEGIN
-        -- arguments:
-        -- host1 = OLD.pid
-        -- host2 = OLD.nid
-        -- switch_id = OLD.sid
-        -- flow_id = OLD.fid
-
         start_time := clock_timestamp();
 
-        -- get ports
-        -- note: outport -> host1 (previous hop)
-        --       revoutport -> host2 (next hop)
-	SELECT port INTO outport FROM ports WHERE sid=OLD.sid and nid=OLD.nid;
-	SELECT port INTO revoutport FROM ports WHERE sid=OLD.sid and nid=OLD.pid;
---        SELECT port INTO outport FROM get_port(OLD.sid) WHERE nid=OLD.pid;
---        SELECT port INTO revoutport FROM get_port(OLD.sid) WHERE nid=OLD.nid;
+        SELECT port INTO outport
+               FROM ports
+               WHERE sid=OLD.sid and nid=OLD.nid;
 
-        -- get uids from flow id
-        SELECT host1, host2 INTO uh1, uh2 FROM rtm WHERE fid=OLD.fid;
+        SELECT port INTO revoutport
+               FROM ports
+               WHERE sid=OLD.sid and nid=OLD.pid;
 
-	-- get switch info
-	SELECT name, ip, dpid INTO sw_name, sw_ip, sw_dpid FROM switches WHERE sid=OLD.sid;
+        /* get src, dst host uids */
+        SELECT host1, host2 INTO src_uid, dst_uid
+               FROM rtm
+               WHERE fid=OLD.fid;
 
-        -- get ip addresses
-        SELECT ip, mac INTO h1ip, h1mac FROM hosts WHERE hid IN (SELECT hid FROM uhosts WHERE u_hid=uh1);
-        SELECT ip, mac INTO h2ip, h2mac FROM hosts WHERE hid IN (SELECT hid FROM uhosts WHERE u_hid=uh2);
+        /* get src, dst addresses */
+        SELECT name, ip, dpid INTO sw_name, sw_ip, sw_dpid
+               FROM switches
+               WHERE sid=OLD.sid;
 
+        /* get src, dst addresses */
+        SELECT ip, mac INTO src_ip, src_mac
+               FROM hosts
+               WHERE hid IN (
+                     SELECT hid FROM uhosts WHERE u_hid=src_uid
+                     );
+
+        SELECT ip, mac INTO dst_ip, dst_mac
+               FROM hosts
+               WHERE hid IN (
+                     SELECT hid FROM uhosts WHERE u_hid=dst_uid
+                     );
+
+        /* for profiling */
         end_time := clock_timestamp();
         diff := (extract(epoch from end_time) - extract(epoch from start_time));
 
-        -- pass to python code
-        PERFORM del_flow_fun(OLD.fid, sw_name, sw_ip, sw_dpid, h1ip, h1mac, h2ip, h2mac, outport, revoutport, to_char(diff, 'MS.US'));
+        PERFORM del_flow_fun(OLD.fid,
+                             sw_name, sw_ip, sw_dpid,
+                             src_ip, src_mac,
+                             dst_ip, dst_mac,
+                             outport, revoutport,
+                             to_char(diff, 'MS.US'));
 
         return OLD;
     END;
 $$ LANGUAGE plpgsql VOLATILE SECURITY DEFINER;
 
+
+/* Delete flow - proxy for ravel.flow.removeFlow
+ * flow_id: id of flow to be removed
+ * sw_name: switch name (in Mininet)
+ * sw_ip: switch IP address (if a physical, remote switch)
+ * sw_mac: switch MAC address
+ * src_ip: source IP address
+ * src_mac: source MAC address
+ * dst_ip: destination IP address
+ * src_mac: destination MAC address
+ * outport: outport on sw_name for the forward flow (src->dst)
+ * revoutport: outport on sw_name for the reverse flow (dst->src)
+ * diff: time to query for flow fields
+ */
 CREATE OR REPLACE FUNCTION del_flow_fun (flow_id integer,
        sw_name varchar(16), sw_ip varchar(16), sw_dpid varchar(16),
-       h1ip varchar(16), h1mac varchar(17),
-       h2ip varchar(16), h2mac varchar(17),
+       src_ip varchar(16), src_mac varchar(17),
+       dst_ip varchar(16), dst_mac varchar(17),
        outport integer, revoutport integer,
        diff varchar(16))
 RETURNS integer
@@ -177,12 +248,16 @@ pc = PerfCounter("db_select", float(diff))
 pc.report()
 
 sw = Switch(sw_name, sw_ip, sw_dpid)
-removeFlow(flow_id, sw, h1ip, h1mac, h2ip, h2mac, outport, revoutport)
+removeFlow(flow_id, sw, src_ip, src_mac, dst_ip, dst_mac, outport, revoutport)
 
 return 0
 $$ LANGUAGE plpythonu VOLATILE SECURITY DEFINER;
 
+
+/* Delete flow trigger - for each per-switch rule, invoke del_flow_pre
+ * to delete flow from that switch
+ */
 CREATE TRIGGER del_flow_trigger
-     AFTER DELETE ON cf
-     FOR EACH ROW
-   EXECUTE PROCEDURE del_flow_wrapper();
+       AFTER DELETE ON cf
+       FOR EACH ROW
+       EXECUTE PROCEDURE del_flow_pre();
