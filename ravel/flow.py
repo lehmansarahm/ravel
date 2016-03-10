@@ -36,32 +36,33 @@ def connectionFactory(conn):
     else:
         raise Exception("Unrecognized messaging protocol %s", conn)
 
-def _send_msg(command, flow_id, sw, ip1, mac1, ip2, mac2, outport, revoutport):
+def _send_msg(command, flow_id, sw, src_ip, src_mac, dst_ip, dst_mac, outport,
+              revoutport):
     pc = PerfCounter("msg_create")
     pc.start()
     conn = connectionFactory(Config.Connection)
     msg1 = OfMessage(command=command,
                      priority=10,
                      switch=sw,
-                     match=Match(nw_src=ip1, nw_dst=ip2, dl_type=0x0800),
+                     match=Match(nw_src=src_ip, nw_dst=dst_ip, dl_type=0x0800),
                      actions=[outport])
 
     msg2 = OfMessage(command=command,
                      priority=10,
                      switch=sw,
-                     match=Match(nw_src=ip2, nw_dst=ip1, dl_type=0x0800),
+                     match=Match(nw_src=dst_ip, nw_dst=src_ip, dl_type=0x0800),
                      actions=[revoutport])
 
     arp1 = OfMessage(command=command,
                      priority=1,
                      switch=sw,
-                     match=Match(dl_src=mac1, dl_type=0x0806),
+                     match=Match(dl_src=src_mac, dl_type=0x0806),
                      actions=[OFPP_FLOOD])
 
     arp2 = OfMessage(command=command,
                      priority=1,
                      switch=sw,
-                     match=Match(dl_src=mac2, dl_type=0x0806),
+                     match=Match(dl_src=dst_mac, dl_type=0x0806),
                      actions=[OFPP_FLOOD])
 
     pc.stop()
@@ -71,34 +72,49 @@ def _send_msg(command, flow_id, sw, ip1, mac1, ip2, mac2, outport, revoutport):
     conn.send(arp2)
     conn.send(BarrierMessage(sw.dpid))
 
-def installFlow(flowid, sw, ip1, mac1, ip2, mac2, outport, revoutport):
+def installFlow(flowid, sw, src_ip, src_mac, dst_ip, dst_mac, outport,
+                revoutport):
     """Construct a new add-flow message and send to the OpenFlow manager.
        Installs the forward and reverse path
        flowid: the flow id
        sw: an instance of Switch
-       ip1: the source host's IP address as a string
-       mac1: the source host's MAC address as a string
-       ip2: the destination host's IP address as a string
-       mac2: the destination host's MAC address as a string
+       src_ip: the source host's IP address as a string
+       src_mac: the source host's MAC address as a string
+       dst_ip: the destination host's IP address as a string
+       dst_mac: the destination host's MAC address as a string
        outport: the outport from sw for the forward flow
        revoutoprt: the outport from sw for the reverse flow"""
     _send_msg(OFPFC_ADD,
-              flowid, sw, ip1, mac1, ip2, mac2, outport, revoutport)
+              flowid,
+              sw,
+              src_ip,
+              src_mac,
+              dst_ip,
+              dst_mac,
+              outport,
+              revoutport)
 
-def removeFlow(flowid, sw, ip1, mac1, ip2, mac2, outport, revoutport):
+def removeFlow(flowid, sw, src_ip, src_mac, dst_ip, dst_mac, outport,
+               revoutport):
     """Construct a new delete-flow message and send to the OpenFlow manager.
        Removes the forward and reverse path
        flowid: the flow id
        sw: an instance of Switch
-       ip1: the source host's IP address as a string
-       mac1: the source host's MAC address as a string
-       ip2: the destination host's IP address as a string
-       mac2: the destination host's MAC address as a string
+       src_ip: the source host's IP address as a string
+       src_mac: the source host's MAC address as a string
+       dst_ip: the destination host's IP address as a string
+       dst_mac: the destination host's MAC address as a string
        outport: the outport from sw for the forward flow
        revoutoprt: the outport from sw for the reverse flow"""
-
     _send_msg(OFPFC_DELETE_STRICT,
-              flowid, sw, ip1, mac1, ip2, mac2, outport, revoutport)
+              flowid,
+              sw,
+              src_ip,
+              src_mac,
+              dst_ip,
+              dst_mac,
+              outport,
+              revoutport)
 
 class Switch(object):
     "A representation of an OpenFlow switch"
