@@ -4,6 +4,7 @@ A command-line interface for Ravel.
 Ravel's CLI provides a user-friendly way to interact the backend
 PostgreSQL database and Mininet.
 """
+
 import cmd
 import getpass
 import os
@@ -63,18 +64,25 @@ class RavelConsole(cmd.Cmd):
 
     def do_test(self, line):
         "Placeholder for batch commands for testing"
-        cmds = ["p insert into switches (sid) values (5);",
+        cmds = ["m net",
+                "p insert into switches (sid) values (5);",
                 "p insert into hosts (hid) values (6);",
                 "p insert into tp values (5, 6, 0, 1, 1);",
+                "m net",
                 "addflow h1 h2",
+                "m dpctl dump-flows",
                 "delflow h1 h2",
+                "m dpctl dump-flows",
                 "addflow h2 h9",
                 "delflow h1 h9",
                 "profile addflow h1 h2",
+                "m dpctl dump-flows",
                 "profile delflow h1 h2",
+                "m dpctl dump-flows",
                 "p delete from tp where sid=5 and nid=3;",
                 "p delete from switches where sid=5;",
                 "p delete from hosts where hid=6;",
+                "m net",
         ]
         for c in cmds:
             print c

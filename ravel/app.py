@@ -1,6 +1,7 @@
 """
 Ravel application abstractions
 """
+
 import cmd
 import importlib
 import os

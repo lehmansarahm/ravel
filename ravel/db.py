@@ -1,6 +1,7 @@
 """
 The Ravel backend PostgreSQL database
 """
+
 import psycopg2
 
 from ravel.log import logger
