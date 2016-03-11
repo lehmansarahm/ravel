@@ -19,7 +19,6 @@ import ravel.profiling
 from ravel.db import RavelDb, BASE_SQL
 from ravel.env import Environment
 from ravel.log import logger
-from ravel.network import name2uid, addFlow, delFlowById, delFlowByHostname
 from ravel.of import PoxInstance
 from ravel.util import Config, resource_file
 
@@ -48,36 +47,25 @@ class RavelConsole(cmd.Cmd):
         "Don't repeat the last line when hitting return on empty line"
         return
 
-    def do_addflow(self, line):
-        """Add a flow between two hosts, using Mininet hostnames
-           Usage: addflow [host1] [host2]"""
-        args = line.split()
-        if len(args) != 2:
-            print "Invalid syntax"
-            return
-
-        fid = addFlow(self.env.db, args[0], args[1])
-        if fid is not None:
-            print "Success: installed flow with fid", fid
-        else:
-            print "Failure: flow not installed"
-
     def do_test(self, line):
         "Placeholder for batch commands for testing"
-        cmds = ["m net",
+        cmds = ["load routing",
+                "m net",
                 "p insert into switches (sid) values (5);",
                 "p insert into hosts (hid) values (6);",
                 "p insert into tp values (5, 6, 0, 1, 1);",
                 "m net",
-                "addflow h1 h2",
+                "rt addflow h1 h2",
                 "m dpctl dump-flows",
-                "delflow h1 h2",
+                "rt delflow h1 h2",
                 "m dpctl dump-flows",
-                "addflow h2 h9",
-                "delflow h1 h9",
-                "profile addflow h1 h2",
+                "rt addflow h2 h9",
+                "rt delflow h1 h9",
+                "rt addflow h1 h6",
+                "rt delflow h1 h6",
+                "profile rt addflow h1 h2",
                 "m dpctl dump-flows",
-                "profile delflow h1 h2",
+                "profile rt delflow h1 h2",
                 "m dpctl dump-flows",
                 "p delete from tp where sid=5 and nid=3;",
                 "p delete from switches where sid=5;",
@@ -88,25 +76,6 @@ class RavelConsole(cmd.Cmd):
             print c
             self.onecmd(c)
             time.sleep(1)
-
-    def do_delflow(self, line):
-        """Delete a flow between two hosts, using flow ID or Mininet hostnames"
-           Usage: delflow [host1] [host2]
-                  delflow [flow id]"""
-        args = line.split()
-
-        if len(args) == 1:
-            fid = delFlowById(self.env.db, args[0])
-        elif len(args) == 2:
-            fid = delFlowByHostname(self.env.db, args[0], args[1])
-        else:
-            print "Invalid syntax"
-            return
-
-        if fid is not None:
-            print "Success: removed flow with fid", fid
-        else:
-            print "Failure: flow not removed"
 
     def do_apps(self, line):
         "List available applications and their status"

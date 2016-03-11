@@ -135,6 +135,8 @@ class RavelDb():
                                             topo.port(h1, h2)[0],
                                             topo.port(h1, h2)[1]))
 
+            provider.cacheNodes(nodes)
+
         except psycopg2.DatabaseError, e:
             logger.warning("error loading topology: %s", self.fmt_errmsg(e))
 

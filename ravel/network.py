@@ -31,111 +31,6 @@ import sysv_ipc
 import ravel.messaging
 from ravel.log import logger
 
-def name2uid(db, host):
-    """Convert a host's name to its u_hid (from Ravel's uhosts table).
-       db: a RavelDb instance to query for the host id
-       host: the name of the host (eg, h1)
-       returns: the host's id from uhosts"""
-    db.cursor.execute("SELECT u_hid FROM uhosts WHERE hid="
-                   "(SELECT hid FROM hosts WHERE name='{0}');"
-                   .format(host))
-    result = db.cursor.fetchall()
-    if len(result) == 0:
-        logger.warning("unknown host %s", host)
-        return None
-    else:
-        return result[0][0]
-
-def dbid2name(db, nid):
-    """Convert a node's name to its node id in Ravel's host or switch table.
-       For hosts, nid should be hid from the hosts table
-       db: a RavelDb instance to query for the node name
-       nid: the node id
-       returns: the node's name"""
-    db.cursor.execute("SELECT name FROM nodes WHERE id={0}".format(nid))
-    result = db.cursor.fetchall()
-    if len(result) == 0:
-        logger.warning("cannot find node with id %s", nid)
-        return None
-    if len(result) > 1:
-        logger.error("multiple matches with nid %s", nid)
-        return None
-    else:
-        return result[0][0]
-
-def addFlow(db, h1, h2):
-    """Add a flow to the database using host names
-       db: a RavelDb instance to add the flow to
-       h1: the host name of the source
-       h2: the host name of the destination
-       returns: the flow id on success, None on failure"""
-    hid1 = name2uid(db, h1)
-    hid2 = name2uid(db, h2)
-
-    if hid1 is None or hid2 is None:
-        return None
-
-    try:
-        db.cursor.execute("SELECT * FROM rtm;")
-        fid = len(db.cursor.fetchall()) + 1
-        db.cursor.execute("INSERT INTO rtm (fid, host1, host2) "
-                       "VALUES ({0}, {1}, {2});"
-                       .format(fid, hid1, hid2))
-        db.cursor.execute ("UPDATE tm set FW = 0 where fid = {0};"
-                           .format(fid, hid1, hid2))
-        return fid
-    except Exception, e:
-        print e
-        return None
-
-def delFlowById(db, fid):
-    """Delete a flow from the database using the flow's id
-       db: a RavelDb instance to remove the flow from
-       fid: the flow id of the flow to be removed
-       returns: the flow id on success, None on failure"""
-    try:
-        # does the flow exist?
-        db.cursor.execute("SELECT fid FROM rtm WHERE fid={0}".format(fid))
-        if len(db.cursor.fetchall()) == 0:
-            logger.warning("no flow installed with fid %s", fid)
-            return None
-
-        db.cursor.execute("DELETE FROM rtm WHERE fid={0}".format(fid))
-        return fid
-    except Exception, e:
-        print e
-        return None
-
-def delFlowByHostname(db, h1, h2):
-    """Delete a flow from the database using host names.  This will remove
-       all flows that match the source and destination names.  To delete a
-       specific flow, use delFlowById.
-       db: a RavelDb instance to remove the flow from
-       h1: the host name of the source
-       h2: the host name of the destination
-       returns: a list of matching and removed flow ids on success,
-       None on failure"""
-    # convert to fid, so we can report which fid is removed
-    hid1 = name2uid(db, h1)
-    hid2 = name2uid(db, h2)
-
-    if hid1 is None or hid2 is None:
-        return None
-
-    db.cursor.execute("SELECT fid FROM rtm WHERE host1={0} and host2={1};"
-                      .format(hid1, hid2))
-
-    result = db.cursor.fetchall()
-    if len(result) == 0:
-        logger.warning("no flow installed for hosts {0},{1}".format(h1, h2))
-        return None
-
-    fids = [res[0] for res in result]
-    for fid in fids:
-        delFlowById(db, fid)
-
-    return fids
-
 class NetworkProvider(object):
     """Superclass for a network provider.  A network provider exposes the
        underlying topology to Ravel's database and CLI.  It also receives
@@ -144,14 +39,25 @@ class NetworkProvider(object):
 
     QueueId = 123456
 
-    def __init__(self, queue_id):
+    def __init__(self, queue_id, db):
         """queue_id: an integer id to be used for the database to communicate
            with the provider for updates to the topology inserted into the
-           database"""
+           database
+           db: a RavelDb instance"""
+        self.db = db
         self.receiver = ravel.messaging.MsgQueueReceiver(queue_id, self)
+        self.cache_name = {}
+        self.cache_id = {}
 
     def _on_update(self, msg):
         msg.consume(self)
+
+    def cacheNodes(self, nodes):
+        """Cache node-name mapping in memory from database
+           nodes: dictionary of (name, id) values"""
+        for name, nid in nodes.iteritems():
+            self.cache_name[name] = nid
+            self.cache_id[nid] = name
 
     def addLink(self, msg):
         """Add a link to the topology
@@ -206,10 +112,9 @@ class EmptyNetProvider(NetworkProvider):
     def __init__(self, db, topo):
         """db: a RavelDb instance
            topo: a Mininet topology"""
-        self.db = db
         self.topo = topo
         self.nodes = {}
-        super(EmptyNetProvider, self).__init__(NetworkProvider.QueueId)
+        super(EmptyNetProvider, self).__init__(NetworkProvider.QueueId, db)
 
     def buildTopo(self):
         "Build a Mininet topology without starting Mininet"
@@ -294,7 +199,6 @@ class MininetProvider(NetworkProvider):
         """db: a RavelDb instance
            topo: a Mininet topology
            controller: a controller to start along with Mininet"""
-        self.db = db
         self.topo = topo
         self.controller = controller
 
@@ -307,7 +211,7 @@ class MininetProvider(NetworkProvider):
                            controller=partial(RemoteController,
                                               ip="127.0.0.1"))
 
-        super(MininetProvider, self).__init__(NetworkProvider.QueueId)
+        super(MininetProvider, self).__init__(NetworkProvider.QueueId, db)
 
     def _mkLinkIntf(self, hid, name):
         if self.net.topo.isSwitch(name):
@@ -337,8 +241,8 @@ class MininetProvider(NetworkProvider):
     def addLink(self, msg):
         """Add a link to the Mininet topology
            msg: an AddLinkMessage object"""
-        name1 = dbid2name(self.db, msg.node1)
-        name2 = dbid2name(self.db, msg.node2)
+        name1 = self.cache_id[msg.node1]
+        name2 = self.cache_id[msg.node2]
         self.net.addLink(name1, name2)
         self.net.topo.addLink(name1, name2)
         self._mkLinkIntf(msg.node1, name1)
@@ -359,8 +263,8 @@ class MininetProvider(NetworkProvider):
     def removeLink(self, msg):
         """Remove a link from the Mininet topology
            msg: a RemoveLinkMessage object"""
-        name1 = dbid2name(self.db, msg.node1)
-        name2 = dbid2name(self.db, msg.node2)
+        name1 = self.cache_id[msg.node1]
+        name2 = self.cache_id[msg.node2]
         port1, port2 = self.net.topo.port(name1, name2)
 
         self._destroy(db, net, name1, port1)
@@ -390,6 +294,8 @@ class MininetProvider(NetworkProvider):
         sw = self.net.get(msg.name)
         sw.start(self.net.controllers)
         self.net.topo.addSwitch(msg.name)
+        self.cache_name[msg.name] = msg.sid
+        self.cache_id[msg.sid] = msg.name
 
     def removeSwitch(self, msg):
         """Remove a switch from the Mininet topology
@@ -402,6 +308,8 @@ class MininetProvider(NetworkProvider):
         self.net.topo.g.node.pop(msg.name, None)
         self.net.switches = [s for s in self.net.switches if s.name != msg.name]
         del self.net.nameToNode[msg.name]
+        del self.cache_name[msg.name]
+        del self.cache_id[msg.sid]
 
     def addHost(self, msg):
         """Add a host to the Mininet topology
@@ -412,6 +320,8 @@ class MininetProvider(NetworkProvider):
             cursor.execute("UPDATE hosts SET name='{0}' WHERE hid={1}"
                        .format(msg.name, msg.hid))
 
+        self.cache_name[msg.name] = msg.hid
+        self.cache_id[msg.hid] = msg.name
         self.net.addHost(msg.name)
         host = self.net.get(msg.name)
         self.net.topo.addHost(msg.name)
@@ -460,6 +370,8 @@ class MininetProvider(NetworkProvider):
         swobj.detach(intf)
         del swobj.nameToIntf[intf]
         del swobj.intfs[swport]
+        del self.cache_name[msg.name]
+        del self.cache_id[msg.hid]
 
     def getNodeByName(self, node):
         """Find a node by its name
