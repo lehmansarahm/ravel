@@ -13,18 +13,9 @@ AS $$
 import os
 import sys
 
-<<<<<<< HEAD
-if 'PYTHONPATH' in os.environ:
-    sys.path = os.environ['PYTHONPATH'].split(':') + sys.path
-sys.path.append("/home/mininet/cli-ravel")
-<<<<<<< HEAD
-=======
-=======
 if "PYTHONPATH" in os.environ:
     sys.path = os.environ["PYTHONPATH"].split(":") + sys.path
-sys.path.append("/home/mininet/cli-ravel")
->>>>>>> b421917a648a78b8cedc9467d38680269a0dce92
->>>>>>> e9e36c041c86a75269de2a84286937bd4474bd46
+sys.path.append("/home/croftj/src/cli-ravel")
 
 from ravel.network import AddLinkMessage, NetworkProvider
 from ravel.messaging import MsgQueueSender
@@ -59,18 +50,9 @@ AS $$
 import os
 import sys
 
-<<<<<<< HEAD
-if 'PYTHONPATH' in os.environ:
-    sys.path = os.environ['PYTHONPATH'].split(':') + sys.path
-sys.path.append("/home/mininet/cli-ravel")
-<<<<<<< HEAD
-=======
-=======
 if "PYTHONPATH" in os.environ:
     sys.path = os.environ["PYTHONPATH"].split(":") + sys.path
-sys.path.append("/home/mininet/cli-ravel")
->>>>>>> b421917a648a78b8cedc9467d38680269a0dce92
->>>>>>> e9e36c041c86a75269de2a84286937bd4474bd46
+sys.path.append("/home/croftj/src/cli-ravel")
 
 from ravel.network import RemoveLinkMessage, NetworkProvider
 from ravel.messaging import MsgQueueSender
@@ -106,18 +88,9 @@ AS $$
 import os
 import sys
 
-<<<<<<< HEAD
-if 'PYTHONPATH' in os.environ:
-    sys.path = os.environ['PYTHONPATH'].split(':') + sys.path
-sys.path.append("/home/mininet/cli-ravel")
-<<<<<<< HEAD
-=======
-=======
 if "PYTHONPATH" in os.environ:
     sys.path = os.environ["PYTHONPATH"].split(":") + sys.path
-sys.path.append("/home/mininet/cli-ravel")
->>>>>>> b421917a648a78b8cedc9467d38680269a0dce92
->>>>>>> e9e36c041c86a75269de2a84286937bd4474bd46
+sys.path.append("/home/croftj/src/cli-ravel")
 
 from ravel.network import AddSwitchMessage, NetworkProvider
 from ravel.messaging import MsgQueueSender
@@ -153,18 +126,9 @@ AS $$
 import os
 import sys
 
-<<<<<<< HEAD
-if 'PYTHONPATH' in os.environ:
-    sys.path = os.environ['PYTHONPATH'].split(':') + sys.path
-sys.path.append("/home/mininet/cli-ravel")
-<<<<<<< HEAD
-=======
-=======
 if "PYTHONPATH" in os.environ:
     sys.path = os.environ["PYTHONPATH"].split(":") + sys.path
-sys.path.append("/home/mininet/cli-ravel")
->>>>>>> b421917a648a78b8cedc9467d38680269a0dce92
->>>>>>> e9e36c041c86a75269de2a84286937bd4474bd46
+sys.path.append("/home/croftj/src/cli-ravel")
 
 from ravel.network import RemoveSwitchMessage, NetworkProvider
 from ravel.messaging import MsgQueueSender
@@ -199,18 +163,9 @@ AS $$
 import os
 import sys
 
-<<<<<<< HEAD
-if 'PYTHONPATH' in os.environ:
-    sys.path = os.environ['PYTHONPATH'].split(':') + sys.path
-sys.path.append("/home/mininet/cli-ravel")
-<<<<<<< HEAD
-=======
-=======
 if "PYTHONPATH" in os.environ:
     sys.path = os.environ["PYTHONPATH"].split(":") + sys.path
-sys.path.append("/home/mininet/cli-ravel")
->>>>>>> b421917a648a78b8cedc9467d38680269a0dce92
->>>>>>> e9e36c041c86a75269de2a84286937bd4474bd46
+sys.path.append("/home/croftj/src/cli-ravel")
 
 from ravel.network import AddHostMessage, NetworkProvider
 from ravel.messaging import MsgQueueSender
@@ -245,18 +200,9 @@ AS $$
 import os
 import sys
 
-<<<<<<< HEAD
-if 'PYTHONPATH' in os.environ:
-    sys.path = os.environ['PYTHONPATH'].split(':') + sys.path
-sys.path.append("/home/mininet/cli-ravel")
-<<<<<<< HEAD
-=======
-=======
 if "PYTHONPATH" in os.environ:
     sys.path = os.environ["PYTHONPATH"].split(":") + sys.path
-sys.path.append("/home/mininet/cli-ravel")
->>>>>>> b421917a648a78b8cedc9467d38680269a0dce92
->>>>>>> e9e36c041c86a75269de2a84286937bd4474bd46
+sys.path.append("/home/croftj/src/cli-ravel")
 
 from ravel.network import RemoveHostMessage, NetworkProvider
 from ravel.messaging import MsgQueueSender
