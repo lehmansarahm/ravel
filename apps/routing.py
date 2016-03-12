@@ -42,7 +42,7 @@ class RoutingConsole(AppConsole):
             self.db.cursor.execute("INSERT INTO tm (fid, src, dst) "
                                    "VALUES ({0}, {1}, {2});"
                                    .format(fid, src, dst))
-            self.db.cursor.execute ("UPDATE tm set FW = 1 where fid = {0};"
+            self.db.cursor.execute ("UPDATE tm set FW = 0 where fid = {0};"
                                     .format(fid, src, dst))
         except Exception, e:
             print "Failure: flow not installed --", e
