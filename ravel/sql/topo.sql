@@ -1,16 +1,30 @@
---------------------------------------------------
--- Link updates
---------------------------------------------------
+------------------------------------------------------------
+-- TOPOLOGY MODIFICATION FUNCTIONS
+------------------------------------------------------------
 
+/* Add a new link in the network provider
+ * NEW.sid: switch end of the link
+ * NEW.nid: other end of the link (host or switch)
+ * NEW.isHost: if the node connected to the switch is a host
+ */
 CREATE OR REPLACE FUNCTION add_link_fun ()
 RETURNS TRIGGER
 AS $$
 import os
 import sys
 
+<<<<<<< HEAD
 if 'PYTHONPATH' in os.environ:
     sys.path = os.environ['PYTHONPATH'].split(':') + sys.path
 sys.path.append('/home/mininet/cli-ravel')
+<<<<<<< HEAD
+=======
+=======
+if "PYTHONPATH" in os.environ:
+    sys.path = os.environ["PYTHONPATH"].split(":") + sys.path
+sys.path.append("/home/croftj/src/cli-ravel")
+>>>>>>> b421917a648a78b8cedc9467d38680269a0dce92
+>>>>>>> e9e36c041c86a75269de2a84286937bd4474bd46
 
 from ravel.network import AddLinkMessage, NetworkProvider
 from ravel.messaging import MsgQueueSender
@@ -27,20 +41,36 @@ sender.send(msg)
 return None;
 $$ LANGUAGE 'plpythonu' VOLATILE SECURITY DEFINER;
 
-CREATE TRIGGER add_link_trigger
-     AFTER INSERT ON tp
-     FOR EACH ROW
-   EXECUTE PROCEDURE add_link_fun();
 
+/* Add link trigger */
+CREATE TRIGGER add_link_trigger
+       AFTER INSERT ON tp
+       FOR EACH ROW
+       EXECUTE PROCEDURE add_link_fun();
+
+
+/* Remove a new link from the network provider
+ * OLD.sid: switch end of the link
+ * OLD.nid: other end of the link (host or switch)
+ */
 CREATE OR REPLACE FUNCTION del_link_fun ()
 RETURNS TRIGGER
 AS $$
 import os
 import sys
 
+<<<<<<< HEAD
 if 'PYTHONPATH' in os.environ:
     sys.path = os.environ['PYTHONPATH'].split(':') + sys.path
 sys.path.append('/home/mininet/cli-ravel')
+<<<<<<< HEAD
+=======
+=======
+if "PYTHONPATH" in os.environ:
+    sys.path = os.environ["PYTHONPATH"].split(":") + sys.path
+sys.path.append("/home/croftj/src/cli-ravel")
+>>>>>>> b421917a648a78b8cedc9467d38680269a0dce92
+>>>>>>> e9e36c041c86a75269de2a84286937bd4474bd46
 
 from ravel.network import RemoveLinkMessage, NetworkProvider
 from ravel.messaging import MsgQueueSender
@@ -55,25 +85,39 @@ sender.send(msg)
 return None;
 $$ LANGUAGE 'plpythonu' VOLATILE SECURITY DEFINER;
 
+
+/* Delete link trigger */
 CREATE TRIGGER del_link_trigger
-     AFTER DELETE ON tp
-     FOR EACH ROW
-   EXECUTE PROCEDURE del_link_fun();
+       AFTER DELETE ON tp
+       FOR EACH ROW
+       EXECUTE PROCEDURE del_link_fun();
 
 
---------------------------------------------------
--- Switch updates
---------------------------------------------------
-
+/* Add a new switch in the network provider
+ * NEW.sid: switch id
+ * NEW.name: switch name (in Mininet)
+ * NEW.dpid: datapath id
+ * NEW.ip: switch IP address (if a physical, remote switch)
+ * NEW.mac: switch MAC address
+ */
 CREATE OR REPLACE FUNCTION add_switch_fun ()
 RETURNS TRIGGER
 AS $$
 import os
 import sys
 
+<<<<<<< HEAD
 if 'PYTHONPATH' in os.environ:
     sys.path = os.environ['PYTHONPATH'].split(':') + sys.path
 sys.path.append('/home/mininet/cli-ravel')
+<<<<<<< HEAD
+=======
+=======
+if "PYTHONPATH" in os.environ:
+    sys.path = os.environ["PYTHONPATH"].split(":") + sys.path
+sys.path.append("/home/croftj/src/cli-ravel")
+>>>>>>> b421917a648a78b8cedc9467d38680269a0dce92
+>>>>>>> e9e36c041c86a75269de2a84286937bd4474bd46
 
 from ravel.network import AddSwitchMessage, NetworkProvider
 from ravel.messaging import MsgQueueSender
@@ -91,20 +135,36 @@ sender.send(msg)
 return None;
 $$ LANGUAGE 'plpythonu' VOLATILE SECURITY DEFINER;
 
-CREATE TRIGGER add_switch_trigger
-     AFTER INSERT ON switches
-     FOR EACH ROW
-   EXECUTE PROCEDURE add_switch_fun();
 
+/* Add switch trigger */
+CREATE TRIGGER add_switch_trigger
+       AFTER INSERT ON switches
+       FOR EACH ROW
+       EXECUTE PROCEDURE add_switch_fun();
+
+
+/* Remove a new switch from the network provider
+ * OLD.sid: switch id
+ * OLD.name: switch name (in Mininet)
+ */
 CREATE OR REPLACE FUNCTION del_switch_fun ()
 RETURNS TRIGGER
 AS $$
 import os
 import sys
 
+<<<<<<< HEAD
 if 'PYTHONPATH' in os.environ:
     sys.path = os.environ['PYTHONPATH'].split(':') + sys.path
 sys.path.append('/home/mininet/cli-ravel')
+<<<<<<< HEAD
+=======
+=======
+if "PYTHONPATH" in os.environ:
+    sys.path = os.environ["PYTHONPATH"].split(":") + sys.path
+sys.path.append("/home/croftj/src/cli-ravel")
+>>>>>>> b421917a648a78b8cedc9467d38680269a0dce92
+>>>>>>> e9e36c041c86a75269de2a84286937bd4474bd46
 
 from ravel.network import RemoveSwitchMessage, NetworkProvider
 from ravel.messaging import MsgQueueSender
@@ -119,25 +179,38 @@ sender.send(msg)
 return None;
 $$ LANGUAGE 'plpythonu' VOLATILE SECURITY DEFINER;
 
+
+/* Delete switch trigger */
 CREATE TRIGGER del_switch_trigger
-     AFTER DELETE ON switches
-     FOR EACH ROW
-   EXECUTE PROCEDURE del_switch_fun();
+       AFTER DELETE ON switches
+       FOR EACH ROW
+       EXECUTE PROCEDURE del_switch_fun();
 
 
---------------------------------------------------
--- Host updates
---------------------------------------------------
-
+/* Add a new host in the network provider
+ * NEW.hid: host id
+ * NEW.ip: host's IP address
+ * NEW.mac: host's MAC address
+ * NEW.name: hostname (in Mininet)
+ */
 CREATE OR REPLACE FUNCTION add_host_fun ()
 RETURNS TRIGGER
 AS $$
 import os
 import sys
 
+<<<<<<< HEAD
 if 'PYTHONPATH' in os.environ:
     sys.path = os.environ['PYTHONPATH'].split(':') + sys.path
 sys.path.append('/home/mininet/cli-ravel')
+<<<<<<< HEAD
+=======
+=======
+if "PYTHONPATH" in os.environ:
+    sys.path = os.environ["PYTHONPATH"].split(":") + sys.path
+sys.path.append("/home/croftj/src/cli-ravel")
+>>>>>>> b421917a648a78b8cedc9467d38680269a0dce92
+>>>>>>> e9e36c041c86a75269de2a84286937bd4474bd46
 
 from ravel.network import AddHostMessage, NetworkProvider
 from ravel.messaging import MsgQueueSender
@@ -154,20 +227,36 @@ sender.send(msg)
 return None;
 $$ LANGUAGE 'plpythonu' VOLATILE SECURITY DEFINER;
 
-CREATE TRIGGER add_host_trigger
-     AFTER INSERT ON hosts
-     FOR EACH ROW
-   EXECUTE PROCEDURE add_host_fun();
 
+/* Add host trigger */
+CREATE TRIGGER add_host_trigger
+       AFTER INSERT ON hosts
+       FOR EACH ROW
+       EXECUTE PROCEDURE add_host_fun();
+
+
+/* Remove a  host from the network provider
+ * OLD.hid: host id
+ * OLD.name: hostname (in Mininet)
+ */
 CREATE OR REPLACE FUNCTION del_host_fun ()
 RETURNS TRIGGER
 AS $$
 import os
 import sys
 
+<<<<<<< HEAD
 if 'PYTHONPATH' in os.environ:
     sys.path = os.environ['PYTHONPATH'].split(':') + sys.path
 sys.path.append('/home/mininet/cli-ravel')
+<<<<<<< HEAD
+=======
+=======
+if "PYTHONPATH" in os.environ:
+    sys.path = os.environ["PYTHONPATH"].split(":") + sys.path
+sys.path.append("/home/croftj/src/cli-ravel")
+>>>>>>> b421917a648a78b8cedc9467d38680269a0dce92
+>>>>>>> e9e36c041c86a75269de2a84286937bd4474bd46
 
 from ravel.network import RemoveHostMessage, NetworkProvider
 from ravel.messaging import MsgQueueSender
@@ -182,7 +271,9 @@ sender.send(msg)
 return None;
 $$ LANGUAGE 'plpythonu' VOLATILE SECURITY DEFINER;
 
+
+/* Delete host trigger */
 CREATE TRIGGER del_host_trigger
-     AFTER DELETE ON hosts
-     FOR EACH ROW
-   EXECUTE PROCEDURE del_host_fun();
+       AFTER DELETE ON hosts
+       FOR EACH ROW
+       EXECUTE PROCEDURE del_host_fun();

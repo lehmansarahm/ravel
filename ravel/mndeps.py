@@ -1,35 +1,42 @@
-#!/usr/bin/env python
+"""
+Mininet functions for creating topologies from command-line parameters.
+"""
 
 import os
 import re
 
-# XXX: newer mininet version also has MinimalTopo, TorusTopo
+# NOTE: newer mininet version also has MinimalTopo, TorusTopo
 from mininet.topo import (SingleSwitchTopo, LinearTopo,
                           SingleSwitchReversedTopo)
 from mininet.topolib import TreeTopo
 from mininet.util import buildTopo
 
-TOPOS = { 'linear': LinearTopo,
-          'reversed': SingleSwitchReversedTopo,
-          'single': SingleSwitchTopo,
-          'tree': TreeTopo
+TOPOS = { "linear": LinearTopo,
+          "reversed": SingleSwitchReversedTopo,
+          "single": SingleSwitchTopo,
+          "tree": TreeTopo
       }
 
 def setCustom(name, value):
-    if name in ('topos', 'switches', 'hosts', 'controllers'):
+    """Set custom parameters for Mininet
+       name: parameter name
+       value: parameter value"""
+    if name in ("topos", "switches", "hosts", "controllers"):
         param = name.upper()
         globals()[param].update(value)
-    elif name == 'validate':
+    elif name == "validate":
         validate = value
     else:
         globals()[name] = value
 
 def custom(value):
+    """Parse custom parameters
+       value: string containing custom parameters"""
     files = []
     if os.path.isfile(value):
         files.append(value)
     else:
-        files += value.split(',')
+        files += value.split(",")
 
     for filename in files:
         customs = {}
@@ -41,6 +48,8 @@ def custom(value):
             print "Could not find custom file", filename
 
 def build(opts):
+    """Build Mininet topology from custom and topo parameters
+       opts: Mininet topology parameters"""
     try:
         return buildTopo(TOPOS, opts)
     except Exception:
