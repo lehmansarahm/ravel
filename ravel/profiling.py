@@ -81,8 +81,9 @@ class PerfCounter(object):
     def report(self):
         "Report the performance counter by adding it to the message queue"
         try:
-            mq = sysv_ipc.MessageQueue(ProfileQueueId, mode=0777)
-            mq.send(pickle.dumps(self))
+            if is_profiled():
+                mq = sysv_ipc.MessageQueue(ProfileQueueId, mode=0777)
+                mq.send(pickle.dumps(self))
         except Exception, e:
             print e
 
