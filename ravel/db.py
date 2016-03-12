@@ -205,19 +205,18 @@ class RavelDb():
            topology tables.  This rolls back the database to the state after
            the topology is first loaded"""
         try:
-            tables = ["cf", "clock", "p1", "p2", "p3", "p_spv", "pox_hosts", 
-                      "pox_switches", "pox_tp", "rtm", "rtm_clock",
+            tables = ["cf", "clock", "p_spv", "rtm", "rtm_clock",
                       "spatial_ref_sys", "spv_tb_del", "spv_tb_ins", "tm",
-                      "tm_delta", "utm", "acl_tb", "acl_tb", "lb_tb"]
+                      "tm_delta", "utm"]
 
             self.cursor.execute("truncate %s;" % ", ".join(tables))
             logger.debug("truncated tables")
             self.cursor.execute("INSERT INTO clock values (0);")
 
             # TODO: fix for tenants
-            tenants = ["t1", "t2", "t3", "tacl_tb", "tenant_hosts", "tlb_tb"]
+            #tenants = ["t1", "t2", "t3", "tacl_tb", "tenant_hosts", "tlb_tb"]
             #self.cursor.execute("truncate %s;" % ", ".join(tenants))
-            logger.debug("truncated tenant tables")
+            #logger.debug("truncated tenant tables")
         except psycopg2.DatabaseError, e:
             logger.warning("error truncating databases: %s", self.fmt_errmsg(e))
 

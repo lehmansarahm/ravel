@@ -67,7 +67,7 @@ def pairwise(iterable):
     next(b, None)
     return izip(a, b)
 
-class orchConsole(AppConsole):
+class OrchConsole(AppConsole):
     def __init__(self, db, env, components):
         self.ordering = None
         self.sql = None
@@ -81,8 +81,8 @@ class orchConsole(AppConsole):
 
         try:
             self.db.cursor.execute("SELECT MAX(counts) FROM clock;")
-            count = self.db.cursor.fetchall()[0][0]
-            hipri = self.ordering[-1]
+            count = self.db.cursor.fetchall()[0][0] + 1
+            hipri = self.ordering[0]
 
             self.db.cursor.execute("INSERT INTO p_{0} VALUES ({1}, 'on');"
                                    .format(hipri, count))
@@ -170,4 +170,4 @@ class orchConsole(AppConsole):
 
 shortcut = "oa"
 description = "an automated orchestration protocol application"
-console = orchConsole
+console = OrchConsole
