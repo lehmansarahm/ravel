@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from ravel.app import AppConsole
+from ravel.log import logger
 
 class RoutingConsole(AppConsole):
     def do_addflow(self, line):
@@ -26,22 +27,22 @@ class RoutingConsole(AppConsole):
 
         # TODO: will remove this when we delete uhosts
         # convert to host uhid
-        self.db.cursor.execute("SELECT u_hid FROM uhosts WHERE hid={0}"
-                               .format(src))
-        src = int(self.db.cursor.fetchall()[0][0])
-        self.db.cursor.execute("SELECT u_hid FROM uhosts WHERE hid={0}"
-                               .format(dst))
-        dst = int(self.db.cursor.fetchall()[0][0])
+        # self.db.cursor.execute("SELECT u_hid FROM uhosts WHERE hid={0}"
+        #                       .format(src))
+        # src = int(self.db.cursor.fetchall()[0][0])
+        # self.db.cursor.execute("SELECT u_hid FROM uhosts WHERE hid={0}"
+        #                       .format(dst))
+        # dst = int(self.db.cursor.fetchall()[0][0])
 
         try:
             # get next flow id
             # TODO: change to tm?
-            self.db.cursor.execute("SELECT * FROM rtm;")
+            self.db.cursor.execute("SELECT * FROM tm;")
             fid = len(self.db.cursor.fetchall()) + 1
-            self.db.cursor.execute("INSERT INTO rtm (fid, host1, host2) "
+            self.db.cursor.execute("INSERT INTO tm (fid, src, dst) "
                                    "VALUES ({0}, {1}, {2});"
                                    .format(fid, src, dst))
-            self.db.cursor.execute ("UPDATE tm set FW = 0 where fid = {0};"
+            self.db.cursor.execute ("UPDATE tm set FW = 1 where fid = {0};"
                                     .format(fid, src, dst))
         except Exception, e:
             print "Failure: flow not installed --", e
@@ -65,15 +66,15 @@ class RoutingConsole(AppConsole):
 
         # TODO: will remove this when we delete uhosts
         # convert to host uhid
-        self.db.cursor.execute("SELECT u_hid FROM uhosts WHERE hid={0}"
-                               .format(src))
-        src = int(self.db.cursor.fetchall()[0][0])
-        self.db.cursor.execute("SELECT u_hid FROM uhosts WHERE hid={0}"
-                               .format(dst))
-        dst = int(self.db.cursor.fetchall()[0][0])
+        # self.db.cursor.execute("SELECT u_hid FROM uhosts WHERE hid={0}"
+        #                        .format(src))
+        # src = int(self.db.cursor.fetchall()[0][0])
+        # self.db.cursor.execute("SELECT u_hid FROM uhosts WHERE hid={0}"
+        #                        .format(dst))
+        # dst = int(self.db.cursor.fetchall()[0][0])
 
         # TODO: change to tm?
-        self.db.cursor.execute("SELECT fid FROM rtm WHERE host1={0} and host2={1};"
+        self.db.cursor.execute("SELECT fid FROM tm WHERE src={0} and dst={1};"
                                .format(src, dst))
         result = self.db.cursor.fetchall()
 
@@ -90,12 +91,12 @@ class RoutingConsole(AppConsole):
     def _delFlowById(self, fid):
         try:
             # does the flow exist?
-            self.db.cursor.execute("SELECT fid FROM rtm WHERE fid={0}".format(fid))
+            self.db.cursor.execute("SELECT fid FROM tm WHERE fid={0}".format(fid))
             if len(self.db.cursor.fetchall()) == 0:
                 logger.warning("no flow installed with fid %s", fid)
                 return None
 
-            self.db.cursor.execute("DELETE FROM rtm WHERE fid={0}".format(fid))
+            self.db.cursor.execute("DELETE FROM tm WHERE fid={0}".format(fid))
             return fid
         except Exception, e:
             print e

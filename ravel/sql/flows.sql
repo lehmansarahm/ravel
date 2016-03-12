@@ -45,8 +45,8 @@ AS $$
                WHERE sid=NEW.sid AND nid=NEW.pid;
 
         /* get src, dst host uids */
-        SELECT host1, host2 INTO src_uid, dst_uid
-               FROM utm
+        SELECT src, dst INTO src_uid, dst_uid
+               FROM tm
                WHERE fid=NEW.fid;
 
         SELECT name, ip, dpid INTO sw_name, sw_ip, sw_dpid
@@ -56,15 +56,11 @@ AS $$
         /* get src, dst addresses */
         SELECT ip, mac INTO src_ip, src_mac
                FROM hosts
-               WHERE hid IN (
-                     SELECT hid FROM uhosts WHERE u_hid=src_uid
-                     );
+               WHERE hid=src_uid;
 
         SELECT ip, mac INTO dst_ip, dst_mac
                FROM hosts
-               WHERE hid IN (
-                     SELECT hid FROM uhosts WHERE u_hid=dst_uid
-                     );
+               WHERE hid=dst_uid;
 
         /* for profiling */
         end_time := clock_timestamp();
@@ -174,8 +170,8 @@ AS $$
                WHERE sid=OLD.sid and nid=OLD.pid;
 
         /* get src, dst host uids */
-        SELECT host1, host2 INTO src_uid, dst_uid
-               FROM rtm
+        SELECT src, dst INTO src_uid, dst_uid
+               FROM tm
                WHERE fid=OLD.fid;
 
         /* get src, dst addresses */
@@ -186,15 +182,11 @@ AS $$
         /* get src, dst addresses */
         SELECT ip, mac INTO src_ip, src_mac
                FROM hosts
-               WHERE hid IN (
-                     SELECT hid FROM uhosts WHERE u_hid=src_uid
-                     );
+               WHERE hid=src_uid;
 
         SELECT ip, mac INTO dst_ip, dst_mac
                FROM hosts
-               WHERE hid IN (
-                     SELECT hid FROM uhosts WHERE u_hid=dst_uid
-                     );
+               WHERE hid=dst_uid;
 
         /* for profiling */
         end_time := clock_timestamp();

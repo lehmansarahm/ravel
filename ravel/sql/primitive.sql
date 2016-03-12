@@ -23,30 +23,6 @@ return None;
 $$
 LANGUAGE 'plpythonu' VOLATILE SECURITY DEFINER;
 
-------------------------------------------------------------
-------------------------------------------------------------
-
-DROP TABLE IF EXISTS pox_tp CASCADE;
-CREATE UNLOGGED TABLE pox_tp (
-       in_switch  integer,
-       in_port	  integer,
-       out_switch integer,
-       out_port   integer
-);
-
-DROP TABLE IF EXISTS pox_switches CASCADE;
-CREATE UNLOGGED TABLE pox_switches (
-       switch 	integer,
-       port	integer
-);
-
-DROP TABLE IF EXISTS pox_hosts CASCADE;
-CREATE UNLOGGED TABLE pox_hosts (
-       host_id 	bigint,
-       switch	bigint,
-       port	integer
-);
-
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -97,18 +73,11 @@ CREATE UNLOGGED TABLE hosts (
 );
 CREATE INDEX ON hosts (hid);
 
-CREATE OR REPLACE VIEW uhosts AS (
-       SELECT hid, 
-       	      row_number () OVER () as u_hid
-       FROM hosts
-);
-
 DROP VIEW IF EXISTS nodes CASCADE;
 CREATE OR REPLACE VIEW nodes AS (
        SELECT sid AS id, name FROM SWITCHES UNION
        SELECT hid AS id, name FROM HOSTS
 );
-
 
 DROP TABLE IF EXISTS cf CASCADE;
 CREATE UNLOGGED TABLE cf (
@@ -173,9 +142,9 @@ CREATE OR REPLACE RULE utm_in_rule AS
        ON INSERT TO utm
        DO ALSO
        INSERT INTO tm VALUES (NEW.fid,
-       	      	      	     (SELECT hid FROM uhosts WHERE u_hid = NEW.host1),
-			     (SELECT hid FROM uhosts WHERE u_hid = NEW.host2),
-			     1);
+       	      	      	      NEW.host1,
+			      NEW.host2,
+			      1);
 
 CREATE OR REPLACE RULE utm_del_rule AS 
        ON DELETE TO utm
@@ -186,9 +155,9 @@ CREATE OR REPLACE RULE utm_up_rule AS
        DO ALSO (
        	  DELETE FROM tm WHERE tm.fid = OLD.fid;
 	  INSERT INTO tm VALUES (OLD.fid,
-	  	      (SELECT hid FROM uhosts WHERE u_hid = NEW.host1),
-		      (SELECT hid FROM uhosts WHERE u_hid = NEW.host2),
-		      1);
+				 NEW.host1,
+				 NEW.host2,
+				 1);
        );
 
 ----------------------------------------------------------------------
@@ -420,23 +389,6 @@ CREATE OR REPLACE VIEW spv_del AS (
 -- auxiliary function
 ------------------------------------------------------------
 
-CREATE OR REPLACE FUNCTION get_port(s integer)
-RETURNS TABLE (sid integer, nid integer, port bigint) AS 
-$$
-
-WITH TMP AS (
-SELECT tp.sid, tp.nid, row_number () OVER () as port FROM tp
-WHERE tp.sid = s OR tp.nid = s
-)
-(SELECT * 
-FROM TMP
-WHERE TMP.sid = s)
-UNION
-(SELECT TMP.nid as sid, TMP.sid as nid, TMP.port as port
-FROM TMP
-WHERE TMP.nid = s);
-$$ LANGUAGE SQL;
-
 DROP TABLE IF EXISTS ports CASCADE;
 CREATE UNLOGGED TABLE ports (
        sid	integer,
@@ -444,355 +396,6 @@ CREATE UNLOGGED TABLE ports (
        port	integer
 );
 
-------------------------------------------------------------
--- add_flow triggers
-------------------------------------------------------------
-
--- CREATE OR REPLACE FUNCTION add_flow_fun ()
--- RETURNS TRIGGER
--- AS $$
--- f = TD["new"]["pid"]
--- s = TD["new"]["sid"]
--- n = TD["new"]["nid"]
-
--- u = plpy.execute("""select port from get_port (""" +str (s)+""") where nid = """ +str (n))
--- outport = str(u[0]['port'])
--- v = plpy.execute("""select port from get_port (""" +str (s)+""") where nid = """ +str (f))
--- inport = str (v[0]['port'])
-
--- cmd1 = '/usr/bin/sudo /usr/bin/ovs-ofctl add-flow s' + str (s) + ' in_port=' + inport + ',actions=output:' + outport
--- cmd2 = '/usr/bin/sudo /usr/bin/ovs-ofctl add-flow s' + str (s) + ' in_port=' + outport + ',actions=output:' + inport
-
--- import os
--- import sys
--- import time
-
--- fo = open ('/home/mininet/ravel/log.txt', 'a')
--- def logfunc(msg,f=fo):
---     f.write(msg+'\n')
-
--- t1 = time.time ()
--- x1 = os.system (cmd1)
--- t2 = time.time ()
--- logfunc ('add-flow s' + str (s) + '(ms): ' + str ((t2-t1)*1000))
-
--- t1 = time.time ()
--- x2 = os.system (cmd2)
--- t2 = time.time ()
--- logfunc ('add-flow s' + str (s) + '(ms): ' + str ((t2-t1)*1000))
-
--- fo.flush ()
-
--- return None;
--- $$ LANGUAGE 'plpythonu' VOLATILE SECURITY DEFINER;
-
-------------------------------------------------------------
--- del_flow triggers
-------------------------------------------------------------
-
--- CREATE OR REPLACE FUNCTION del_flow_fun ()
--- RETURNS TRIGGER
--- AS $$
--- f = TD["old"]["pid"]
--- s = TD["old"]["sid"]
--- n = TD["old"]["nid"]
-
--- u = plpy.execute("""\
---          select port
---          from get_port (""" +str (s)+""")  
---          where nid = """ +str (n))
--- outport = str(u[0]['port'])
-
--- v = plpy.execute("""\
---          select port
---          from get_port (""" +str (s)+""")
---          where nid = """ +str (f))
--- inport = str (v[0]['port'])
-
--- cmd1 = '/usr/bin/sudo /usr/bin/ovs-ofctl del-flows s' + str (s) + ' in_port=' + inport
--- cmd2 = '/usr/bin/sudo /usr/bin/ovs-ofctl del-flows s' + str (s) + ' in_port=' + outport
-
--- import os
--- import sys
--- import time
-
--- fo = open ('/home/mininet/ravel/log.txt', 'a')
--- def logfunc(msg,f=fo):
---     f.write(msg+'\n')
-
--- t1 = time.time ()
--- x1 = os.system (cmd1)
--- t2 = time.time ()
--- logfunc ('del-flows s' + str (s) + '(ms): ' + str ((t2-t1)*1000))
-
--- t1 = time.time ()
--- x1 = os.system (cmd2)
--- t2 = time.time ()
--- logfunc ('del-flows s' + str (s) + '(ms): ' + str ((t2-t1)*1000))
-
--- fo.flush ()
-
--- return None;
--- $$ LANGUAGE 'plpythonu' VOLATILE SECURITY DEFINER;
-
--- ----------------------------------------------------------------------
--- -- obs application
--- ----------------------------------------------------------------------
--- DROP TABLE IF EXISTS selected_switches CASCADE;
--- CREATE UNLOGGED TABLE selected_switches (
---        sid    	
---        oid  	integer
--- );
-
--- CREATE TABLE obs_participants
--- AS (SELECT sid, 1 as isactive
---     FROM obs_participants);
-
--- CREATE OR REPLACE RULE wp_up AS
---        ON UPDATE TO wp
---        DO ALSO
---        	  UPDATE tp SET isactive = NEW.isactive WHERE sid = NEW.sid OR nid = NEW.sid;
-
-
--- def load_obs_schema (dbname, username, size):
---     conn = psycopg2.connect(database= dbname, user= username)
---     conn.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT) 
---     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-
---     cur.execute ("SELECT * FROM switches;")
---     cs = cur.fetchall ()
---     selected_switches = [int (s['sid']) for s in cs]
-
---     cur.execute ("""
-
---     """)
-
-----------------------------------------------------------------------
--- maintenance (mt) application
-----------------------------------------------------------------------
--- DROP TABLE IF EXISTS mt CASCADE;
--- CREATE TABLE mt
--- AS (SELECT sid, 1 as isactive
---     FROM switches);
-
--- CREATE OR REPLACE RULE mt_up AS
---        ON UPDATE TO mt
---        DO ALSO
---        	  UPDATE tp SET isactive = NEW.isactive WHERE sid = NEW.sid OR nid = NEW.sid;
-
-DROP TABLE IF EXISTS mt_tb CASCADE;
-CREATE UNLOGGED TABLE mt_tb (
-       sid	integer
-);
-
-CREATE OR REPLACE VIEW mt AS (
-       SELECT mt_tb.sid,
-	      sum (isactive) AS isactive 
-       FROM mt_tb, tp
-       WHERE mt_tb.sid = tp.sid
-       GROUP BY mt_tb.sid 
-);
-
-CREATE OR REPLACE RULE mt2tp AS
-       ON UPDATE TO mt
-       DO INSTEAD
-       	  UPDATE tp SET isactive = NEW.isactive WHERE sid = NEW.sid OR nid = NEW.sid;
-
-----------------------------------------------------------------------
--- acl application
-----------------------------------------------------------------------
-
-DROP TABLE IF EXISTS acl_tb CASCADE;
-CREATE UNLOGGED TABLE acl_tb (
-       end1	      integer,
-       end2 	      integer,
-       inBlklist      integer,
-       PRIMARY key (end1, end2)
-);
-CREATE INDEX ON acl_tb (end1,end2);
-
-CREATE OR REPLACE VIEW acl AS(
-       SELECT DISTINCT end1, end2, inBlklist, 1 as isViolated
-       FROM acl_tb, utm
-       WHERE acl_tb.end1 = utm.host1 and acl_tb.end2 = utm.host2 and inBlklist = 1);
-
-CREATE OR REPLACE RULE acl2utm AS
-       ON UPDATE TO acl
-       DO INSTEAD
-       	  DELETE FROM utm WHERE host1 = NEW.end1 AND host2 = NEW.end2;
-
--- CREATE OR REPLACE RULE acl2tm2 AS
---        ON UPDATE TO acl
---        WHERE NEW.inBlklist = 0
---        DO INSTEAD
---        	  UPDATE acl_tb SET inBlklist = 0 WHERE sid = NEW.sid AND nid = NEW.nid;
-
-----------------------------------------------------------------------
--- load_balance application
-----------------------------------------------------------------------
-
-DROP TABLE IF EXISTS lb_tb CASCADE;
-CREATE UNLOGGED TABLE lb_tb (
-       sid	integer,
-       PRIMARY key (sid)
-       -- nid 	integer
-);
-CREATE INDEX ON lb_tb (sid);
-
--- CREATE OR REPLACE VIEW lb2 AS(
---        SELECT sid, count (*) AS load 
---        FROM lb_tb, utm
---        WHERE lb_tb.sid = utm.host2
---        GROUP BY sid
---        );
-
-CREATE OR REPLACE VIEW lb AS(
-       SELECT sid,
-       	      (SELECT count(*) FROM utm
-	       WHERE host2 = sid) AS load
-       FROM lb_tb
-       );
-
--- CREATE OR REPLACE RULE lb2utm AS
---        ON UPDATE TO lb
---        DO INSTEAD 
---        	  DELETE FROM utm WHERE fid IN (SELECT fid FROM utm WHERE host2 = NEW.sid LIMIT (OLD.load - NEW.load));
-
--- UPDATE utm SET host2 = (SELECT sid FROM lb WHERE load = (SELECT min (load) FROM lb limit 1))
--- WHERE fid IN (SELECT fid FROM utm WHERE host2 = NEW.sid LIMIT (OLD.load - NEW.load))
-
-CREATE OR REPLACE RULE lb2utm AS
-       ON UPDATE TO lb
-       DO INSTEAD 
-          UPDATE utm
-          SET host2 =
-	      (SELECT sid FROM lb
-	       WHERE load = (SELECT min (load) FROM lb LIMIT (OLD.load - NEW.load)) LIMIT 1)
-              WHERE fid IN
-       	       (SELECT fid FROM utm WHERE host2 = NEW.sid LIMIT (OLD.load - NEW.load));
-
-----------------------------------------------------------------------
--- way point application
-----------------------------------------------------------------------
-
--- DROP TABLE IF EXISTS wp_tb CASCADE;
--- CREATE UNLOGGED TABLE wp_tb (
---        fid	integer,
---        wid	integer
--- );
-
--- DROP VIEW IF EXISTS wp CASCADE;
--- CREATE OR REPLACE VIEW wp AS (
---        SELECT DISTINCT wp_tb.fid, wp_tb.wid, 1 as isAbsent
---        FROM wp_tb, cf
---        WHERE wp_tb.fid = cf.fid
---        	     AND wp_tb.wid NOT IN (SELECT sid FROM cf WHERE cf.fid = wp_tb.fid)
--- );
-------------------------------------------------------------------
-------------------------------------------------------------------
-------------------------------------------------------------------
--- horizontal orchestration of lb, acl, and rt
-
--- DROP TABLE IF EXISTS p_lb CASCADE;
--- CREATE UNLOGGED TABLE p_lb (
---        counts  	integer,
---        status 	text,
---        PRIMARY key (counts)
--- );
-
--- DROP TABLE IF EXISTS p_acl CASCADE;
--- CREATE UNLOGGED TABLE p_acl (
---        counts  	integer,
---        status 	text,
---        PRIMARY key (counts)
--- );
-
--- DROP TABLE IF EXISTS p_rt CASCADE;
--- CREATE UNLOGGED TABLE p_rt (
---        counts  	integer,
---        status 	text,
---        PRIMARY key (counts)
--- );
-
--- CREATE OR REPLACE FUNCTION horizontal_protocol_fun() RETURNS TRIGGER AS
--- $$
--- plpy.notice ("engage ravel horizontal_protocol")
--- ct = plpy.execute("""select max (counts) from clock""")[0]['max']
--- plpy.execute ("INSERT INTO p_lb VALUES (" + str (ct+1) + ", 'on');")
--- return None;
--- $$
--- LANGUAGE 'plpythonu' VOLATILE SECURITY DEFINER;
-
-------------------------------------------------------------------
-------------------------------------------------------------------
--- horizontal orchestration of lb, rt
-
-DROP TABLE IF EXISTS p1 CASCADE;
-CREATE UNLOGGED TABLE p1 (
-       counts  	integer,
-       status 	text,
-       PRIMARY key (counts)
-);
-
-DROP TABLE IF EXISTS p2 CASCADE;
-CREATE UNLOGGED TABLE p2 (
-       counts  	integer,
-       status 	text,
-       PRIMARY key (counts)
-);
-
-DROP TABLE IF EXISTS p3 CASCADE;
-CREATE UNLOGGED TABLE p3 (
-       counts  	integer,
-       status 	text,
-       PRIMARY key (counts)
-);
-
-CREATE OR REPLACE RULE lb_constraint AS
-       ON INSERT TO p1
-       WHERE (NEW.status = 'on')
-       DO ALSO (
-           UPDATE lb SET load = 2 WHERE load > 2;
-	   UPDATE p1 SET status = 'off' WHERE counts = NEW.counts;
-	  );
-
-CREATE OR REPLACE RULE p12 AS
-       ON UPDATE TO p1
-       WHERE (NEW.status = 'off')
-       DO ALSO
-           INSERT INTO p2 values (NEW.counts, 'on');
-
-CREATE OR REPLACE RULE acl_constraint AS
-       ON INSERT TO p2
-       WHERE (NEW.status = 'on')
-       DO ALSO (
-           UPDATE acl SET isviolated = 0 WHERE isviolated = 1;
-	   UPDATE p2 SET status = 'off' WHERE counts = NEW.counts;
-	  );
-
-CREATE OR REPLACE RULE p23 AS
-       ON UPDATE TO p2
-       WHERE (NEW.status = 'off')
-       DO ALSO
-           INSERT INTO p3 values (NEW.counts, 'on');
-
-CREATE TRIGGER rt_constraint_trigger
-     AFTER INSERT ON p3
-     FOR EACH ROW
-   EXECUTE PROCEDURE spv_constraint1_fun();
-
-CREATE OR REPLACE RULE rt_constraint AS
-       ON INSERT TO p3
-       WHERE (NEW.status = 'on')
-       DO ALSO (
-	   UPDATE p3 SET status = 'off' WHERE counts = NEW.counts;
-	  );
-
-CREATE OR REPLACE RULE p3c AS
-       ON UPDATE TO p3
-       WHERE (NEW.status = 'off')
-       DO ALSO
-           INSERT INTO clock values (NEW.counts);
 
 CREATE OR REPLACE FUNCTION protocolp1_fun() RETURNS TRIGGER AS
 $$
