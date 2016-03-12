@@ -25,7 +25,8 @@ CREATE OR REPLACE RULE FW1 AS
 
 CREATE OR REPLACE RULE FW2 AS
        ON DELETE TO tm
-       WHERE (SELECT count(*) FROM tm WHERE src = OLD.src AND dst = OLD.dst) = 1
+       WHERE (SELECT count(*) FROM tm WHERE src = OLD.src AND dst = OLD.dst) = 1 AND 
+       	     (OLD.src IN (SELECT * FROM FW_policy_user))
        DO ALSO 
        	  DELETE FROM FW_policy_acl WHERE end2 = OLD.src AND end1 = OLD.dst;
 
