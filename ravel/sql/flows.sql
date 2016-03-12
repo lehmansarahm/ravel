@@ -18,11 +18,11 @@ AS $$
         sw_ip varchar(16);
         sw_dpid varchar(16);
 
-        src_uid int;
+        src_id int;
         src_ip varchar(16);
         src_mac varchar(17);
 
-        dst_uid int;
+        dst_id int;
         dst_ip varchar(16);
         dst_mac varchar(17);
 
@@ -45,7 +45,7 @@ AS $$
                WHERE sid=NEW.sid AND nid=NEW.pid;
 
         /* get src, dst host uids */
-        SELECT src, dst INTO src_uid, dst_uid
+        SELECT src, dst INTO src_id, dst_id
                FROM tm
                WHERE fid=NEW.fid;
 
@@ -56,11 +56,11 @@ AS $$
         /* get src, dst addresses */
         SELECT ip, mac INTO src_ip, src_mac
                FROM hosts
-               WHERE hid=src_uid;
+               WHERE hid=src_id;
 
         SELECT ip, mac INTO dst_ip, dst_mac
                FROM hosts
-               WHERE hid=dst_uid;
+               WHERE hid=dst_id;
 
         /* for profiling */
         end_time := clock_timestamp();
@@ -144,11 +144,11 @@ AS $$
         sw_ip varchar(16);
         sw_dpid varchar(16);
 
-        src_uid int;
+        src_id int;
         src_ip varchar(16);
         src_mac varchar(17);
 
-        dst_uid int;
+        dst_id int;
         dst_ip varchar(16);
         dst_mac varchar(17);
 
@@ -170,8 +170,8 @@ AS $$
                WHERE sid=OLD.sid and nid=OLD.pid;
 
         /* get src, dst host uids */
-        SELECT src, dst INTO src_uid, dst_uid
-               FROM tm
+        SELECT src, dst INTO src_id, dst_id
+               FROM tm_delta
                WHERE fid=OLD.fid;
 
         /* get src, dst addresses */
@@ -182,11 +182,11 @@ AS $$
         /* get src, dst addresses */
         SELECT ip, mac INTO src_ip, src_mac
                FROM hosts
-               WHERE hid=src_uid;
+               WHERE hid=src_id;
 
         SELECT ip, mac INTO dst_ip, dst_mac
                FROM hosts
-               WHERE hid=dst_uid;
+               WHERE hid=dst_id;
 
         /* for profiling */
         end_time := clock_timestamp();
