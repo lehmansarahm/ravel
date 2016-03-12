@@ -1,21 +1,32 @@
-#/usr/bin/env python
+"""
+The Ravel backend PostgreSQL database
+"""
 
 import psycopg2
 
 from ravel.log import logger
-from ravel.util import libpath
+from ravel.util import resource_file
 
 ISOLEVEL = psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT
 
-BASE_SQL = libpath("ravel/sql/primitive.sql")
-FLOW_SQL = libpath("ravel/sql/flows.sql")
-TOPO_SQL = libpath("ravel/sql/topo.sql")
+BASE_SQL = resource_file("ravel/sql/primitive.sql")
+FLOW_SQL = resource_file("ravel/sql/flows.sql")
+TOPO_SQL = resource_file("ravel/sql/topo.sql")
 
 class RavelDb():
+    """A representation of Ravel's backend PostgreSQL database."""
+
     def __init__(self, name, user, base, passwd=None, reconnect=False):
+        """name: the name of the database to connect to
+           user: the username to use to connect
+           base: a file containing the SQL implementation for Ravel's base
+           passwd: the password to connect to the database
+           reconnect: true to connect to an existing database setup, false
+           to load a new instance of Ravel's base into the database"""
         self.name = name
         self.user = user
         self.passwd = passwd
+        self.base = base
         self.cleaned = not reconnect
         self._cursor = None
         self._conn = None
@@ -24,11 +35,12 @@ class RavelDb():
             logger.warning("existing connections to database, skipping reinit")
             self.cleaned = False
         elif not reconnect:
-            self.init(base)
+            self.init()
             self.cleaned = True
 
     @property
     def conn(self):
+        "returns: a psycopg2 connection to the PostgreSQL database"
         if not self._conn or self._conn.closed:
             self._conn = psycopg2.connect(database=self.name,
                                           user=self.user,
@@ -38,11 +50,17 @@ class RavelDb():
 
     @property
     def cursor(self):
+        """returns: a psycopg2 cursor from RavelDb.conn for the PostgreSQL
+           database"""
         if not self._cursor or self._cursor.closed:
             self._cursor = self.conn.cursor()
         return self._cursor
 
     def num_connections(self):
+        """Returns the number of existing connections to the database.  If
+           there are >1 connections, a new Ravel base implementation cannot be
+           loaded into the database.
+           returns: the number of existing connections to the database"""
         try:
             self.cursor.execute("SELECT * FROM pg_stat_activity WHERE "
                                 "datname='{0}'".format(self.name))
@@ -54,24 +72,27 @@ class RavelDb():
 
         return 0
 
-    def init(self, base):
+    def init(self):
+        """Initialize the database with the base Ravel SQL implementation.
+           Removes any existing Ravel objects from the database"""
         self.clean()
         self.create()
         self.add_extensions()
-        self.load_schema(base)
-
-    def fmt_errmsg(self, exception):
-        return str(exception).strip()
+        self.load_schema(self.base)
 
     def load_schema(self, script):
+        """Load the specified schema into the database"
+           script: path to a SQL script"""
         try:
-            s = open(script, 'r').read()
+            s = open(script, "r").read()
             logger.debug("loaded schema %s", script)
             self.cursor.execute(s)
         except psycopg2.DatabaseError, e:
             logger.warning("error loading schema: %s", self.fmt_errmsg(e))
 
     def load_topo(self, provider):
+        """Load a topology from the specified network provider
+           provider: a ravel.network.NetworkProvider instance"""
         topo = provider.topo
         try:
             node_count = 0
@@ -114,10 +135,14 @@ class RavelDb():
                                             topo.port(h1, h2)[0],
                                             topo.port(h1, h2)[1]))
 
+            provider.cacheNodes(nodes)
+
         except psycopg2.DatabaseError, e:
             logger.warning("error loading topology: %s", self.fmt_errmsg(e))
 
     def create(self):
+        """If not created, create a database with the name specified in
+           the constructor"""
         conn = None
         try:
             conn = psycopg2.connect(database="postgres",
@@ -139,6 +164,8 @@ class RavelDb():
             conn.close()
 
     def add_extensions(self):
+        """If not already added, add extensions required by Ravel (plpythonu,
+           postgis, pgrouting)"""
         try:
             self.cursor.execute("SELECT 1 FROM pg_catalog.pg_namespace n JOIN " +
                                 "pg_catalog.pg_proc p ON pronamespace = n.oid " +
@@ -155,6 +182,7 @@ class RavelDb():
             logger.warning("error loading extensions: %s", self.fmt_errmsg(e))
             
     def clean(self):
+        """Clean the database of any existing Ravel components"""
         # close existing connections
         self.conn.close()
 
@@ -173,19 +201,24 @@ class RavelDb():
                 conn.close()
 
     def truncate(self):
+        """Clean the database of any state Ravel components, except for 
+           topology tables.  This rolls back the database to the state after
+           the topology is first loaded"""
         try:
-            tables = ["cf", "clock", "p1", "p2", "p3", "p_spv", "pox_hosts", 
-                      "pox_switches", "pox_tp", "rtm", "rtm_clock",
+            tables = ["cf", "clock", "p_spv", "rtm", "rtm_clock",
                       "spatial_ref_sys", "spv_tb_del", "spv_tb_ins", "tm",
-                      "tm_delta", "utm", "acl_tb", "acl_tb", "lb_tb"]
-            tenants = ["t1", "t2", "t3", "tacl_tb", "tenant_hosts", "tlb_tb"]
+                      "tm_delta", "utm"]
 
             self.cursor.execute("truncate %s;" % ", ".join(tables))
             logger.debug("truncated tables")
-
             self.cursor.execute("INSERT INTO clock values (0);")
-            # TODO: fix
+
+            # TODO: fix for tenants
+            #tenants = ["t1", "t2", "t3", "tacl_tb", "tenant_hosts", "tlb_tb"]
             #self.cursor.execute("truncate %s;" % ", ".join(tenants))
-            logger.debug("truncated tenant tables")
+            #logger.debug("truncated tenant tables")
         except psycopg2.DatabaseError, e:
             logger.warning("error truncating databases: %s", self.fmt_errmsg(e))
+
+    def fmt_errmsg(self, exception):
+        return str(exception).strip()

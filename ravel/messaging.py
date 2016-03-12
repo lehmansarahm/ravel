@@ -1,4 +1,7 @@
-#!/usr/bin/env python
+"""
+Abstraction for communicating between Ravel's processes: the main CLI, the
+OpenFlow manager, and the database triggers.
+"""
 
 import pickle
 import threading
@@ -12,22 +15,38 @@ from ravel.log import logger
 from ravel.of import OFPP_FLOOD, OFPFC_ADD, OFPFC_DELETE, OFPFC_DELETE_STRICT
 
 class ConsumableMessage(object):
+    "A consumable message"
+
     def consume(self, consumer):
+        """Consume the message
+           consumer: an object containing a function to consume the message"""
         pass
 
 class MessageSender(object):
+    "A message sender"
+
     def send(self, msg):
+        """Send the specified message
+           msg: the message to send"""
         pass
 
 class MessageReceiver(object):
+    "A message receiver"
+
     def start(self):
+        "Start a new thread to receive messages"
         pass
 
     def stop(self, event=None):
+        """Stop the receiver thread
+           event: an optional quit message"""
         pass
 
 class MsgQueueSender(MessageSender):
+    "A message queue-based message sender"
+
     def __init__(self, queue_id):
+        "queue_id: the integer id of the queue to be used"
         self.queue_id = queue_id
         pc = ravel.profiling.PerfCounter("mq_connect")
         pc.start()
@@ -43,6 +62,8 @@ class MsgQueueSender(MessageSender):
         pc.stop()
 
     def send(self, msg):
+        """Send the specified message
+           msg: the message to send"""
         pc = ravel.profiling.PerfCounter("mq_send")
         pc.start()
         logger.debug("mq: sending message %s", msg)
@@ -50,7 +71,11 @@ class MsgQueueSender(MessageSender):
         pc.stop()
 
 class MsgQueueReceiver(MessageReceiver):
+    "A message queue-based message receiver"
+
     def __init__(self, queue_id, consumer=None):
+        """queue_id: the integer id of the queue to receive messages from
+           consumer: the consuming object for received messages"""
         self.queue_id = queue_id
         self.consumer = consumer
         self.running = False
@@ -64,6 +89,7 @@ class MsgQueueReceiver(MessageReceiver):
                                         mode=0777)
 
     def start(self):
+        "Start a new thread to receive messages"
         logger.debug("mq_receiver starting")
         self.running = True
         self.t = threading.Thread(target=self._run)
@@ -79,11 +105,17 @@ class MsgQueueReceiver(MessageReceiver):
                 obj.consume(self.consumer)
 
     def stop(self, event=None):
+        """Stop the receiver thread
+           event: an optional quit message"""
         self.running = False
         self.mq.send(pickle.dumps(None))
 
 class RpcSender(MessageSender):
+    "A remote procedure call-based message sender"
+
     def __init__(self, host, port):
+        """host: the hostname or IP address of the RPC server
+           port: the port for the RPC server"""
         self.addr = "http://{0}:{1}".format(host, port)
         pc = ravel.profiling.PerfCounter("rpc_connect")
         pc.start()
@@ -91,6 +123,8 @@ class RpcSender(MessageSender):
         pc.stop()
 
     def send(self, msg):
+        """Send the specified message
+           msg: the message to send"""
         logger.debug("rpc: sending message %s", msg)
         pc = ravel.profiling.PerfCounter("rpc_send")
         pc.start()
@@ -98,7 +132,12 @@ class RpcSender(MessageSender):
         pc.stop()
 
 class RpcReceiver(MessageReceiver):
+    "A remote procedure call-based message receiver"
+
     def __init__(self, host, port, consumer=None):
+        """host: the hostname or IP address of the RPC server
+           port: the port for the RPC server
+           consumer: the consuming object for received messages"""
         self.host = host
         self.port = port
         self.consumer = consumer
@@ -116,6 +155,7 @@ class RpcReceiver(MessageReceiver):
             obj.consume(self.consumer)
 
     def start(self):
+        "Start a new thread to receive messages"
         logger.debug("rpc_receiver starting")
         self.running = True
         self.t = threading.Thread(target=self._run)
@@ -126,12 +166,16 @@ class RpcReceiver(MessageReceiver):
             self.server.handle_request()
 
     def stop(self, event=None):
+        """Stop the receiver thread
+           event: an optional quit message"""
         self.running = False
         addr = "http://{0}:{1}".format(self.host, self.port)
         self.proxy = xmlrpclib.ServerProxy(addr, allow_none=True)
         self.proxy.client_send(pickle.dumps(None))
 
 class OvsSender(MessageSender):
+    "A message sender using ovs-ofctl to communicate with switches"
+
     command = "/usr/bin/sudo /usr/bin/ovs-ofctl"
     subcmds = { OFPFC_ADD : "add-flow",
                 OFPFC_DELETE : "del-flows",
@@ -142,14 +186,15 @@ class OvsSender(MessageSender):
         pass
 
     def send(self, msg):
+        """Send the specified OpenFlow message
+           msg: the message to send"""
         pc = ravel.profiling.PerfCounter("ovs_send")
         pc.start()
-        # TODO: this is pretty ugly
-        msg = pickle.loads(msg)
 
+        msg = pickle.loads(msg)
         subcmd = OvsConnection.subcmds[msg.command]
 
-        # TODO: need to modify this for remote switches
+        # TODO: this is different for remote switches (ie, on physical network)
         dest = msg.switch.name
 
         params = []

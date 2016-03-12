@@ -4,17 +4,15 @@ import logging
 import types
 from logging import Logger
 
-LEVELS = { 'debug' : logging.DEBUG,
-           'info' : logging.INFO,
-           'warning' : logging.WARNING,
-           'error' : logging.ERROR,
-           'critical' : logging.CRITICAL
+LEVELS = { "debug" : logging.DEBUG,
+           "info" : logging.INFO,
+           "warning" : logging.WARNING,
+           "error" : logging.ERROR,
+           "critical" : logging.CRITICAL
        }
 
 DEFAULT_LEVEL = logging.ERROR
-
-#MSG_FORMAT = '%(message)s'
-MSG_FORMAT = '%(levelname)s:%(funcName)s: %(message)s'
+MSG_FORMAT = "%(levelname)s:%(funcName)s: %(message)s"
 
 class Singleton(type):
     def __init__(cls, name, bases, dict_):

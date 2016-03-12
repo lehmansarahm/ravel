@@ -21,7 +21,7 @@ class PoxManager(OfManager):
         self.log = log
         self.datapaths = {}
         self.flowstats = []
-        self.perfcounter = PerfCounter('sw_delay')
+        self.perfcounter = PerfCounter("sw_delay")
 
         core.openflow.addListeners(self, priority=0)
         self.log.info("ravel: starting pox manager")
@@ -30,7 +30,7 @@ class PoxManager(OfManager):
             self.log.info("registering handlers")
             core.openflow_discovery.addListeners(self)
 
-        core.call_when_ready(startup, ('openflow', 'openflow_discovery'))
+        core.call_when_ready(startup, ("openflow", "openflow_discovery"))
 
     def _handle_ConnectionDown(self, event):
         self.log.info("ravel: dpid {0} removed".format(event.dpid))

@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 
+import os
 from itertools import tee, izip
 from ravel.app import AppConsole, discoverComponents
+from ravel.log import logger
+from ravel.util import resource_file
 
 routing = """
 DROP TABLE IF EXISTS p_RT CASCADE;
@@ -64,7 +67,7 @@ def pairwise(iterable):
     next(b, None)
     return izip(a, b)
 
-class orchConsole(AppConsole):
+class OrchConsole(AppConsole):
     def __init__(self, db, env, components):
         self.ordering = None
         self.sql = None
@@ -78,21 +81,29 @@ class orchConsole(AppConsole):
 
         try:
             self.db.cursor.execute("SELECT MAX(counts) FROM clock;")
-            count = self.db.cursor.fetchall()[0][0]
-            hipri = self.ordering[-1]
+            count = self.db.cursor.fetchall()[0][0] + 1
+            hipri = self.ordering[0]
 
             self.db.cursor.execute("INSERT INTO p_{0} VALUES ({1}, 'on');"
                                    .format(hipri, count))
         except Exception, e:
             print e
 
+    def do_list(self, line):
+        "List orchestrated applications and their priority"
+        for num, app in enumerate(self.ordering):
+            print "   {0}: {1}".format(num, app)
+
     def do_reset(self, line):
         "Remove orchestration protocol function"
+        if self.sql is None:
+            return
+
         components = discoverComponents(self.sql)
         for component in components:
             component.drop(self.db)
 
-    def default(self, line):
+    def do_set(self, line):
         ordering = line.split()
         for app in ordering:
             if app.lower() not in self.env.apps and \
@@ -100,9 +111,24 @@ class orchConsole(AppConsole):
                 print "Unrecognized app", app
                 return
 
+        # load unloaded apps
+        loads = [app for app in ordering if app not in self.env.loaded]
+        for app in loads:
+            logger.debug("loading unloaded app %s", app)
+            self.env.load_app(app)
+
+        # TODO: set self.name instead of using 'orch_auto'
+        # unload unlisted apps
+        unlisted = [app for app in self.env.apps if app not in ordering
+                    and app != 'orch_auto']
+
+        for app in unlisted:
+            logger.debug("unloading unlisted app %s", app)
+            self.env.unload_app(app)
+
         ordering = [x.upper() for x in ordering]
 
-        # replace routing app name with rt 
+        # replace routing app name with rt
         if "ROUTING" in ordering:
             ordering[ordering.index("ROUTING")] = "RT"
 
@@ -122,11 +148,26 @@ class orchConsole(AppConsole):
         self.ordering = ordering
         self.sql = sql
 
+        log = resource_file("orch_log.sql")
+        f = open(log, 'w')
+        f.write(self.sql)
+        f.close()
+
+        logger.debug("logged orchestration protocol to %s", log)
+
         try:
             self.db.cursor.execute(self.sql)
         except Exception, e:
             print e
 
+    def help_set(self):
+        print "syntax: set [app1] [app2] ..."
+        print "-- set priority for one or more applications"
+        print "-- Note: A total ordering is needed for loaded applications."
+        print "         Any unlisted applications that are loaded will be"
+        print "         unloaded.  Any listed applications that are unloaded"
+        print "         will be loaded."
+
 shortcut = "oa"
 description = "an automated orchestration protocol application"
-console = orchConsole
+console = OrchConsole
