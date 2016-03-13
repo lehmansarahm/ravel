@@ -205,13 +205,33 @@ class OrchConsole(AppConsole):
         # reload orchestration with remaining applications
         self.do_load(" ".join(self.ordering))
 
-    def help_set(self):
-        print "syntax: set [app1] [app2] ..."
-        print "-- set priority for one or more applications"
+    def help_load(self):
+        print "syntax: load [app1] [app2] ..."
+        print "-- set (ascending) priority for one or more applications"
         print "-- Note: A total ordering is needed for loaded applications."
         print "         Any unlisted applications that are loaded will be"
         print "         unloaded.  Any listed applications that are unloaded"
         print "         will be loaded."
+
+    def complete_load(self, text, line, begidx, endidx):
+        "Complete loaded applications' names for load command"
+        apps = self.env.apps.keys()
+        if not text:
+            completions = apps
+        else:
+            completions = [d for d in apps if d.startswith(text)]
+
+        return completions
+
+    def complete_unload(self, text, line, begidx, endidx):
+        "Complete unloaded applications' names for unload command"
+        apps = self.env.apps.loaded.keys()
+        if not text:
+            completions = apps
+        else:
+            completions = [d for d in apps if d.startswith(text)]
+
+        return completions
 
 shortcut = "oa"
 description = "an automated orchestration protocol application"

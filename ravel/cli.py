@@ -190,26 +190,6 @@ class RavelConsole(cmd.Cmd):
 
         return completions
 
-    def complete_load(self, text, line, begidx, endidx):
-        "Complete loaded applications' names for load command"
-        apps = self.env.apps.keys()
-        if not text:
-            completions = apps
-        else:
-            completions = [d for d in apps if d.startswith(text)]
-
-        return completions
-
-    def complete_unload(self, text, line, begidx, endidx):
-        "Complete unloaded applications' names for unload command"
-        apps = self.env.apps.loaded.keys()
-        if not text:
-            completions = apps
-        else:
-            completions = [d for d in apps if d.startswith(text)]
-
-        return completions
-
 def RavelCLI(opts):
     """Start a RavelConsole instance given a list of command line options
        opts: parsed OptionParser object"""
