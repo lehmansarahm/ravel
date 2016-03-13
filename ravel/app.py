@@ -21,7 +21,6 @@ def mk_watchcmd(db, args):
        db: ravel.db.RavelDb instance on which to execute the SQL query
        args: list of tables and (optionally) limit on number or fows"""
     tables = []
-    print args
     for arg in args:
         split = arg.split(",")
         if len(split) > 1:
