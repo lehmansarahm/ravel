@@ -283,7 +283,7 @@ def RavelCLI(opts):
     else:
         if PoxInstance.is_running():
             print "Pox instance is already running.  Please shut down " \
-                "existing controller first."
+                "existing controller first (or run ravel.py --clean)."
             return
 
         controller = PoxInstance("ravel.controller.poxmgr")

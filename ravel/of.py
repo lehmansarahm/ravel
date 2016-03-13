@@ -92,6 +92,12 @@ class PoxInstance(object):
         """Start the Pox process
            cargs: arguments to pass to the controller"""
         pox = os.path.join(ravel.util.Config.PoxDir, "pox.py")
+        if not os.path.exists(pox):
+            logger.error("cannot find pox.py at: {0}. "
+                         "Is PoxDir set correctly in ravel.cfg?"
+                         .format(pox))
+            sys.exit(0)
+
         if cargs is None:
             cargs = ["log.level",
                      "--DEBUG",
