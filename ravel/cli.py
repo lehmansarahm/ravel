@@ -54,30 +54,24 @@ class RavelConsole(cmd.Cmd):
 
     def do_test(self, line):
         "Placeholder for batch commands for testing"
-        cmds = ["load orch",
-                "orch set routing",
+        cmds = ["orch load routing",
+                "orch auto on",
                 "m net",
                 "p insert into switches (sid) values (5);",
                 "p insert into hosts (hid) values (6);",
                 "p insert into tp values (5, 6, 0, 1, 1);",
                 "m net",
                 "rt addflow h1 h2",
-                "orch run",
                 "m dpctl dump-flows",
                 "rt delflow h1 h2",
-                "orch run",
                 "m dpctl dump-flows",
                 "rt addflow h2 h9",
                 "rt delflow h1 h9",
                 "rt addflow h1 h6",
-                "orch run",
                 "rt delflow h1 h6",
-                "orch run",
                 "profile rt addflow h1 h2",
-                "orch run",
                 "m dpctl dump-flows",
                 "profile rt delflow h1 h2",
-                "orch run",
                 "m dpctl dump-flows",
                 "p delete from tp where sid=5 and nid=3;",
                 "p delete from switches where sid=5;",
@@ -89,7 +83,6 @@ class RavelConsole(cmd.Cmd):
             print c
             self.onecmd(c)
             time.sleep(0.5)
-           # time.sleep(1)
 
     def do_apps(self, line):
         "List available applications and their status"
