@@ -24,10 +24,6 @@ $$
 LANGUAGE 'plpythonu' VOLATILE SECURITY DEFINER;
 
 
-------------------------------------------------------------
-------------------------------------------------------------
----------- base tables
-
 DROP TABLE IF EXISTS tp CASCADE;
 CREATE UNLOGGED TABLE tp (
        sid      integer,
@@ -76,7 +72,6 @@ CREATE UNLOGGED TABLE cf (
        pid      integer,
        sid      integer,
        nid      integer
---       PRIMARY KEY (fid, sid)
 );
 CREATE INDEX ON cf(fid,sid);
 
@@ -115,9 +110,6 @@ CREATE OR REPLACE RULE rm_del AS
            );
 
 
-----------------------------------------------------------------------
-----------------------------------------------------------------------
-----------------------------------------------------------------------
 ---------- reachability matrix facing user
 
 DROP TABLE IF EXISTS urm CASCADE;
@@ -149,45 +141,6 @@ CREATE OR REPLACE RULE urm_up_rule AS
                                  NEW.host1,
                                  NEW.host2,
                                  1);
-       );
-
-----------------------------------------------------------------------
-----------------------------------------------------------------------
--- routing application
-
-
-DROP TABLE IF EXISTS rrm_clock CASCADE;
-CREATE UNLOGGED TABLE rrm_clock (
-       counts   integer
-);
-INSERT into rrm_clock (counts) values (0) ;
-
-CREATE TRIGGER rrm_clock_ins
-     AFTER INSERT ON rrm_clock
-     FOR EACH ROW
-   EXECUTE PROCEDURE protocol_fun();
-
-
-DROP TABLE IF EXISTS rrm CASCADE;
-CREATE UNLOGGED TABLE rrm (
-       fid      integer,
-       host1    integer,
-       host2    integer,
-       PRIMARY key (fid)
-);
-
-CREATE OR REPLACE RULE rrm_ins AS
-       ON INSERT TO rrm
-       DO ALSO (
-          INSERT INTO urm VALUES (NEW.fid, NEW.host1, NEW.host2);
-          INSERT INTO rrm_clock VALUES (1);
-       );
-
-CREATE OR REPLACE RULE rrm_del AS
-       ON DELETE TO rrm
-       DO ALSO (
-          DELETE FROM urm WHERE fid = OLD.fid;
-          INSERT INTO rrm_clock VALUES (2);
        );
 
 
@@ -337,9 +290,6 @@ CREATE OR REPLACE VIEW spv_del AS (
        ORDER BY fid
 );
 
-------------------------------------------------------------
--- auxiliary function
-------------------------------------------------------------
 
 DROP TABLE IF EXISTS ports CASCADE;
 CREATE UNLOGGED TABLE ports (
@@ -348,46 +298,3 @@ CREATE UNLOGGED TABLE ports (
        port     integer
 );
 
-
-CREATE OR REPLACE FUNCTION protocolp1_fun() RETURNS TRIGGER AS
-$$
-plpy.notice ("engage ravel protocolp1_fun starting with p1")
-
-ct = plpy.execute("""select max (counts) from clock""")[0]['max']
-plpy.execute ("INSERT INTO p1 VALUES (" + str (ct+1) + ", 'on');")
-return None;
-$$
-LANGUAGE 'plpythonu' VOLATILE SECURITY DEFINER;
-
-
-CREATE OR REPLACE FUNCTION ravelall() RETURNS void AS
-$$
-plpy.notice ("engage ravel protocol for talb, tacl, rt")
-
-ct = plpy.execute("""select max (counts) from clock""")[0]['max']
-plpy.execute ("INSERT INTO p1 VALUES (" + str (ct+1) + ", 'on');")
-
-$$
-LANGUAGE 'plpythonu' VOLATILE SECURITY DEFINER;
-
-CREATE OR REPLACE FUNCTION ravel() RETURNS void AS
-$$
-plpy.notice ("engage ravel protocol for applications and rt")
-
-ct = plpy.execute("""select max (counts) from clock""")[0]['max']
-plpy.execute ("INSERT INTO p_spv VALUES (" + str (ct+1) + ", 'on');")
-
-$$
-LANGUAGE 'plpythonu' VOLATILE SECURITY DEFINER;
-
-CREATE OR REPLACE FUNCTION clean() RETURNS void AS
-$$
-plpy.notice ("clean db")
-
-plpy.notice ("DELETE FROM urm;")
-
-ct = plpy.execute("""select max (counts) from clock""")[0]['max']
-plpy.execute ("INSERT INTO p_spv VALUES (" + str (ct+1) + ", 'on');")
-
-$$
-LANGUAGE 'plpythonu' VOLATILE SECURITY DEFINER;

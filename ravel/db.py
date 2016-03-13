@@ -9,7 +9,7 @@ from ravel.util import resource_file
 
 ISOLEVEL = psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT
 
-BASE_SQL = resource_file("ravel/sql/primitive.sql")
+BASE_SQL = resource_file("ravel/sql/base.sql")
 FLOW_SQL = resource_file("ravel/sql/flows.sql")
 TOPO_SQL = resource_file("ravel/sql/topo.sql")
 
