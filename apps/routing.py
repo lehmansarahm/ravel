@@ -6,14 +6,15 @@ from ravel.log import logger
 class RoutingConsole(AppConsole):
     def do_addflow(self, line):
         """Add a flow between two hosts, using Mininet hostnames
-           Usage: addflow [host1] [host2]"""
+           Usage: addflow [host1] [host2] [opt: firewall waypoint (0 or 1)]"""
         args = line.split()
-        if len(args) != 2:
+        if len(args) != 2 and len(args) != 3:
             print "Invalid syntax"
             return
 
         hostnames = self.env.provider.cache_name
-        src,dst = args
+        src = args[0]
+        dst = args[1]
         if src not in hostnames:
             print "Unknown host", src
             return
@@ -22,28 +23,23 @@ class RoutingConsole(AppConsole):
             print "Unknown host", dst
             return
 
+        fw = 0
+        if len(args) == 3:
+            fw = int(args[2])
+            if fw not in [0,1]:
+                print "Invalid firewall option:", fw
+
         src = hostnames[src]
         dst = hostnames[dst]
-
-        # TODO: will remove this when we delete uhosts
-        # convert to host uhid
-        # self.db.cursor.execute("SELECT u_hid FROM uhosts WHERE hid={0}"
-        #                       .format(src))
-        # src = int(self.db.cursor.fetchall()[0][0])
-        # self.db.cursor.execute("SELECT u_hid FROM uhosts WHERE hid={0}"
-        #                       .format(dst))
-        # dst = int(self.db.cursor.fetchall()[0][0])
-
         try:
             # get next flow id
-            # TODO: change to tm?
             self.db.cursor.execute("SELECT * FROM tm;")
             fid = len(self.db.cursor.fetchall()) + 1
             self.db.cursor.execute("INSERT INTO tm (fid, src, dst) "
                                    "VALUES ({0}, {1}, {2});"
                                    .format(fid, src, dst))
-            self.db.cursor.execute ("UPDATE tm set FW = 0 where fid = {0};"
-                                    .format(fid, src, dst))
+            self.db.cursor.execute("UPDATE tm set FW = {0} where fid = {1};"
+                                   .format(fw, fid))
         except Exception, e:
             print "Failure: flow not installed --", e
             return
@@ -63,17 +59,6 @@ class RoutingConsole(AppConsole):
 
         src = hostnames[src]
         dst = hostnames[dst]
-
-        # TODO: will remove this when we delete uhosts
-        # convert to host uhid
-        # self.db.cursor.execute("SELECT u_hid FROM uhosts WHERE hid={0}"
-        #                        .format(src))
-        # src = int(self.db.cursor.fetchall()[0][0])
-        # self.db.cursor.execute("SELECT u_hid FROM uhosts WHERE hid={0}"
-        #                        .format(dst))
-        # dst = int(self.db.cursor.fetchall()[0][0])
-
-        # TODO: change to tm?
         self.db.cursor.execute("SELECT fid FROM tm WHERE src={0} and dst={1};"
                                .format(src, dst))
         result = self.db.cursor.fetchall()
