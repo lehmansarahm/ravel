@@ -33,6 +33,11 @@ def mk_watchcmd(db, args):
         limit = ""
         if t[1] is not None:
             limit = "LIMIT {0}".format(t[1])
+        queries.append("\echo ''")
+        queries.append("\echo '{0}'".format("*"*30))
+        center = 15 - len(t[0])/2
+        queries.append("\echo '            {0}'".format(t[0]))
+        queries.append("\echo '{0}'".format("*"*30))
         query = "SELECT * FROM {0} {1};".format(t[0], limit)
         queries.append(query)
 
@@ -41,8 +46,8 @@ def mk_watchcmd(db, args):
     temp.close()
     os.chmod(temp.name, 0666)
 
-    watch_arg = "echo {0}: {1}; psql -U{2} -d {0} -f {3}".format(
-        db.name, args[0], db.user, temp.name)
+    watch_arg = "echo db: {0}; psql -U{1} -d {0} -f {2}".format(
+        db.name, db.user, temp.name)
     watch = 'watch -c -n 2 --no-title "{0}"'.format(watch_arg)
     cmd = "xterm -e " + watch
     return cmd, temp.name
