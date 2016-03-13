@@ -205,9 +205,9 @@ class RavelDb():
            topology tables.  This rolls back the database to the state after
            the topology is first loaded"""
         try:
-            tables = ["cf", "clock", "p_spv", "rtm", "rtm_clock",
-                      "spatial_ref_sys", "spv_tb_del", "spv_tb_ins", "tm",
-                      "tm_delta", "utm"]
+            tables = ["cf", "clock", "p_spv", "rrm", "rrm_clock",
+                      "spatial_ref_sys", "spv_tb_del", "spv_tb_ins", "rm",
+                      "rm_delta", "urm"]
 
             self.cursor.execute("truncate %s;" % ", ".join(tables))
             logger.debug("truncated tables")

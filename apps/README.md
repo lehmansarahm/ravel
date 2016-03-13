@@ -27,7 +27,7 @@ Ravel uses a flat representation of the network and exposes the topology and for
     cf (fid integer, pid integer, sid integer, nid integer)
 
     # traffic (reachability) matrix
-    tm (fid integer, src integer, dst integer, vol integer, FW integer, LB integer)
+    rm (fid integer, src integer, dst integer, vol integer, FW integer, LB integer)
 
 
 
@@ -37,7 +37,7 @@ Applications in Ravel can consist of two components: an implementation in SQL an
 
 
 #### SQL Component
-An application's SQL component can create tables, views on Ravel base tables, 
+An application's SQL component can create tables, views on Ravel base tables,
 or add triggers to Ravel base tables.  To interact with orchestration, an application must define its constraints and a protocol for reconciling conflicts.  To add constraints, create a violation table in the form `appname_violation`.  To create a repair protocol, add a rule in the form `appname_repair`.
 
 For example, suppose we want to implement a bandwidth monitor that limits flows to a particular rate (see `apps/merlin.sql` for the full implementation).  We can create a table to store the rate for each flow:
@@ -51,9 +51,9 @@ For example, suppose we want to implement a bandwidth monitor that limits flows 
 And then a violation table that finds flows that violate the constraint `fid < rate`:
 
     CREATE VIEW bw_violation AS (
-        SELECT tm.fid, rate AS req, vol AS asgn
-    	    FROM tm, bw_policy
-    	    WHERE tm.fid = bw_policy.fid AND rate > vol
+        SELECT rm.fid, rate AS req, vol AS asgn
+            FROM rm, bw_policy
+            WHERE rm.fid = bw_policy.fid AND rate > vol
     );
 
 If the view contains more than zero rows, a conflict has occurred.  To repair a conflict, we can reset the flow rate:
@@ -61,7 +61,7 @@ If the view contains more than zero rows, a conflict has occurred.  To repair a 
     CREATE RULE bw_repair AS
         ON DELETE TO bw_violation
         DO INSTEAD
-            UPDATE tm SET vol=OLD.req WHERE fid=OLD.fid;
+            UPDATE rm SET vol=OLD.req WHERE fid=OLD.fid;
 
 
 #### Python Sub-Shell

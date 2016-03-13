@@ -80,8 +80,8 @@ CREATE UNLOGGED TABLE cf (
 );
 CREATE INDEX ON cf(fid,sid);
 
-DROP TABLE IF EXISTS tm CASCADE;
-CREATE UNLOGGED TABLE tm (
+DROP TABLE IF EXISTS rm CASCADE;
+CREATE UNLOGGED TABLE rm (
        fid      integer,
        src      integer,
        dst      integer,
@@ -90,62 +90,62 @@ CREATE UNLOGGED TABLE tm (
        LB       integer,
        PRIMARY KEY (fid)
 );
-CREATE INDEX ON tm (fid,src,dst);
+CREATE INDEX ON rm (fid,src,dst);
 
-DROP TABLE IF EXISTS tm_delta CASCADE;
-CREATE UNLOGGED TABLE tm_delta (
+DROP TABLE IF EXISTS rm_delta CASCADE;
+CREATE UNLOGGED TABLE rm_delta (
        fid      integer,
        src      integer,
        dst      integer,
        vol      integer,
        isadd    integer
 );
-CREATE INDEX ON tm_delta (fid,src);
+CREATE INDEX ON rm_delta (fid,src);
 
-CREATE OR REPLACE RULE tm_ins AS
-       ON INSERT TO tm
+CREATE OR REPLACE RULE rm_ins AS
+       ON INSERT TO rm
        DO ALSO
-           INSERT INTO tm_delta values (NEW.fid, NEW.src, NEW.dst, NEW.vol, 1);
+           INSERT INTO rm_delta values (NEW.fid, NEW.src, NEW.dst, NEW.vol, 1);
 
-CREATE OR REPLACE RULE tm_del AS
-       ON DELETE TO tm
+CREATE OR REPLACE RULE rm_del AS
+       ON DELETE TO rm
        DO ALSO(
-           INSERT INTO tm_delta values (OLD.fid, OLD.src, OLD.dst, OLD.vol, 0);
-           DELETE FROM tm_delta WHERE tm_delta.fid = OLD.fid AND isadd = 1;
+           INSERT INTO rm_delta values (OLD.fid, OLD.src, OLD.dst, OLD.vol, 0);
+           DELETE FROM rm_delta WHERE rm_delta.fid = OLD.fid AND isadd = 1;
            );
 
 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
----------- traffic matrix facing user
+---------- reachability matrix facing user
 
-DROP TABLE IF EXISTS utm CASCADE;
-CREATE UNLOGGED TABLE utm (
+DROP TABLE IF EXISTS urm CASCADE;
+CREATE UNLOGGED TABLE urm (
        fid      integer,
        host1    integer,
        host2    integer,
        PRIMARY KEY (fid)
 );
-CREATE INDEX ON utm(fid,host1);
+CREATE INDEX ON urm(fid,host1);
 
-CREATE OR REPLACE RULE utm_in_rule AS
-       ON INSERT TO utm
+CREATE OR REPLACE RULE urm_in_rule AS
+       ON INSERT TO urm
        DO ALSO
-       INSERT INTO tm VALUES (NEW.fid,
+       INSERT INTO rm VALUES (NEW.fid,
                               NEW.host1,
                               NEW.host2,
                               1);
 
-CREATE OR REPLACE RULE utm_del_rule AS
-       ON DELETE TO utm
-       DO ALSO DELETE FROM tm WHERE tm.fid = OLD.fid;
+CREATE OR REPLACE RULE urm_del_rule AS
+       ON DELETE TO urm
+       DO ALSO DELETE FROM rm WHERE rm.fid = OLD.fid;
 
-CREATE OR REPLACE RULE utm_up_rule AS
-       ON UPDATE TO utm
+CREATE OR REPLACE RULE urm_up_rule AS
+       ON UPDATE TO urm
        DO ALSO (
-          DELETE FROM tm WHERE tm.fid = OLD.fid;
-          INSERT INTO tm VALUES (OLD.fid,
+          DELETE FROM rm WHERE rm.fid = OLD.fid;
+          INSERT INTO rm VALUES (OLD.fid,
                                  NEW.host1,
                                  NEW.host2,
                                  1);
@@ -156,70 +156,40 @@ CREATE OR REPLACE RULE utm_up_rule AS
 -- routing application
 
 
--- CREATE TRIGGER tm_in_trigger
---      AFTER INSERT ON tm
---      FOR EACH ROW
---    EXECUTE PROCEDURE protocol_fun();
-
-
-DROP TABLE IF EXISTS rtm_clock CASCADE;
-CREATE UNLOGGED TABLE rtm_clock (
+DROP TABLE IF EXISTS rrm_clock CASCADE;
+CREATE UNLOGGED TABLE rrm_clock (
        counts   integer
 );
-INSERT into rtm_clock (counts) values (0) ;
+INSERT into rrm_clock (counts) values (0) ;
 
-CREATE TRIGGER rtm_clock_ins
-     AFTER INSERT ON rtm_clock
+CREATE TRIGGER rrm_clock_ins
+     AFTER INSERT ON rrm_clock
      FOR EACH ROW
    EXECUTE PROCEDURE protocol_fun();
 
 
-DROP TABLE IF EXISTS rtm CASCADE;
-CREATE UNLOGGED TABLE rtm (
+DROP TABLE IF EXISTS rrm CASCADE;
+CREATE UNLOGGED TABLE rrm (
        fid      integer,
        host1    integer,
        host2    integer,
        PRIMARY key (fid)
 );
 
-CREATE OR REPLACE RULE rtm_ins AS
-       ON INSERT TO rtm
+CREATE OR REPLACE RULE rrm_ins AS
+       ON INSERT TO rrm
        DO ALSO (
-          INSERT INTO utm VALUES (NEW.fid, NEW.host1, NEW.host2);
-          INSERT INTO rtm_clock VALUES (1);
+          INSERT INTO urm VALUES (NEW.fid, NEW.host1, NEW.host2);
+          INSERT INTO rrm_clock VALUES (1);
        );
 
-CREATE OR REPLACE RULE rtm_del AS
-       ON DELETE TO rtm
+CREATE OR REPLACE RULE rrm_del AS
+       ON DELETE TO rrm
        DO ALSO (
-          DELETE FROM utm WHERE fid = OLD.fid;
-          INSERT INTO rtm_clock VALUES (2);
+          DELETE FROM urm WHERE fid = OLD.fid;
+          INSERT INTO rrm_clock VALUES (2);
        );
 
--- CREATE OR REPLACE FUNCTION rtm_del_fun() RETURNS TRIGGER AS
--- $$
--- plpy.notice ("rtm_del_fun")
--- f = TD["old"]["fid"]
-
--- plpy.execute ("DELETE FROM utm WHERE utm.fid = " + str (f) + ";")
--- plpy.execute ("INSERT INTO rtm_clock VALUES (2);")
--- return None;
--- $$
--- LANGUAGE 'plpythonu' VOLATILE SECURITY DEFINER;
-
--- CREATE TRIGGER rtm_del_trigger
---      AFTER DELETE ON rtm
---      FOR EACH ROW
---    EXECUTE PROCEDURE rtm_del_fun ();
-
-
-
--- CREATE OR REPLACE RULE rtm_del AS
---        ON DELETE TO rtm
---        DO INSTEAD (
---           DELETE FROM utm WHERE utm.fid = OLD.fid;
---           INSERT INTO rtm_clock VALUES (2);
---        );
 
 DROP TABLE IF EXISTS spv_tb_ins CASCADE;
 CREATE UNLOGGED TABLE spv_tb_ins (
@@ -242,9 +212,9 @@ RETURNS TRIGGER
 AS $$
 plpy.notice ("spv_constraint1_fun")
 if TD["new"]["status"] == 'on':
-    tm = plpy.execute ("SELECT * FROM tm_delta;")
+    rm = plpy.execute ("SELECT * FROM rm_delta;")
 
-    for t in tm:
+    for t in rm:
         if t["isadd"] == 1:
             f = t["fid"]
             s = t["src"]
@@ -260,7 +230,7 @@ if TD["new"]["status"] == 'on':
             f = t["fid"]
             plpy.execute ("DELETE FROM cf WHERE fid =" +str (f) +";")
 
-    plpy.execute ("DELETE FROM tm_delta;")
+    plpy.execute ("DELETE FROM rm_delta;")
 return None;
 $$ LANGUAGE 'plpythonu' VOLATILE SECURITY DEFINER;
 
@@ -268,15 +238,6 @@ CREATE TRIGGER spv_constraint1
      AFTER INSERT ON p_spv
      FOR EACH ROW
    EXECUTE PROCEDURE spv_constraint1_fun();
-
--- CREATE OR REPLACE FUNCTION tm_del2spv_fun ()
--- RETURNS TRIGGER
--- AS $$
--- f = TD["old"]["fid"]
--- plpy.notice (f)
--- plpy.execute("INSERT INTO spv_tb_del VALUES (fid) (" + str (f) + ");")
--- return None;
--- $$ LANGUAGE 'plpythonu' VOLATILE SECURITY DEFINER;
 
 CREATE OR REPLACE FUNCTION tp2spv_fun () RETURNS TRIGGER
 AS $$
@@ -293,8 +254,8 @@ if isactive == 0:
       for fid in fid_delta:
           plpy.execute ("INSERT INTO spv_tb_del (SELECT * FROM cf WHERE fid = "+str (fid["fid"])+");")
 
-          s = plpy.execute ("SELECT * FROM tm WHERE fid =" +str (fid["fid"]))[0]["src"]
-          d = plpy.execute ("SELECT * FROM tm WHERE fid =" +str (fid["fid"]))[0]["dst"]
+          s = plpy.execute ("SELECT * FROM rm WHERE fid =" +str (fid["fid"]))[0]["src"]
+          d = plpy.execute ("SELECT * FROM rm WHERE fid =" +str (fid["fid"]))[0]["dst"]
 
           pv = plpy.execute("""SELECT array(SELECT id1 FROM pgr_dijkstra('SELECT 1 as id, sid as source, nid as target, 1.0::float8 as cost FROM tp WHERE isactive = 1',""" +str (s) + "," + str (d)  + ",FALSE, FALSE))""")[0]['array']
 
@@ -338,7 +299,7 @@ CREATE OR REPLACE VIEW spv AS (
                                                      1.0::float8 as cost
                                                      FROM tp
                                                      WHERE isactive = 1', src, dst,FALSE, FALSE))) as pv
-       FROM tm
+       FROM rm
 );
 
 DROP VIEW IF EXISTS spv_edge CASCADE;
@@ -423,7 +384,7 @@ CREATE OR REPLACE FUNCTION clean() RETURNS void AS
 $$
 plpy.notice ("clean db")
 
-plpy.notice ("DELETE FROM utm;")
+plpy.notice ("DELETE FROM urm;")
 
 ct = plpy.execute("""select max (counts) from clock""")[0]['max']
 plpy.execute ("INSERT INTO p_spv VALUES (" + str (ct+1) + ", 'on');")

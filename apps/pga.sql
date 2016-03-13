@@ -3,7 +3,7 @@ CREATE UNLOGGED TABLE PGA_policy (
        gid1	      integer,
        gid2 	      integer,
        MB	      text,
-       PRIMARY key (gid1, gid2)		
+       PRIMARY key (gid1, gid2)
 );
 CREATE INDEX ON PGA_policy (gid1, gid2);
 
@@ -31,17 +31,17 @@ CREATE OR REPLACE VIEW PGA AS(
 
 CREATE OR REPLACE VIEW PGA_violation AS (
        SELECT fid, MB
-       FROM tm, PGA       
+       FROM rm, PGA
        WHERE src = sid1 AND dst = sid2 AND
-       ((MB = 'FW' AND FW=0) OR (MB='LB' AND LB=0)) 
+       ((MB = 'FW' AND FW=0) OR (MB='LB' AND LB=0))
 );
 
 CREATE OR REPLACE RULE PGA_repair AS
        ON DELETE TO PGA_violation
        DO INSTEAD
        (
-       UPDATE tm SET FW = 1 WHERE fid = OLD.fid AND OLD.MB = 'FW';
-       UPDATE tm SET LB = 1 WHERE fid = OLD.fid AND OLD.MB = 'LB';
+       UPDATE rm SET FW = 1 WHERE fid = OLD.fid AND OLD.MB = 'FW';
+       UPDATE rm SET LB = 1 WHERE fid = OLD.fid AND OLD.MB = 'LB';
        );
 
 ------------------------------------------------------------------
@@ -50,7 +50,7 @@ CREATE OR REPLACE RULE PGA_repair AS
 -- VALUES (1,2,'FW'),
 --        (4,3,'LB');
 
--- INSERT INTO PGA_group 
+-- INSERT INTO PGA_group
 --        (gid, sid_array)
 -- VALUES
 -- 	(1, ARRAY[5]),

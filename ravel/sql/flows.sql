@@ -46,7 +46,7 @@ AS $$
 
         /* get src, dst host uids */
         SELECT src, dst INTO src_id, dst_id
-               FROM tm
+               FROM rm
                WHERE fid=NEW.fid;
 
         SELECT name, ip, dpid INTO sw_name, sw_ip, sw_dpid
@@ -171,7 +171,7 @@ AS $$
 
         /* get src, dst host uids */
         SELECT src, dst INTO src_id, dst_id
-               FROM tm_delta
+               FROM rm_delta
                WHERE fid=OLD.fid;
 
         /* get src, dst addresses */

@@ -33,12 +33,12 @@ class RoutingConsole(AppConsole):
         dst = hostnames[dst]
         try:
             # get next flow id
-            self.db.cursor.execute("SELECT * FROM tm;")
+            self.db.cursor.execute("SELECT * FROM rm;")
             fid = len(self.db.cursor.fetchall()) + 1
-            self.db.cursor.execute("INSERT INTO tm (fid, src, dst) "
+            self.db.cursor.execute("INSERT INTO rm (fid, src, dst) "
                                    "VALUES ({0}, {1}, {2});"
                                    .format(fid, src, dst))
-            self.db.cursor.execute("UPDATE tm set FW = {0} where fid = {1};"
+            self.db.cursor.execute("UPDATE rm set FW = {0} where fid = {1};"
                                    .format(fw, fid))
         except Exception, e:
             print "Failure: flow not installed --", e
@@ -59,7 +59,7 @@ class RoutingConsole(AppConsole):
 
         src = hostnames[src]
         dst = hostnames[dst]
-        self.db.cursor.execute("SELECT fid FROM tm WHERE src={0} and dst={1};"
+        self.db.cursor.execute("SELECT fid FROM rm WHERE src={0} and dst={1};"
                                .format(src, dst))
         result = self.db.cursor.fetchall()
 
@@ -76,12 +76,12 @@ class RoutingConsole(AppConsole):
     def _delFlowById(self, fid):
         try:
             # does the flow exist?
-            self.db.cursor.execute("SELECT fid FROM tm WHERE fid={0}".format(fid))
+            self.db.cursor.execute("SELECT fid FROM rm WHERE fid={0}".format(fid))
             if len(self.db.cursor.fetchall()) == 0:
                 logger.warning("no flow installed with fid %s", fid)
                 return None
 
-            self.db.cursor.execute("DELETE FROM tm WHERE fid={0}".format(fid))
+            self.db.cursor.execute("DELETE FROM rm WHERE fid={0}".format(fid))
             return fid
         except Exception, e:
             print e
