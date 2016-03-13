@@ -21,6 +21,7 @@ def mk_watchcmd(db, args):
        db: ravel.db.RavelDb instance on which to execute the SQL query
        args: list of tables and (optionally) limit on number or fows"""
     tables = []
+    print args
     for arg in args:
         split = arg.split(",")
         if len(split) > 1:
@@ -33,11 +34,9 @@ def mk_watchcmd(db, args):
         limit = ""
         if t[1] is not None:
             limit = "LIMIT {0}".format(t[1])
-        queries.append("\echo ''")
-        queries.append("\echo '{0}'".format("*"*30))
-        center = 15 - len(t[0])/2
-        queries.append("\echo '            {0}'".format(t[0]))
-        queries.append("\echo '{0}'".format("*"*30))
+
+        header = "*" * (15 - len(t[0])/2)
+        queries.append("\echo '{0} {1} {0}'".format(header, t[0], header))
         query = "SELECT * FROM {0} {1};".format(t[0], limit)
         queries.append(query)
 
