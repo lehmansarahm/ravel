@@ -113,7 +113,7 @@ class OrchConsole(AppConsole):
         try:
             self.db.cursor.execute("SELECT MAX(counts) FROM clock;")
             count = self.db.cursor.fetchall()[0][0] + 1
-            hipri = self.ordering[0]
+            hipri = self.ordering[-1]
 
             self.db.cursor.execute("INSERT INTO p_{0} VALUES ({1}, 'on');"
                                    .format(hipri, count))
