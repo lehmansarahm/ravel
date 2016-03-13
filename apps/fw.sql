@@ -43,5 +43,5 @@ CREATE OR REPLACE RULE FW_repair AS
 
 -- ------------------------------------------------------------------
 -- -- (Kinetic) firewall configuration for the toy example
--- INSERT INTO FW_policy_acl VALUES (8,7,0);
--- INSERT INTO FW_policy_user VALUES (6),(8);
+--INSERT INTO FW_policy_acl VALUES (8,7,0);
+--INSERT INTO FW_policy_user VALUES (6),(8);
