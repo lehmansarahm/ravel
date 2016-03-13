@@ -71,10 +71,42 @@ class OrchConsole(AppConsole):
     def __init__(self, db, env, components):
         self.ordering = None
         self.sql = None
+        self._auto = False
         AppConsole.__init__(self, db, env, components)
+
+    @property
+    def auto(self):
+        return self._auto
+
+    def do_auto(self, line):
+        """Set or unset automated orchestration (run "orch run" after
+           each command automatically"""
+        args = line.split()
+        if len(args) == 0:
+            if self._auto:
+                status = "\033[92m[enabled]\033[0m"
+            else:
+                status = "\033[91m[disabled]\033[0m"
+
+            print "Auto-orchestration:", status
+            return
+
+        if len(args) != 1:
+            print "Invalid syntax"
+
+        arg = args[0]
+        if arg.lower() not in ["on", "off"]:
+            print "Invalid option: {0}.  Valid options: on or off".format(arg)
+            return
+
+        if arg.lower() == "on":
+            self._auto = True
+        else:
+            self._auto = False
 
     def do_run(self, line):
         "Execute the orchestration protocol"
+        print "running"
         if self.ordering is None:
             print "Must first set ordering"
             return

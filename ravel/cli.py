@@ -37,9 +37,15 @@ class RavelConsole(cmd.Cmd):
 
     def default(self, line):
         "Check loaded applications before raising unknown command error"
+
+        if "orch" in self.env.loaded:
+            auto_orch = self.env.loaded["orch"].console.auto
+
         cmd = line.strip().split()[0]
         if cmd in self.env.loaded:
             self.env.loaded[cmd].cmd(line[len(cmd):])
+            if auto_orch:
+                self.env.loaded["orch"].console.onecmd("run")
         else:
             print "*** Unknown command:", line
 
@@ -150,7 +156,9 @@ class RavelConsole(cmd.Cmd):
             print e
 
     def do_profile(self, line):
-        "Run command and report detailed execution time"
+        """Run command and report detailed execution time.
+           Note: if no counters are found, try enabling auto-orchestration
+           with: orch auto on"""
         if line:
             pe = ravel.profiling.ProfiledExecution()
             pe.start()
