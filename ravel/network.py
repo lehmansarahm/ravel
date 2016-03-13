@@ -43,7 +43,7 @@ class NetworkProvider(object):
         """queue_id: an integer id to be used for the database to communicate
            with the provider for updates to the topology inserted into the
            database
-           db: a RavelDb instance"""
+           db: a ravel.db.RavelDb instance"""
         self.db = db
         self.receiver = ravel.messaging.MsgQueueReceiver(queue_id, self)
         self.cache_name = {}
@@ -110,7 +110,7 @@ class EmptyNetProvider(NetworkProvider):
        assigns IP and MAC addresses to the nodes without starting Mininet."""
 
     def __init__(self, db, topo):
-        """db: a RavelDb instance
+        """db: a ravel.db.RavelDb instance
            topo: a Mininet topology"""
         self.topo = topo
         self.nodes = {}
@@ -196,7 +196,7 @@ class MininetProvider(NetworkProvider):
        that should be running at 127.0.0.1"""
 
     def __init__(self, db, topo, controller):
-        """db: a RavelDb instance
+        """db: a ravel.db.RavelDb instance
            topo: a Mininet topology
            controller: a controller to start along with Mininet"""
         self.topo = topo

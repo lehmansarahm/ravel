@@ -96,7 +96,7 @@ CREATE UNLOGGED TABLE hosts (
 CREATE INDEX ON hosts (hid);
 
 
-/* Nodes view - all nodes and switches in the network
+/* Node view - all nodes and switches in the network
  * id: the node's id from its respective table (hosts.hid or switches.sid)
  * name: the node's name
  */
