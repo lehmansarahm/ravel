@@ -1,4 +1,8 @@
-#!/usr/bin/env python
+"""
+Orchestration sub-shell.
+
+Orchestration is a core application that is enabled by default.
+"""
 
 import os
 from itertools import tee, izip
@@ -76,11 +80,13 @@ class OrchConsole(AppConsole):
 
     @property
     def auto(self):
+        "returns: true if auto-orchestration is enabled, false otherwise"
         return self._auto
 
     def do_auto(self, line):
         """Set or unset automated orchestration (run "orch run" after
-           each command automatically"""
+           each command automatically
+           Usage: auto [on/off]"""
         args = line.split()
         if len(args) == 0:
             if self._auto:
@@ -233,6 +239,6 @@ class OrchConsole(AppConsole):
 
         return completions
 
-shortcut = "oa"
+shortcut = "o"
 description = "an automated orchestration protocol application"
 console = OrchConsole

@@ -1,3 +1,8 @@
+------------------------------------------------------------
+-- BANDWIDTH CONSTRAINT APPLICATION
+------------------------------------------------------------
+
+
 DROP TABLE IF EXISTS Merlin_policy CASCADE;
 CREATE UNLOGGED TABLE MERLIN_policy (
        fid	      integer,

@@ -1,4 +1,6 @@
-#!/usr/bin/env python
+"""
+Routing sub-shell.
+"""
 
 from ravel.app import AppConsole
 from ravel.log import logger

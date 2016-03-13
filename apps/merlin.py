@@ -1,4 +1,6 @@
-#!/usr/bin/env python
+"""
+Bandwidth Constraint Application sub-shell
+"""
 
 from ravel.app import AppConsole
 

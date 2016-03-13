@@ -1,4 +1,6 @@
-#!/usr/bin/env python
+"""
+Sample (dummy) sub-shell application
+"""
 
 from ravel.app import AppConsole
 

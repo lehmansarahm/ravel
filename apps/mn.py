@@ -1,3 +1,9 @@
+"""
+Mininet sub-shell
+
+Mininet sub-shell is a core application that is enabled by default.
+"""
+
 from ravel.app import AppConsole
 
 class MininetConsole(AppConsole):

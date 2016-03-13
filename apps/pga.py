@@ -1,4 +1,6 @@
-#!/usr/bin/env python
+"""
+Service Chain Application sub-shell
+"""
 
 from ravel.app import AppConsole
 

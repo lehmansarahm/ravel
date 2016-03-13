@@ -1,3 +1,7 @@
+------------------------------------------------------------
+-- SERVICE CHAIN (PGA) APPLICATION
+------------------------------------------------------------
+
 DROP TABLE IF EXISTS PGA_policy CASCADE;
 CREATE UNLOGGED TABLE PGA_policy (
        gid1	      integer,
@@ -44,15 +48,14 @@ CREATE OR REPLACE RULE PGA_repair AS
        UPDATE rm SET LB = 1 WHERE fid = OLD.fid AND OLD.MB = 'LB';
        );
 
-------------------------------------------------------------------
--- (PGA) configuration instance for the toy example
--- INSERT INTO PGA_policy (gid1, gid2, MB)
--- VALUES (1,2,'FW'),
---        (4,3,'LB');
 
--- INSERT INTO PGA_group
---        (gid, sid_array)
--- VALUES
+
+------------------------------------------------------------
+-- SAMPLE CONFIGURATION (for toy_dtp.py topo)
+------------------------------------------------------------
+
+-- INSERT INTO PGA_policy (gid1, gid2, MB) VALUES (1,2,'FW'), (4,3,'LB');
+-- INSERT INTO PGA_group (gid, sid_array) VALUES
 -- 	(1, ARRAY[5]),
 -- 	(2, ARRAY[6]),
 -- 	(3, ARRAY[6,7]),
