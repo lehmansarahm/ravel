@@ -26,7 +26,7 @@ Ravel uses a flat representation of the network and exposes the topology and for
     # configuration (forwarding) table
     cf (fid integer, pid integer, sid integer, nid integer)
 
-    # traffic (reachability) matrix
+    # reachability matrix
     rm (fid integer, src integer, dst integer, vol integer, FW integer, LB integer)
 
 

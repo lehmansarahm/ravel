@@ -44,13 +44,14 @@ The Ravel CLI has a number of commands to monitor and control the applications a
   * `help`: show list of commands
   * `apps`: list discovered applications
   * `stat`: show running configuration
-  * `load`: load application into the database
-  * `unload`: unload application from the database
-  * `addflow`: install a new flow between two hosts
-  * `delflow`: remove a flow by hosts or flow id
   * `m`: execute Mininet command
   * `p`: execute SQL statement
   * `time`: print execution time
   * `profile`: print detailed execution time
   * `reinit`: truncate database tables except topology
   * `watch`: spawn new xterm watching database tables
+  * `orch load`: load a set of orchestrated applications (in acending ordreing of priority)
+  * `orch unload`: unload one or more applications from the orchesrated set
+  * `orch auto [on/off]`: auto-commit commands for orchestration
+  * `rt addflow [src] [dst]`: install a flow
+  * `rt delflow [src] [dst]`: remove a flow

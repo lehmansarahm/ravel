@@ -8,11 +8,11 @@ INSTALL FROM SOURCE
 -------------------
 To install Ravel from source, first check out a copy of the code:
 
-    git clone REPO_LINK
+    git clone http://github.com/ravel-net/ravel
 
 Run the Ravel install script:
 
-    cd REPO_NAME
+    cd ravel
     util/install.sh [options]
 
 Options for `install.sh` are:
