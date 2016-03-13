@@ -7,23 +7,23 @@ from ravel.log import logger
 from ravel.util import resource_file
 
 routing = """
-DROP TABLE IF EXISTS p_RT CASCADE;
-CREATE UNLOGGED TABLE p_RT (
+DROP TABLE IF EXISTS p_routing CASCADE;
+CREATE UNLOGGED TABLE p_routing (
     counts    integer,
     status    text,
     PRIMARY key (counts)
 );
 
-CREATE TRIGGER run_RT_trigger
-     AFTER INSERT ON p_RT
+CREATE TRIGGER run_routing_trigger
+     AFTER INSERT ON p_routing
      FOR EACH ROW
    EXECUTE PROCEDURE spv_constraint1_fun();
 
-CREATE OR REPLACE RULE run_RT AS
-    ON INSERT TO p_RT
+CREATE OR REPLACE RULE run_routing AS
+    ON INSERT TO p_routing
     WHERE (NEW.status = 'on')
     DO ALSO (
-         UPDATE p_RT SET status = 'off' WHERE counts = NEW.counts;
+         UPDATE p_routing SET status = 'off' WHERE counts = NEW.counts;
          );
 """
 
@@ -106,7 +106,6 @@ class OrchConsole(AppConsole):
 
     def do_run(self, line):
         "Execute the orchestration protocol"
-        print "running"
         if self.ordering is None:
             print "Must first set ordering"
             return
@@ -123,11 +122,12 @@ class OrchConsole(AppConsole):
 
     def do_list(self, line):
         "List orchestrated applications and their priority"
+        print "Priority: low -> high"
         for num, app in enumerate(self.ordering):
             print "   {0}: {1}".format(num, app)
 
     def do_reset(self, line):
-        "Remove orchestration protocol function"
+        "Reset orchestration protocol function"
         if self.sql is None:
             return
 
@@ -135,11 +135,12 @@ class OrchConsole(AppConsole):
         for component in components:
             component.drop(self.db)
 
-    def do_set(self, line):
-        ordering = line.split()
+    def do_load(self, line):
+        """Start one or more applications with orchestration
+           Usage: load [app1] [app2] ... (priority: low -> high)"""
+        ordering = [app.lower() for app in line.split()]
         for app in ordering:
-            if app.lower() not in self.env.apps and \
-               app.lower() not in ['routing', 'rt']:
+            if app.lower() not in self.env.apps:
                 print "Unrecognized app", app
                 return
 
@@ -149,37 +150,31 @@ class OrchConsole(AppConsole):
             logger.debug("loading unloaded app %s", app)
             self.env.load_app(app)
 
-        # TODO: set self.name instead of using 'orch_auto'
-        # unload unlisted apps
-        unlisted = [app for app in self.env.apps if app not in ordering
-                    and app != 'orch']
-
+        # unload unlisted apps: if it's loaded but not a shortcut or core app
+        unlisted = [app for app in self.env.loaded if app not in ordering
+                    and app not in self.env.coreapps and app in self.env.apps]
         for app in unlisted:
-            logger.debug("unloading unlisted app %s", app)
+            logger.info("unloading unlisted app %s", app)
             self.env.unload_app(app)
 
         # processing in ascending order of priority
-        ordering = [x.upper() for x in ordering]
         ordering.reverse()
 
-        # replace routing app name with rt
-        if "ROUTING" in ordering:
-            ordering[ordering.index("ROUTING")] = "RT"
-
         sql = ""
-        for app in [x for x in ordering if x != "RT"]:
+        for app in [x for x in ordering if x != "routing"]:
             vtable = "{0}_violation".format(app)
             sql += ptable_template.format(app)
             sql += runrule_template.format(app, vtable)
 
-        sql += routing
+        if "routing" in ordering:
+            sql += routing
 
         for app1, app2 in pairwise(ordering):
             sql += orderrule_template.format(app1, app2)
 
         sql += clock_template.format(ordering[-1])
 
-        self.ordering = ordering
+        self.ordering = [x for x in reversed(ordering)]
         self.sql = sql
 
         log = resource_file("orch_log.sql")
@@ -193,6 +188,22 @@ class OrchConsole(AppConsole):
             self.db.cursor.execute(self.sql)
         except Exception, e:
             print e
+
+    def do_unload(self, line):
+        """Stop one or more applications
+           Usage: unload [app1] [app2] ..."""
+
+        self.do_reset("")
+        apps = line.split()
+        for app in apps:
+            self.ordering.remove(app.lower())
+            if app in self.env.apps:
+                self.env.unload_app(app)
+            else:
+                print "Unknown application", app
+
+        # reload orchestration with remaining applications
+        self.do_load(" ".join(self.ordering))
 
     def help_set(self):
         print "syntax: set [app1] [app2] ..."

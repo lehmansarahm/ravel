@@ -8,7 +8,6 @@ PostgreSQL database and Mininet.
 import cmd
 import getpass
 import os
-import psycopg2
 import sys
 import tabulate
 import time
@@ -108,52 +107,6 @@ class RavelConsole(cmd.Cmd):
 
             print "  {0} {1}{2}{3}".format(status, app.name,
                                            shortcut, description)
-
-    def do_load(self, line):
-        """Start one or more applications
-           Usage: load [app1] [app2] ..."""
-        apps = line.split()
-        for app in apps:
-            if app in self.env.apps:
-                self.env.load_app(app)
-            else:
-                print "Unknown application", app
-
-    def do_unload(self, line):
-        """Stop one or more applications
-           Usage: unload [app1] [app2] ..."""
-        apps = line.split()
-        for app in apps:
-            if app in self.env.apps:
-                self.env.unload_app(app)
-            else:
-                print "Unknown application", app
-
-    def do_m(self, line):
-        """Execute a command in Mininet
-           Usage: m [mininet cmd]"""
-        self.env.provider.cli(line)
-
-    def do_p(self, line):
-        """Execute a PostgreSQL statement
-           Usage: p [SQL statement]"""
-        try:
-            cursor = self.env.db.cursor
-            cursor.execute(line)
-        except psycopg2.ProgrammingError, e:
-            print e
-            return
-
-        try:
-            data = cursor.fetchall()
-            if data is not None:
-                names = [row[0] for row in cursor.description]
-                print tabulate.tabulate(data, headers=names)
-        except psycopg2.ProgrammingError:
-            # no results, eg from an insert/delete
-            pass
-        except TypeError, e:
-            print e
 
     def do_profile(self, line):
         """Run command and report detailed execution time.

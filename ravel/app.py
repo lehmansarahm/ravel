@@ -84,12 +84,16 @@ sqlComponents.append(SqlObjMatch(
     3))
 sqlComponents.append(SqlObjMatch(
     "function",
-    r"(create|drop).* function.*? (\w+)(\(.*\))",
+    r"(create|drop).* function.*? (\w+)(\(.*\)) RETURNS",
     [2,3]))
 sqlComponents.append(SqlObjMatch(
     "table",
     r"(create|drop).* table( if exists)?( if not exists)? (\w+)",
     4))
+sqlComponents.append(SqlObjMatch(
+    "rule",
+    r"(create).* rule (\w+) AS( ON )(\w+) TO (\w+)",
+    [2, 3, 5]))
 
 def discoverComponents(sql):
     """Search for installable/removable components within a string containing
@@ -100,9 +104,14 @@ def discoverComponents(sql):
         for token in statement.tokens:
             name = None
             typ = None
+
+            # remove newlines, extra spaces for regex
+            stmt = str(statement).replace("\n", " ")
+            stmt = " ".join(stmt.split())
+
             for comp in sqlComponents:
                 if token.match(Keyword, comp.typ):
-                    name = comp.match(str(statement))
+                    name = comp.match(stmt)
                     typ = comp.typ
 
             if name is not None:
@@ -110,7 +119,9 @@ def discoverComponents(sql):
                 if component not in components:
                     components.append(component)
 
-    return components
+    # sort alphabetically, should fix drop issues when 'rule on table'
+    # is dropped before 'table'
+    return sorted(components, key=lambda x: x.typ)
 
 class AppConsole(cmd.Cmd):
     "Superclass for an application's sub-shell"
@@ -223,8 +234,7 @@ class Application(object):
         """Load the application from the specified database
            db: a ravel.db.RavelDb instance into which the application will be loaded"""
         if self.sqlfile is None:
-            logger.debug("loaded application %s but with no SQL file",
-                         self.name)
+            logger.debug("loaded application %s with no SQL file", self.name)
             return
 
         with open(self.sqlfile) as f:

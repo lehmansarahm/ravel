@@ -22,6 +22,7 @@ class Environment(object):
         self.appdirs = appdirs
         self.apps = {}
         self.loaded = {}
+        self.coreapps = ["psql", "mn", "orch"]
         self.xterms = []
         self.xterm_files = []
         self.params = params
@@ -48,6 +49,13 @@ class Environment(object):
                                        ravel.util.resource_file())
 
         self.db.load_schema(ravel.db.TOPO_SQL)
+
+        core_shortcuts = []
+        for app in self.coreapps:
+            self.load_app(app)
+            if self.loaded[app].shortcut is not None:
+                core_shortcuts.append(self.loaded[app].shortcut)
+        self.coreapps.extend(core_shortcuts)
 
     def stop(self):
         "Stop the environment, including the database and network provider"
@@ -79,6 +87,12 @@ class Environment(object):
     def unload_app(self, appname):
         """Unload an application from the environment
            appname: the application to load"""
+
+        # don't unload coreapps
+        if appname in self.coreapps:
+            logger.warning("cannot unload core apps {0}".format(self.coreapps))
+            return
+
         app = self.apps[appname]
         app.unload(self.db)
 
@@ -102,8 +116,12 @@ class Environment(object):
             app.load(self.db)
             if app.is_loadable():
                 self.loaded[app.name] = app
-                if app.shortcut is not None:
-                    self.loaded[app.shortcut] = app
+                if app.shortcut is not None and app.shortcut != app.name:
+                    if app.shortcut in self.loaded:
+                        logger.warning("shortcut {0} for {1} already in use"
+                                       .format(app.shortcut, app.name))
+                    else:
+                        self.loaded[app.shortcut] = app
 
     def discover(self):
         """Search for new applications in the list of directories specified
