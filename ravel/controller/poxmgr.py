@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+"""
+Pox-based OpenFlow manager
+"""
 
 import pox.openflow.libopenflow_01 as of
 from pox.core import core
@@ -16,6 +19,8 @@ from ravel.of import OfManager
 log = core.getLogger()
 
 class PoxManager(OfManager):
+    "Pox-based OpenFlow manager"
+
     def __init__(self, log):
         super(PoxManager, self).__init__()
         self.log = log
@@ -59,6 +64,7 @@ class PoxManager(OfManager):
                 stat.match.nw_src, stat.match.nw_dst))
 
     def requestStats(self):
+        "Send all switches a flow statistics request"
         self.flowstats = []
         for connection in core.openflow._connections.values():
             connection.send(of.ofp_stats_request(body=of.ofp_flow_stats_request()))
@@ -69,6 +75,8 @@ class PoxManager(OfManager):
         return True
 
     def sendBarrier(self, dpid):
+        """Send a barrier message
+           dpid: datapath id of the switch to receive the barrier"""
         dpid = int(dpid)
         if dpid in self.datapaths:
             dp = self.datapaths[dpid]
@@ -81,15 +89,20 @@ class PoxManager(OfManager):
         return True
 
     def registerReceiver(self, receiver):
+        """Register a new message receiver
+           receiver: a ravel.messaging.MessageReceiver object"""
         self.log.info("registering receiver")
         self.receiver.append(receiver)
         receiver.start()
         core.addListener(pox.core.GoingDownEvent, receiver.stop)
 
     def isRunning(self):
+        "returns: true if the controller is running, false otherwise"
         return core.running
 
     def mk_msg(self, flow):
+        """Create a Pox flowmod message from ravel.flow.OfMessage
+           flow: a ravel.flow.OfMessage object"""
         msg = of.ofp_flow_mod()
         msg.command = int(flow.command)
         msg.priority = int(flow.priority)
@@ -109,6 +122,9 @@ class PoxManager(OfManager):
         return msg
 
     def send(self, dpid, msg):
+        """Send a message to a switch
+           dpid: datapath id of the switch
+           msg: OpenFlow message"""
         self.log.debug("ravel: flow mod dpid={0}".format(dpid))
         if dpid in self.datapaths:
             dp = self.datapaths[dpid]
@@ -117,10 +133,13 @@ class PoxManager(OfManager):
             self.log.debug("dpid {0} not in datapath list".format(dpid))
 
     def sendFlowmod(self, flow):
+        """Send a flow modification message
+           flow: the flow modification message to send"""
         dpid = int(flow.switch.dpid)
         self.send(dpid, self.mk_msg(flow))
 
 def launch():
+    "Start the OpenFlow manager and message receivers"
     ctrl = PoxManager(log)
     mq = MsgQueueReceiver(Config.QueueId, ctrl)
     ctrl.registerReceiver(mq)
