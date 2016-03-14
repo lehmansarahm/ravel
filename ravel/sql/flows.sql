@@ -105,7 +105,7 @@ import time
 
 if "PYTHONPATH" in os.environ:
     sys.path = os.environ["PYTHONPATH"].split(":") + sys.path
-sys.path.append("/home/croftj/src/cli-ravel")
+sys.path.append("/home/ravel/ravel")
 
 from ravel.flow import installFlow, Switch
 from ravel.profiling import PerfCounter
@@ -231,7 +231,7 @@ import time
 
 if "PYTHONPATH" in os.environ:
     sys.path = os.environ["PYTHONPATH"].split(":") + sys.path
-sys.path.append("/home/croftj/src/cli-ravel")
+sys.path.append("/home/ravel/ravel")
 
 from ravel.flow import removeFlow, Switch
 from ravel.profiling import PerfCounter
