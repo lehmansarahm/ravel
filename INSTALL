@@ -58,5 +58,5 @@ triggers can invoke the command.  First, add postgres to sudoers:
 
 Edit /etc/sudoers (e.g., using "sudo visudo") and set the user specification to:
 
-    sudo ALL=(ALL:ALL) NOPASSWORD:ALL
+    ALL ALL=(ALL) NOPASSWD:ALL
 
