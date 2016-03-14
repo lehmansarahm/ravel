@@ -212,11 +212,6 @@ class RavelDb():
             self.cursor.execute("truncate %s;" % ", ".join(tables))
             logger.debug("truncated tables")
             self.cursor.execute("INSERT INTO clock values (0);")
-
-            # TODO: fix for tenants
-            #tenants = ["t1", "t2", "t3", "tacl_tb", "tenant_hosts", "tlb_tb"]
-            #self.cursor.execute("truncate %s;" % ", ".join(tenants))
-            #logger.debug("truncated tenant tables")
         except psycopg2.DatabaseError, e:
             logger.warning("error truncating databases: %s", self.fmt_errmsg(e))
 
