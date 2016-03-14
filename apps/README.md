@@ -2,14 +2,14 @@
 
 ### Ravel Overview
 
-Ravel allows multiple applications to execute simultaneously and collectively drive network control.  This is accomplished through _orchestration_.  A Ravel user sets priorities on the orchestrated applications using the ordering passed to the `orch` application.
+Ravel allows multiple applications to execute simultaneously and collectively drive network control.  This is accomplished through _orchestration_.  A Ravel user sets priorities on the orchestrated applications using the ordering passed to the command `orch load`.
 
-Applications can _propose_ updates (through an insertion, deletion, or update to one of its views), which are then checked against all other orchestrated applications' policies.  If the proposed update violates the constraints of another application, a higher priority application can overwrite the update.
+Applications can _propose_ updates (through an insertion, deletion, or update to one of its views), which are then checked against the policies of all other orchestrated applications.  If the proposed update violates the constraints of another application, a higher priority application can overwrite the update.
 
 
 #### Ravel Base Tables
 
-Ravel uses a flat representation of the network and exposes the topology and forwarding tables as tables.  Tables that may be of interest to applications are described below.
+Ravel uses a flat representation of the network and exposes the topology and forwarding tables as SQL tables.  Tables that may be of interest to applications are:
 
     # topology
     tp(sid integer, nid integer, ishost integer, isactive integer, bw integer)
@@ -35,12 +35,12 @@ Additional node tables include:
 
 ### Developing Applications
 
-Applications in Ravel can consist of two components: an implementation in SQL and a sub-shell implemented in Python.  Application sub-shells provide commands to monitor and control the application from the Ravel CLI.  Name the SQL file `[appname].sql` and the Python file `[appname].py`, and place them in the `apps/` directory.  The CLI will search for SQL and Python files in this directory
+Applications in Ravel can consist of two components: an implementation in SQL and a sub-shell implemented in Python.  Application sub-shells provide commands to monitor and control the application from the Ravel CLI.  Name the SQL file `[appname].sql` and the Python file `[appname].py`, and place both files in the `apps/` directory.  The CLI will search for SQL and Python files in this directory.
 
 
 #### SQL Component
 An application's SQL component can create tables, views on Ravel base tables,
-or add triggers to Ravel base tables.  To interact with orchestration, an application must define its constraints and a protocol for reconciling conflicts.  To add constraints, create a violation table in the form `appname_violation`.  To create a repair protocol, add a rule in the form `appname_repair`.
+or triggers on Ravel base tables.  To interact with orchestration, an application must define its constraints and a protocol for reconciling conflicts.  To add constraints, create a violation table in the form `appname_violation`.  To create a repair protocol, add a rule in the form `appname_repair`.
 
 For example, suppose we want to implement a bandwidth monitor that limits flows to a particular rate (see `apps/merlin.sql` for the full implementation).  We can create a table to store the rate for each flow:
 
@@ -67,7 +67,7 @@ If the view contains more than zero rows, a conflict has occurred.  To repair a 
 
 
 #### Python Sub-Shell
-To interact with an application, the Ravel CLI can load a shell with commands for monitoring and controlling the application's behavior.  This is an application _sub-shell_ launched from the Ravel CLI by typing the application's name or shortcut after it has been loaded.  To create a sub-shell, create a Python file and extend the class `AppConsole` and add the following variables:
+To interact with an application, the Ravel CLI can load a shell with commands for monitoring and controlling an application's behavior.  An application _sub-shell_ can be launched from the Ravel CLI by typing the application's name or shortcut after it has been loaded.  To create a sub-shell, create a Python file with a class extending `AppConsole` and add the following variables:
 
 * `shortcut`: defines a shortcut for the application from the Ravel CLI
 * `description`: a short description of the application

@@ -28,18 +28,18 @@ Ravel command-line arguments:
   * `--custom`, `-c`: specify custom classes or params for Mininet
   * `--verbosity`, `-v`: set logging output verbosity (debug|info|warning|critical|error)
 
-For example, to run Ravel with Mininet in the background, on a topology with a single switch and two hosts:
+For example, to run Ravel with Mininet in the background, on a topology with a single switch and three hosts:
 
     sudo ./ravel.py --topo=single,3
 
-To run only the database component of Ravel (i.e., no Mininet) on the same topology, connecting to the database `mydb` with username `myuser`:
+To run only the database component of Ravel (i.e., no Mininet) on the same topology, using database `mydb` and username `myuser`:
 
     sudo ./ravel.py --topo=single,3 --onlydb --db=mydb --user=myuser
 
 
 ### Ravel CLI Commands
 
-The Ravel CLI has a number of commands to monitor and control the applications and the network:
+The Ravel CLI has a number of commands to monitor and control applications and the network:
 
   * `help`: show list of commands
   * `apps`: list discovered applications
@@ -48,10 +48,10 @@ The Ravel CLI has a number of commands to monitor and control the applications a
   * `p`: execute SQL statement
   * `time`: print execution time
   * `profile`: print detailed execution time
-  * `reinit`: truncate database tables except topology
+  * `reinit`: truncate all database tables except topology
   * `watch`: spawn new xterm watching database tables
   * `orch load`: load a set of orchestrated applications (in ascending ordering of priority)
   * `orch unload`: unload one or more applications from the orchestrated set
   * `orch auto [on/off]`: auto-commit commands for orchestration
   * `rt addflow [src] [dst]`: install a flow
-  * `rt delflow [src] [dst]`: remove a flow
+  * `rt delflow [src] [dst]`, `rt delflow [flow id]`: remove a flow

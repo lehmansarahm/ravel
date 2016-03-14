@@ -6,7 +6,7 @@ See http://ravel-net.org/download for pre-packaged VMs.
 
 INSTALL FROM SOURCE
 -------------------
-To install Ravel from source, first check out a copy of the code:
+To install Ravel from source, first check out a copy of the repository:
 
     git clone http://github.com/ravel-net/ravel
 
@@ -17,17 +17,17 @@ Run the Ravel install script:
 
 Options for `install.sh` are:
     * -a: install all required packages (Mininet, Pox, and PostgreSQL)
-    * -m: install only Mininet and Pox (ie, Mininet install with `-kmnvp`)
+    * -m: install only Mininet and Pox (i.e., Mininet install with `-kmnvp`)
     * -p: install only PostgreSQL
-    * -r: install Python libraries required by Ravel, configure PostgreSQL and
-          extensions
+    * -r: install Python libraries required by Ravel, configure PostgreSQL
+          account and extensions
 
 
 CONFIGURE POSTGRESQL
 --------------------
 By default, PostgreSQL uses peer authentication, in which the client's username
 authenticates a connection to the database.  Ravel requires either trust (any
-user can connect) or_md5 (password-based) authentication.
+user can connect) ormd5 (password-based) authentication.
 
 To set modify the authentication method, edit:
 
@@ -35,8 +35,8 @@ To set modify the authentication method, edit:
 
 Set the last field on the following lines to trust or md5:
 
-    local    all   postgres	    trust #or md5
-    local    all   all		    trust #or md5
+    local    all   postgres	    trust
+    local    all   all		    trust
 
 Alternatively, when running `install.sh` with `-a` or `-r`, you will be prompted
 to make this change automatically.
@@ -51,8 +51,9 @@ network.  Supported protocols, which can be configured in ravel.cfg, are:
     * RPC
     * ovs-ofctl
 
-If using the `ovs-ofctl` command, you must set passwordless sudo so database
-triggers can invoke the command.  First, add postgres to sudoers:
+If using the `ovs-ofctl` command, you must set sudo to execute without
+prompting for a password so database triggers can invoke the commands with
+sudo.  First, add postgres to sudoers:
 
     sudo adduser postgres sudo
 
