@@ -1,4 +1,4 @@
-# Ravel CLI
+# Ravel
 
 Ravel is a software-defined networking (SDN) controller that uses a standard SQL database to represent the network.  _Why a database?_ SDN fundamentally revolves around data representation--representation of the network topology and forwarding, as well as the higher-level abstractions useful to applications.
 
@@ -14,7 +14,7 @@ For installation instructions, see `INSTALL`.
 
 ### Ravel CLI Arguments
 
-Ravel commmand-line arguments:
+Ravel command-line arguments:
 
   * `--help`, `-h`: show the help message and exit
   * `--clean`, `-c`: cleanup Ravel and Mininet 
@@ -50,8 +50,8 @@ The Ravel CLI has a number of commands to monitor and control the applications a
   * `profile`: print detailed execution time
   * `reinit`: truncate database tables except topology
   * `watch`: spawn new xterm watching database tables
-  * `orch load`: load a set of orchestrated applications (in acending ordreing of priority)
-  * `orch unload`: unload one or more applications from the orchesrated set
+  * `orch load`: load a set of orchestrated applications (in ascending ordering of priority)
+  * `orch unload`: unload one or more applications from the orchestrated set
   * `orch auto [on/off]`: auto-commit commands for orchestration
   * `rt addflow [src] [dst]`: install a flow
   * `rt delflow [src] [dst]`: remove a flow

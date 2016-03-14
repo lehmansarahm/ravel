@@ -14,6 +14,15 @@ Ravel uses a flat representation of the network and exposes the topology and for
     # topology
     tp(sid integer, nid integer, ishost integer, isactive integer, bw integer)
 
+    # configuration (forwarding) table
+    cf (fid integer, pid integer, sid integer, nid integer)
+
+    # reachability matrix
+    rm (fid integer, src integer, dst integer, vol integer, FW integer, LB integer)
+
+
+Additional node tables include:
+
     # hosts
     hosts (hid integer, ip varchar, mac varchar, name varchar)
 
@@ -22,13 +31,6 @@ Ravel uses a flat representation of the network and exposes the topology and for
 
     # nodes (hosts and switches)
     nodes (id integer, name varchar)
-
-    # configuration (forwarding) table
-    cf (fid integer, pid integer, sid integer, nid integer)
-
-    # reachability matrix
-    rm (fid integer, src integer, dst integer, vol integer, FW integer, LB integer)
-
 
 
 ### Developing Applications
