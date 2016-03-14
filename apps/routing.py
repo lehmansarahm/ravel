@@ -27,9 +27,15 @@ class RoutingConsole(AppConsole):
 
         fw = 0
         if len(args) == 3:
-            fw = int(args[2])
+            try:
+                fw = int(args[2])
+            except Exception:
+                print "Invalid firewall option", args[2]
+                return
+
             if fw not in [0,1]:
                 print "Invalid firewall option:", fw
+                return
 
         src = hostnames[src]
         dst = hostnames[dst]

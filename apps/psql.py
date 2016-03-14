@@ -5,6 +5,8 @@ PostgreSQL sub-shell is a core application that is enabled by default.
 """
 
 import psycopg2
+import tabulate
+
 from ravel.app import AppConsole
 
 class PSqlConsole(AppConsole):

@@ -9,7 +9,6 @@ import cmd
 import getpass
 import os
 import sys
-import tabulate
 import time
 from functools import partial
 

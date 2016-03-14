@@ -70,10 +70,10 @@ class FirewallConsole(AppConsole):
                                    "({0},{1},1);"
                                    .format(src, dst));
         except Exception, e:
-            print "Failure: flow not removed --", e
+            print "Failure: flow not added --", e
             return
 
-        print "Success: flow ({0},{1}) removed from whitelist".format(src, dst)
+        print "Success: flow ({0},{1}) added to whitelist".format(src, dst)
 
     def do_delflow(self, line):
         """Remove a flow from the whitelist
