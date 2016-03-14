@@ -36,19 +36,17 @@ class Environment(object):
         # only load topo if connecting to a clean db
         if self.db.cleaned:
             self.db.load_topo(self.provider)
+            ravel.util.update_trigger_path(ravel.db.FLOW_SQL,
+                                           ravel.util.resource_file())
+            self.db.load_schema(ravel.db.FLOW_SQL)
+
+            # delay loading topo triggers until after db is loaded
+            # we only want to catch updates after initial load
+            ravel.util.update_trigger_path(ravel.db.TOPO_SQL,
+                                           ravel.util.resource_file())
+            self.db.load_schema(ravel.db.TOPO_SQL)
         else:
             logger.debug("connecting to existing db, skipping load_topo()")
-
-        ravel.util.update_trigger_path(ravel.db.FLOW_SQL,
-                                       ravel.util.resource_file())
-        self.db.load_schema(ravel.db.FLOW_SQL)
-
-        # delay loading of topo triggers until after db is loaded
-        # we only want to catch updates
-        ravel.util.update_trigger_path(ravel.db.TOPO_SQL,
-                                       ravel.util.resource_file())
-
-        self.db.load_schema(ravel.db.TOPO_SQL)
 
         core_shortcuts = []
         for app in self.coreapps:
