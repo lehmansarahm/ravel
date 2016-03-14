@@ -12,7 +12,7 @@ For more information, see [http://ravel-net.org](http://ravel-net.org) or follow
 For installation instructions, see `INSTALL`.
 
 
-### Ravel CLI Arguments
+### Ravel Command-Line Arguments
 
 Ravel command-line arguments:
 
@@ -37,7 +37,7 @@ To run only the database component of Ravel (i.e., no Mininet) on the same topol
     sudo ./ravel.py --topo=single,3 --onlydb --db=mydb --user=myuser
 
 
-### Ravel Commands
+### Ravel CLI Commands
 
 The Ravel CLI has a number of commands to monitor and control the applications and the network:
 
