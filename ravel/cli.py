@@ -102,8 +102,8 @@ class RavelConsole(cmd.Cmd):
 
     def do_profile(self, line):
         """Run command and report detailed execution time.
-           Note: if no counters are found, try enabling auto-orchestration
-           with: orch auto on"""
+           Note - if no counters are found, try enabling auto-orchestration
+           with orch auto on"""
         if line:
             pe = ravel.profiling.ProfiledExecution()
             pe.start()
