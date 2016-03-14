@@ -3,6 +3,7 @@ Abstraction for communicating between Ravel's processes: the main CLI, the
 OpenFlow manager, and the database triggers.
 """
 
+import os
 import pickle
 import threading
 import time
@@ -188,11 +189,15 @@ class OvsSender(MessageSender):
     def send(self, msg):
         """Send the specified OpenFlow message
            msg: the message to send"""
+
+        # don't need to handle barrier messages
+        if not hasattr(msg, 'command'):
+            return
+
         pc = ravel.profiling.PerfCounter("ovs_send")
         pc.start()
 
-        msg = pickle.loads(msg)
-        subcmd = OvsConnection.subcmds[msg.command]
+        subcmd = OvsSender.subcmds[msg.command]
 
         # TODO: this is different for remote switches (ie, on physical network)
         dest = msg.switch.name
@@ -216,11 +221,10 @@ class OvsSender(MessageSender):
             params.append("action=output:" + ",".join(actions))
 
         paramstr = ",".join(params)
-        cmd = "{0} {1} {2} {3}".format(OvsConnection.command,
+        cmd = "{0} {1} {2} {3}".format(OvsSender.command,
                                        subcmd,
                                        dest,
                                        paramstr)
-
         ret = os.system(cmd)
         pc.stop()
         return ret
