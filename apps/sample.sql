@@ -22,15 +22,15 @@ CREATE OR REPLACE VIEW sample_view AS (
  */
 CREATE OR REPLACE VIEW sample_violation AS (
        SELECT fid
-       FROM rm
-       WHERE src = 1;
+       FROM cf
+       WHERE sid = 1
 );
 
 
 /* ---REQUIRED RULE--- repair violations by removing flow that
  * violates constraint
  */
-CREATE OR REPLACE RULE FW_repair AS
-       ON DELETE TO FW_violation
+CREATE OR REPLACE RULE sample_repair AS
+       ON DELETE TO sample_violation
        DO INSTEAD
-          DELETE FROM rm WHERE fid = OLD.fid;
+          DELETE FROM cf WHERE fid = OLD.fid;
