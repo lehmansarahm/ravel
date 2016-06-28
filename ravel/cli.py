@@ -70,6 +70,10 @@ class RavelConsole(cmd.Cmd):
         with open(line) as f:
             for cmd in f.readlines():
                 cmd = cmd.strip()
+
+                if cmd == "" or cmd[0] == "#":
+                    continue
+
                 print "{0}{1}".format(RavelConsole.prompt, cmd)
                 self.onecmd(cmd)
 
