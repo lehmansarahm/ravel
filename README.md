@@ -26,6 +26,7 @@ Ravel command-line arguments:
   * `--password`, `-p`: force prompt for PostgreSQL password
   * `--topo`, `-t`: specify a Mininet topology argument
   * `--custom`, `-c`: specify custom classes or params for Mininet
+  * `--script`, `-s`: execute a Ravel script immediately after startup
   * `--verbosity`, `-v`: set logging output verbosity (debug|info|warning|critical|error)
 
 For example, to run Ravel with Mininet in the background, on a topology with a single switch and three hosts:
@@ -50,6 +51,7 @@ The Ravel CLI has a number of commands to monitor and control applications and t
   * `profile`: print detailed execution time
   * `reinit`: truncate all database tables except topology
   * `watch`: spawn new xterm watching database tables
+  * `exec`: execute a Ravel script
   * `orch load`: load a set of orchestrated applications (in ascending ordering of priority)
   * `orch unload`: unload one or more applications from the orchestrated set
   * `orch auto [on/off]`: auto-commit commands for orchestration

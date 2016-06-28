@@ -39,6 +39,8 @@ def optParser():
                      help="read custom classes or params from py file(s) for Mininet")
     parser.add_option("--topo", "-t", type="string", default=None,
                       help="Mininet topology argument")
+    parser.add_option("--script", "-s", type="string", default=None,
+                      help="execute a Ravel script")
     parser.add_option("--verbosity", "-v",  type="choice",
                       choices=LEVELS.keys(), default="info",
                       help="|".join(LEVELS.keys()))

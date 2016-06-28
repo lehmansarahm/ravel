@@ -36,6 +36,11 @@ class RavelConsole(cmd.Cmd):
     def default(self, line):
         "Check loaded applications before raising unknown command error"
 
+        # should we execute a script?
+        if os.path.isfile(line):
+            self.do_exec(line)
+            return
+
         if "orch" in self.env.loaded:
             auto_orch = self.env.loaded["orch"].console.auto
 
@@ -50,6 +55,26 @@ class RavelConsole(cmd.Cmd):
     def emptyline(self):
         "Don't repeat the last line when hitting return on empty line"
         return
+
+    def do_exec(self, line):
+        "Execute a Ravel script"
+
+        if os.path.isdir(line):
+            print "ravel: {0}: Is a directory".format(line)
+            return
+
+        if not os.path.isfile(line):
+            print "ravel: {0}: No such file or directory".format(line)
+            return
+
+        with open(line) as f:
+            for cmd in f.readlines():
+                cmd = cmd.strip()
+                print "{0}{1}".format(RavelConsole.prompt, cmd)
+                self.onecmd(cmd)
+
+                # may need to wait for flows/database changes
+                time.sleep(0.5)
 
     def do_apps(self, line):
         "List available applications and their status"
@@ -169,6 +194,10 @@ def RavelCLI(opts):
         print "Invalid mininet topology", opts.topo
         return
 
+    if opts.script is not None and not os.path.isfile(opts.script):
+        print "{0}: no such script file".format(opts.script)
+        return
+
     passwd = None
     if opts.password:
         passwd = getpass.getpass("Enter password: ")
@@ -203,6 +232,9 @@ def RavelCLI(opts):
 
     while True:
         try:
+            if opts.script is not None:
+                RavelConsole(env).do_exec(opts.script)
+
             RavelConsole(env).cmdloop()
             break
         except Exception, e:
