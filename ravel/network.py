@@ -52,10 +52,11 @@ class NetworkProvider(object):
     def _on_update(self, msg):
         msg.consume(self)
 
-    def cacheNodes(self, nodes):
-        """Cache node-name mapping in memory from database
-           nodes: dictionary of (name, id) values"""
-        for name, nid in nodes.iteritems():
+    def cacheNodes(self):
+        """Cache node-name mapping in memory from database"""
+        self.db.cursor.execute("SELECT name, id FROM nodes;")
+        nodes = self.db.cursor.fetchall()
+        for name, nid in nodes:
             self.cache_name[name] = nid
             self.cache_id[nid] = name
 

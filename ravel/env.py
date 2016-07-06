@@ -48,6 +48,8 @@ class Environment(object):
         else:
             logger.debug("connecting to existing db, skipping load_topo()")
 
+        self.provider.cacheNodes()
+
         core_shortcuts = []
         for app in self.coreapps:
             self.load_app(app)
