@@ -34,6 +34,7 @@ class RavelConsole(cmd.Cmd):
                          "Configuration:\n" + self.env.pprint()
 
         cmd.Cmd.__init__(self)
+        self.env.set_cli(self)
 
     def default(self, line):
         "Check loaded applications before raising unknown command error"

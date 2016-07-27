@@ -28,6 +28,10 @@ class Environment(object):
         self.params = params
         self.provider = provider
         self.discover()
+        self.maincli = None
+
+    def set_cli(self, cli):
+        self.maincli = cli
 
     def start(self):
         "Start the environment, initialize the database and network provider"
