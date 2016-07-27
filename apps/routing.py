@@ -6,6 +6,9 @@ from ravel.app import AppConsole
 from ravel.log import logger
 
 class RoutingConsole(AppConsole):
+    def __init__(self, db, env, components):
+        AppConsole.__init__(self, db, env, components)
+
     def do_addflow(self, line):
         """Add a flow between two hosts, using Mininet hostnames
            Usage: addflow [host1] [host2] [opt: firewall waypoint (0 or 1)]"""
@@ -40,14 +43,11 @@ class RoutingConsole(AppConsole):
         src = hostnames[src]
         dst = hostnames[dst]
         try:
-            # get next flow id
-            self.db.cursor.execute("SELECT * FROM rm;")
-            fid = len(self.db.cursor.fetchall()) + 1
-            self.db.cursor.execute("INSERT INTO rm (fid, src, dst) "
-                                   "VALUES ({0}, {1}, {2});"
-                                   .format(fid, src, dst))
-            self.db.cursor.execute("UPDATE rm set FW = {0} where fid = {1};"
-                                   .format(fw, fid))
+            self.db.cursor.execute("SELECT COUNT(*) FROM rm;")
+            fid = int(self.db.cursor.fetchall()[0][0]) + 1
+            self.db.cursor.execute("INSERT INTO rm (fid, src, dst, FW) "
+                                   "VALUES ({0}, {1}, {2}, {3});"
+                                   .format(fid, src, dst, fw))
         except Exception, e:
             print "Failure: flow not installed --", e
             return
