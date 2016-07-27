@@ -41,6 +41,8 @@ def optParser():
                       help="Mininet topology argument")
     parser.add_option("--script", "-s", type="string", default=None,
                       help="execute a Ravel script")
+    parser.add_option("--exit", "-e", action="store_true", default=False,
+                      help="exit after executing a Ravel script")
     parser.add_option("--verbosity", "-v",  type="choice",
                       choices=LEVELS.keys(), default="info",
                       help="|".join(LEVELS.keys()))

@@ -26,10 +26,12 @@ class RavelConsole(cmd.Cmd):
     prompt = "ravel> "
     doc_header = "Commands (type help <topic>):"
 
-    def __init__(self, env):
+    def __init__(self, env, quiet=False):
         self.env = env
-        self.intro = "RavelConsole: interactive console for Ravel.\n" \
-                     "Configuration:\n" + self.env.pprint()
+
+        if not quiet:
+            self.intro = "RavelConsole: interactive console for Ravel.\n" \
+                         "Configuration:\n" + self.env.pprint()
 
         cmd.Cmd.__init__(self)
 
@@ -239,7 +241,10 @@ def RavelCLI(opts):
             if opts.script is not None:
                 RavelConsole(env).do_exec(opts.script)
 
-            RavelConsole(env).cmdloop()
+                if opts.exit:
+                    break
+
+            RavelConsole(env, quiet=True).cmdloop()
             break
         except Exception, e:
             logger.warning("console crashed: %s", e)
