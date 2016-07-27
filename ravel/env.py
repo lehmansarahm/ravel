@@ -6,9 +6,11 @@ import os
 import subprocess
 
 import ravel.db
+import ravel.messaging
 import ravel.util
 from ravel.app import Application
 from ravel.log import logger
+from ravel.util import Config
 
 class Environment(object):
     """The executing environment for the Ravel CLI"""
@@ -73,6 +75,8 @@ class Environment(object):
         # delete xterm temp files
         for f in self.xterm_files:
             os.unlink(f)
+
+        ravel.messaging.clear_queue(Config.QueueId)
 
     def mkterm(self, cmds, cmdfile=None):
         """Create a new xterm process for the specified command

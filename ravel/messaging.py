@@ -15,6 +15,16 @@ import ravel.profiling
 from ravel.log import logger
 from ravel.of import OFPP_FLOOD, OFPFC_ADD, OFPFC_DELETE, OFPFC_DELETE_STRICT
 
+def clear_queue(queue_id):
+    try:
+        mq = sysv_ipc.MessageQueue(queue_id,
+                                   sysv_ipc.IPC_CREAT,
+                                   mode=0777)
+        mq.remove()
+    except sysv_ipc.PermissionsError:
+        logger.warning("could not clear clear message queue {0}"
+                       .format(queue_id))
+
 class ConsumableMessage(object):
     "A consumable message"
 
@@ -81,10 +91,7 @@ class MsgQueueReceiver(MessageReceiver):
         self.consumer = consumer
         self.running = False
         # clear message queue
-        mq = sysv_ipc.MessageQueue(self.queue_id,
-                                   sysv_ipc.IPC_CREAT,
-                                   mode=0777)
-        mq.remove()
+        clear_queue(self.queue_id)
         self.mq = sysv_ipc.MessageQueue(self.queue_id,
                                         sysv_ipc.IPC_CREAT,
                                         mode=0777)
