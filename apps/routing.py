@@ -43,8 +43,12 @@ class RoutingConsole(AppConsole):
         src = hostnames[src]
         dst = hostnames[dst]
         try:
-            self.db.cursor.execute("SELECT COUNT(*) FROM rm;")
-            fid = int(self.db.cursor.fetchall()[0][0]) + 1
+            self.db.cursor.execute("SELECT MAX(fid) FROM rm;")
+            fid = self.db.cursor.fetchall()[0][0]
+            if fid is None:
+                fid = 0
+
+            fid += 1
             self.db.cursor.execute("INSERT INTO rm (fid, src, dst, FW) "
                                    "VALUES ({0}, {1}, {2}, {3});"
                                    .format(fid, src, dst, fw))
