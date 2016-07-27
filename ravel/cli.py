@@ -188,14 +188,6 @@ def RavelCLI(opts):
     if opts.custom:
         ravel.mndeps.custom(opts.custom)
 
-    params = { "topology" : opts.topo,
-               "pox" : "offline" if opts.noctl else "running",
-               "mininet" : "offline" if opts.onlydb else "running",
-               "database" : opts.db,
-               "username" : opts.user,
-               "app path" : Config.AppDirs
-           }
-
     topo = ravel.mndeps.build(opts.topo)
     if topo is None:
         print "Invalid mininet topology", opts.topo
@@ -234,7 +226,7 @@ def RavelCLI(opts):
     if net is None:
         print "Cannot start network"
 
-    env = Environment(raveldb, net, Config.AppDirs, params)
+    env = Environment(raveldb, net, Config.AppDirs, opts)
     env.start()
 
     while True:
@@ -245,7 +237,7 @@ def RavelCLI(opts):
                 if opts.exit:
                     break
 
-            RavelConsole(env, quiet=True).cmdloop()
+            RavelConsole(env, quiet=opts.script).cmdloop()
             break
         except Exception, e:
             logger.warning("console crashed: %s", e)

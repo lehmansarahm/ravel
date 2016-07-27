@@ -15,11 +15,11 @@ from ravel.util import Config
 class Environment(object):
     """The executing environment for the Ravel CLI"""
 
-    def __init__(self, db, provider, appdirs, params):
+    def __init__(self, db, provider, appdirs, opts):
         """db: a ravel.db.RavelDb instance
            provider: a ravel.network.NetworkProvider instance
            appdirs: a list of directories to search for applications
-           params: dictionary of startup parameters, such as db name, user"""
+           opts: startup options, such as db name, user"""
         self.db = db
         self.appdirs = appdirs
         self.apps = {}
@@ -27,10 +27,18 @@ class Environment(object):
         self.coreapps = ["psql", "mn", "orch"]
         self.xterms = []
         self.xterm_files = []
-        self.params = params
-        self.provider = provider
-        self.discover()
         self.maincli = None
+        self.provider = provider
+        self.opts = opts
+        self.params = { "topology" : opts.topo,
+                        "pox" : "offline" if opts.noctl else "running",
+                        "mininet" : "offline" if opts.onlydb else "running",
+                        "database" : opts.db,
+                        "username" : opts.user,
+                        "app path" : Config.AppDirs
+        }
+
+        self.discover()
 
     def set_cli(self, cli):
         self.maincli = cli
@@ -53,6 +61,10 @@ class Environment(object):
             self.db.load_schema(ravel.db.TOPO_SQL)
         else:
             logger.debug("connecting to existing db, skipping load_topo()")
+
+        # if running onlydb mode, remove network flow triggers
+        if self.opts.onlydb:
+            self.db.load_schema(ravel.db.NOFLOW_SQL)
 
         self.provider.cacheNodes()
 

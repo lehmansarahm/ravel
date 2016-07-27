@@ -11,6 +11,7 @@ ISOLEVEL = psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT
 
 BASE_SQL = resource_file("ravel/sql/base.sql")
 FLOW_SQL = resource_file("ravel/sql/flows.sql")
+NOFLOW_SQL = resource_file("ravel/sql/noflows.sql")
 TOPO_SQL = resource_file("ravel/sql/topo.sql")
 
 class RavelDb():
