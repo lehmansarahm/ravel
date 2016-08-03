@@ -159,9 +159,9 @@ class OrchConsole(AppConsole):
         # unload unlisted apps: if it's loaded but not a shortcut or core app
         unlisted = [app for app in self.env.loaded if app not in ordering
                     and app not in self.env.coreapps and app in self.env.apps]
-        for app in unlisted:
-            logger.info("unloading unlisted app %s", app)
-            self.env.unload_app(app)
+        # for app in unlisted:
+        #     logger.info("unloading unlisted app %s", app)
+        #     self.env.unload_app(app)
 
         # processing in ascending order of priority
         ordering.reverse()

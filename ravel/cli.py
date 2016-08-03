@@ -59,6 +59,26 @@ class RavelConsole(cmd.Cmd):
         "Don't repeat the last line when hitting return on empty line"
         return
 
+    def do_load(self, line):
+        """Start one or more applications
+           Usage: load [app1] [app2] ..."""
+        apps = line.split()
+        for app in apps:
+            if app in self.env.apps:
+                self.env.load_app(app)
+            else:
+                print "Unknown application", app
+
+    def do_unload(self, line):
+        """Stop one or more applications
+           Usage: unload [app1] [app2] ..."""
+        apps = line.split()
+        for app in apps:
+            if app in self.env.apps:
+                self.env.unload_app(app)
+            else:
+                print "Unknown application", app
+
     def do_exec(self, line):
         "Execute a Ravel script"
 
