@@ -130,6 +130,11 @@ class RavelDb():
                                     "VALUES ({0}, {1}, {2}, {3});"
                                     .format(sid, nid, ishost, 1))
 
+                # bidirectional edges
+                self.cursor.execute("INSERT INTO tp(sid, nid, ishost, isactive) "
+                                    "VALUES ({1}, {0}, {2}, {3});"
+                                    .format(sid, nid, ishost, 1))
+
                 self.cursor.execute("INSERT INTO ports(sid, nid, port) "
                                     "VALUES ({0}, {1}, {2}), ({1}, {0}, {3});"
                                     .format(sid, nid,
