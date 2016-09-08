@@ -28,7 +28,7 @@ class RoutingConsole(AppConsole):
             print "Unknown host", dst
             return
 
-        fw = 0
+        fw = 1
         if len(args) == 3:
             try:
                 fw = int(args[2])
