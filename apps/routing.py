@@ -11,7 +11,7 @@ class RoutingConsole(AppConsole):
 
     def do_addflow(self, line):
         """Add a flow between two hosts, using Mininet hostnames
-           Usage: addflow [host1] [host2] [opt: firewall waypoint (0 or 1)]"""
+           Usage: addflow [host1] [host2]"""
         args = line.split()
         if len(args) != 2 and len(args) != 3:
             print "Invalid syntax"
