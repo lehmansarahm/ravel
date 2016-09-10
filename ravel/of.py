@@ -8,6 +8,7 @@ import re
 import signal
 import subprocess
 import sys
+import time
 
 import ravel.util
 from ravel.log import logger
@@ -31,6 +32,12 @@ OFPP_ALL = 65532
 OFPP_CONTROLLER = 65533
 OFPP_LOCAL = 65534
 OFPP_NONE = 65535
+
+def preexec_fn():
+    # don't forward signals to child process
+    # we need this when starting a Pox subprocess, so that SIGINTs from the CLI
+    # aren't forwarded to Pox, causing it to terminate early
+    os.setpgrp()
 
 class OfManager(object):
     """Manange communication with an OpenFlow controller.  The manager receives
@@ -111,6 +118,7 @@ class PoxInstance(object):
         logger.debug("pox with params: %s", " ".join(cargs))
         self.proc = subprocess.Popen([pox] + cargs,
                                      env=env,
+                                     preexec_fn = preexec_fn,
                                      stdout=open("/tmp/pox.log", "wb"),
                                      stderr=open("/tmp/pox.err", "wb"))
 
