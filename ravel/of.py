@@ -109,7 +109,7 @@ class PoxInstance(object):
             cargs = ["log.level",
                      "--DEBUG",
                      "openflow.of_01",
-                     "--port=6633",
+                     "--port={0}".format(ravel.util.Config.PoxPort),
                      self.app]
 
         ravel.util.append_path(ravel.util.resource_file())

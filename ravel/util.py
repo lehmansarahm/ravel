@@ -96,6 +96,7 @@ class ConfigParameters(object):
         self.QueueId = None
         self.Connection = None
         self.PoxDir = None
+        self.PoxPort = None
         self.read(resource_file("ravel.cfg"))
 
     def read(self, cfg):
@@ -119,6 +120,9 @@ class ConfigParameters(object):
 
         if parser.has_option("of_manager", "poxdir"):
             self.PoxDir = parser.get("of_manager", "poxdir")
+
+        if parser.has_option("of_manager", "poxport"):
+            self.PoxPort = parser.get("of_manager", "poxport")
 
         if parser.has_option("of_manager", "connection"):
             name = parser.get("of_manager", "connection").lower()
