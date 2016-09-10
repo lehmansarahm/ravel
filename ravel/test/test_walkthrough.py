@@ -38,6 +38,7 @@ class testCommands(unittest.TestCase):
         p.expect("DEBUG")
         p.sendline("exit")
         p.sendeof()
+        time.sleep(1)
 
     # Part 2 - Ravel Commands
     def testCommands(self):
@@ -57,13 +58,14 @@ class testCommands(unittest.TestCase):
 
         p.sendline("exit")
         p.sendeof()
+        time.sleep(1)
 
     # Part 3 - Orchestratioon
     def testOrchestration(self):
         p = pexpect.spawn(self.ravelCmd)
         p.expect("ravel>")
         
-        p.sendline("orch load routing fw")
+        p.sendline("orch load routing")
         p.sendline("rt addflow h1 h2")
         p.expect("Success")
         p.sendline("p select count(*) from rm")
@@ -98,6 +100,7 @@ class testCommands(unittest.TestCase):
 
         p.sendline("exit")
         p.sendeof()
+        time.sleep(1)
 
     # Part 4 - App Sub-shells
     def testApplications(self):
@@ -127,7 +130,7 @@ class testCommands(unittest.TestCase):
         p.sendline("help sample")
         p.expect("sample commands")
 
-        p.sendline("orch load routing fw")
+        p.sendline("orch load routing")
         p.sendline("rt addflow h1 h2")
         p.expect("Success")
         p.sendline("orch run")
@@ -166,12 +169,11 @@ class testCommands(unittest.TestCase):
 
         p.sendline("exit")
         p.sendeof()
+        time.sleep(1)
 
     # Part 5 - Orchestration Demo
     def testDemo(self):
-        p = pexpect.spawn("python {0} --custom {1} --topo mytopo"
-                          .format(resource_file("ravel.py"),
-                                  resource_file("topo/toy_dtp.py")))
+        p = pexpect.spawn("python {0} --topo=linear,4".format(resource_file("ravel.py")))
         p.expect("ravel>")
 
         p.sendline("orch load routing fw")
@@ -211,6 +213,7 @@ class testCommands(unittest.TestCase):
 
         p.sendline("exit")
         p.sendeof()
+        time.sleep(1)
 
     def tearDown(self):
         # kill pox if it's still running
