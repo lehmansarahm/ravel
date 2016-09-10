@@ -110,7 +110,8 @@ class PoxInstance(object):
                      "--DEBUG",
                      "openflow.of_01",
                      "--port={0}".format(ravel.util.Config.PoxPort),
-                     self.app]
+                     self.app,
+                     "openflow.discovery"]
 
         ravel.util.append_path(ravel.util.resource_file())
         env = os.environ.copy()

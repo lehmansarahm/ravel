@@ -268,8 +268,8 @@ class MininetProvider(NetworkProvider):
         name2 = self.cache_id[msg.node2]
         port1, port2 = self.net.topo.port(name1, name2)
 
-        self._destroy(db, net, name1, port1)
-        self._destroy(db, net, name2, port2)
+        # self._destroy(db, net, name1, port1)
+        # self._destroy(db, net, name2, port2)
 
     def addSwitch(self, msg):
         """Add a switch to the Mininet topology

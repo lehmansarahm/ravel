@@ -12,6 +12,7 @@ from pox.lib.util import dpid_to_str
 from pox.lib.util import str_to_dpid
 
 from ravel.util import Config
+from ravel.db import RavelDb
 from ravel.profiling import PerfCounter
 from ravel.messaging import MsgQueueReceiver, RpcReceiver
 from ravel.of import OfManager
@@ -21,12 +22,14 @@ log = core.getLogger()
 class PoxManager(OfManager):
     "Pox-based OpenFlow manager"
 
-    def __init__(self, log):
+    def __init__(self, log, dbname, dbuser):
         super(PoxManager, self).__init__()
+        self.db = RavelDb(dbname, dbuser, None, reconnect=True)
         self.log = log
         self.datapaths = {}
         self.flowstats = []
         self.perfcounter = PerfCounter("sw_delay")
+        self.dpid_cache = {}
 
         core.openflow.addListeners(self, priority=0)
         self.log.info("ravel: starting pox manager")
@@ -37,19 +40,91 @@ class PoxManager(OfManager):
 
         core.call_when_ready(startup, ("openflow", "openflow_discovery"))
 
+    def update_switch_cache(self):
+        self.db.cursor.execute("SELECT * FROM switches;")
+        result = self.db.cursor.fetchall()
+        for sw in result:
+            self.dpid_cache[sw[1]] = { 'sid' : sw[0],
+                                       'dpid' : sw[1],
+                                       'ip' : sw[2],
+                                       'mac': sw[3],
+                                       'name': sw[4] }
+
     def _handle_ConnectionDown(self, event):
-        self.log.info("ravel: dpid {0} removed".format(event.dpid))
+        dpid = "%0.16x" % event.dpid
+        self.update_switch_cache()
         del self.datapaths[event.dpid]
+        self.db.cursor.execute("DELETE FROM switches WHERE dpid='{0}';"
+                               .format(dpid))
+        self.log.info("ravel: dpid {0} removed".format(event.dpid))
 
     def _handle_ConnectionUp(self, event):
-        self.log.info("ravel: dpid {0} online".format(event.dpid))
+        dpid = "%0.16x" % event.dpid
+        self.update_switch_cache()
         self.datapaths[event.dpid] = event.connection
-        self.log.info("----{0}".format(self.datapaths))
+
+        self.db.cursor.execute("SELECT COUNT(*) FROM switches WHERE dpid='{0}';"
+                               .format(dpid))
+        count = self.db.cursor.fetchall()[0][0]
+
+        if count > 0:
+            # switch already in db
+            pass
+        elif dpid in self.dpid_cache:
+            sw = self.dpid_cache[dpid]
+            self.db.cursor.execute("INSERT INTO switches (sid, dpid, ip, mac, name) "
+                                   "VALUES ({0}, '{1}', '{2}', '{3}', '{4}');".format(
+                                   sw['sid'], sw['dpid'], sw['ip'], sw['mac'], sw['name']))
+        else:
+            sid = len(self.dpid_cache) + 1
+            name = "s{0}".format(sid)
+            self.db.cursor.execute("INSERT INTO switches (sid, dpid, name) VALUES "
+                                   "({0}, '{1}', '{2}')".format(sid, dpid, name))
+
+        self.log.info("ravel: dpid {0} online".format(event.dpid))
+        self.log.info("ravel: online dpids: {0}".format(self.datapaths))
 
     def _handle_LinkEvent(self, event):
+        dpid1 = "%0.16x" % event.link.dpid1
+        dpid2 = "%0.16x" % event.link.dpid2
+        port1 = event.link.port1
+        port2 = event.link.port2
+        sid1 = self.dpid_cache[dpid1]['sid']
+        sid2 = self.dpid_cache[dpid2]['sid']
+
         if event.removed:
+            self.db.cursor.execute("UPDATE tp SET isactive=0 WHERE "
+                                   " (sid={0} AND nid={1}) OR "
+                                   " (sid={1} AND nid={0});"
+                                   .format(sid1, sid2))
+
             self.log.info("Link down {0}".format(event.link))
         elif event.added:
+            # does the forward link exist in Postgres?
+            self.db.cursor.execute("SELECT COUNT(*) FROM tp WHERE "
+                                   "sid={0} AND nid={1};"
+                                   .format(sid1, sid2))
+            count = self.db.cursor.fetchall()[0][0]
+            if count == 0:
+                self.db.cursor.execute("INSERT INTO tp (sid, nid, ishost, isactive) "
+                                       "VALUES ({0}, {1}, 0, 1);"
+                                       .format(sid1, sid2))
+                self.db.cursor.execute("INSERT INTO ports (sid, nid, port) VALUES "
+                                       "({0}, {1}, {2});"
+                                       .format(sid1, sid2, port1))
+
+            # does the reverse link already exist in Postgres?
+            self.db.cursor.execute("SELECT COUNT(*) FROM tp WHERE "
+                                   "sid={0} AND nid={1};"
+                                   .format(sid2, sid1))
+            count = self.db.cursor.fetchall()[0][0]
+            if count == 0:
+                self.db.cursor.execute("INSERT INTO tp (sid, nid, ishost, isactive) "
+                                       "VALUES ({0}, {1}, 0, 1);"
+                                       .format(sid2, sid1))
+                self.db.cursor.execute("INSERT INTO ports (sid, nid, port) VALUES "
+                                       "({0}, {1}, {2});"
+                                       .format(sid2, sid1, port2))
             self.log.info("Link up {0}".format(event.link))
 
     def _handle_BarrierIn(self, event):
@@ -140,7 +215,7 @@ class PoxManager(OfManager):
 
 def launch():
     "Start the OpenFlow manager and message receivers"
-    ctrl = PoxManager(log)
+    ctrl = PoxManager(log, Config.DbName, Config.DbUser)
     mq = MsgQueueReceiver(Config.QueueId, ctrl)
     ctrl.registerReceiver(mq)
     rpc = RpcReceiver(Config.RpcHost, Config.RpcPort, ctrl)
