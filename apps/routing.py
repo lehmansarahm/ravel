@@ -5,8 +5,12 @@ Routing sub-shell.
 from ravel.app import AppConsole
 from ravel.log import logger
 
+VERBOSE = False
+CACHE_FID = True
+
 class RoutingConsole(AppConsole):
     def __init__(self, db, env, components):
+        self.flowcount = 0
         AppConsole.__init__(self, db, env, components)
 
     def do_addflow(self, line):
@@ -43,12 +47,17 @@ class RoutingConsole(AppConsole):
         src = hostnames[src]
         dst = hostnames[dst]
         try:
-            self.db.cursor.execute("SELECT MAX(fid) FROM rm;")
-            fid = self.db.cursor.fetchall()[0][0]
-            if fid is None:
-                fid = 0
+            if CACHE_FID:
+                self.flowcount += 1
+                fid = self.flowcount
+            else:
+                self.db.cursor.execute("SELECT MAX(fid) FROM rm;")
+                fid = self.db.cursor.fetchall()[0][0]
+                if fid is None:
+                    fid = 0
 
-            fid += 1
+                fid += 1
+
             self.db.cursor.execute("INSERT INTO rm (fid, src, dst, FW) "
                                    "VALUES ({0}, {1}, {2}, {3});"
                                    .format(fid, src, dst, fw))
@@ -56,7 +65,8 @@ class RoutingConsole(AppConsole):
             print "Failure: flow not installed --", e
             return
 
-        print "Success: installed flow with fid", fid
+        if VERBOSE:
+            print "Success: installed flow with fid", fid
 
     def _delFlowByName(self, src, dst):
         hostnames = self.env.provider.cache_name
@@ -112,10 +122,11 @@ class RoutingConsole(AppConsole):
             print "Invalid syntax"
             return
 
-        if fid is not None:
-            print "Success: removed flow with fid", fid
-        else:
-            print "Failure: flow not removed"
+        if VERBOSE:
+            if fid is not None:
+                print "Success: removed flow with fid", fid
+            else:
+                print "Failure: flow not removed"
 
 shortcut = "rt"
 description = "IP routing"
