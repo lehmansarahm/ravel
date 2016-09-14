@@ -32,6 +32,19 @@ class RavelDb():
         self._cursor = None
         self._conn = None
 
+        # does the db need to be created?
+        try:
+            conn = psycopg2.connect(database=self.name,
+                                    user=self.user,
+                                    password=self.passwd)
+            conn.close()
+        except psycopg2.OperationalError:
+            conn = psycopg2.connect(dbname="postgres",
+                                    user=self.user,
+                                    password=self.passwd)
+            conn.set_isolation_level(ISOLEVEL)
+            conn.cursor().execute("create database {0}".format(name))
+
         if not reconnect and self.num_connections() > 0:
             logger.warning("existing connections to database, skipping reinit")
             self.cleaned = False
@@ -157,7 +170,7 @@ class RavelDb():
             cursor.execute("SELECT datname FROM pg_database WHERE " +
                            "datistemplate = false;")
             fetch = cursor.fetchall()
-            
+
             dblist = [fetch[i][0] for i in range(len(fetch))]
             if self.name not in dblist:
                 cursor.execute("CREATE DATABASE %s;" % self.name)
@@ -184,7 +197,7 @@ class RavelDb():
                 logger.debug("created extensions")
         except psycopg2.DatabaseError, e:
             logger.warning("error loading extensions: %s", self.fmt_errmsg(e))
-            
+
     def clean(self):
         """Clean the database of any existing Ravel components"""
         # close existing connections
@@ -205,7 +218,7 @@ class RavelDb():
                 conn.close()
 
     def truncate(self):
-        """Clean the database of any state Ravel components, except for 
+        """Clean the database of any state Ravel components, except for
            topology tables.  This rolls back the database to the state after
            the topology is first loaded"""
         try:
