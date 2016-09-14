@@ -5,6 +5,7 @@ class IspTopo(Topo):
     def __init__(self, ispnum=1221, feeds=1000, path=None):
         super(IspTopo, self).__init__()
         self.ispnum = int(ispnum)
+        self.name = "isp{0}_{1}".format(ispnum, feeds)
         self.feeds = int(feeds)
         if path is None:
             self.path = os.path.dirname(os.path.realpath(__file__))

@@ -4,12 +4,14 @@ import os
 import random
 import shutil
 import sys
+import threading
 import time
 import networkx
 import psycopg2.extras
 
 CWD = os.path.dirname(os.path.realpath(__file__))
 LOG = os.path.join(CWD, "..", "log.txt")
+LOGDEST = os.path.join(CWD, "logs")
 PRECOMPUTE_BASE = os.path.join(CWD, "precompute_base.sql")
 
 def addRavelPath():
@@ -35,7 +37,7 @@ class Evaluation(object):
         self.rounds = rounds
         self.name = testname
         self.db = db
-        self.logdest = os.path.join(CWD, "logs", "{0}.txt".format(testname))
+        self.logdest = os.path.join(LOGDEST, "{0}.txt".format(testname))
         self.cur = db.conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         self.fetch()
 
@@ -413,10 +415,16 @@ def precompute_paths(db):
     g.add_edges_from(edges)
 
     count = 0
+    pre_paths = []
+    pre_cf = []
+
     for src in nodes:
         for dst in nodes:
             if src == dst:
                 continue
+
+            if count > 1000000:
+                break
 
             count += 1
             path = networkx.shortest_path(g, src, dst)
@@ -426,14 +434,23 @@ def precompute_paths(db):
             for i in range(2, len(path)):
                 path_edges.append((path[i-2], path[i-1], path[i]))
 
-            db.cursor.execute("INSERT INTO pre_paths(id, src, dst) VALUES "
-                              "({0}, {1}, {2});"
-                              .format(count, src, dst))
-
+            pre_paths.append((count, src, dst))
             for row in path_edges:
-                db.cursor.execute("INSERT INTO pre_cf(id, pid, sid, nid) "
-                                  "VALUES ({0}, {1}, {2}, {3});"
-                                  .format(count, row[0], row[1], row[2]))
+                pre_cf.append((count, row[0], row[1], row[2]))
+
+    print "Paths computed, inserting"
+    open("pre_paths.sql", 'w').close()
+    with open("pre_paths.sql", 'w') as f:
+        f.write("INSERT INTO pre_paths(id, src, dst) VALUES {0};".format(
+            ",".join("({0}, {1}, {2})".format(*t) for t in pre_paths)))
+
+    open("pre_cf.sql", 'w').close()
+    with open("pre_cf.sql", 'w') as f:
+        f.write("INSERT INTO pre_cf(id, pid, sid, nid) VALUES {0};".format(
+            ",".join("({0}, {1}, {2}, {3})".format(*t) for t in pre_cf)))
+
+    os.remove("pre_paths.sql")
+    os.remove("pre_cf.sql")
 
 def cleanup_precomputed_paths(db):
     db.cursor.execute("DELETE FROM pre_paths;")
@@ -487,17 +504,26 @@ def profile(rounds=30):
     topos_isp2 = ["isp,4755", "isp,3356", "isp,7018"]
 
     topos = topos_ft + topos_isp1 + topos_isp2
-    topos = ["fattree,8"]
+    topos = ["fattree,8", "fattree,16", "fattree,32"]
     for toponame in topos:
         reset_log()
-        db = RavelDb("ravel", "ravel", PRECOMPUTE_BASE)
 
         elapsed = time.time()
         topo = create_topo(toponame)
-        insert_topo(db, topo)
         elapsed = time.time() - elapsed
+        print "----------", topo.name
         print "Created topo", round(elapsed * 1000, 3)
 
+        db = RavelDb(topo.name, "mininet", PRECOMPUTE_BASE)
+        # force db refresh
+        db.init()
+
+        elapsed = time.time()
+        insert_topo(db, topo)
+        elapsed = time.time() - elapsed
+        print "Inserted topo", round(elapsed * 1000, 3)
+
+        print "Paths to compute", len(topo.hosts())**2
         elapsed = time.time()
         precompute_paths(db)
         elapsed = time.time() - elapsed
@@ -509,6 +535,9 @@ def profile(rounds=30):
         e.close()
 
 if __name__ == "__main__":
+    if not os.path.exists(LOGDEST):
+        os.makedirs(LOGDEST)
+
     profile()
 
     #t = IspTopo(1221,10)

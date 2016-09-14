@@ -4,6 +4,7 @@ class FattreeTopo(Topo):
     def __init__(self, k=4):
         super(FattreeTopo, self).__init__()
         self.size = int(k)
+        self.name = "fattree{0}".format(k)
         Topo.__init__(self)
         self._build()
 
