@@ -87,6 +87,7 @@ CREATE INDEX ON switches(sid);
  * mac: host's MAC address
  * name: hostname (in Mininet)
  */
+DROP TABLE IF EXISTS hosts;
 CREATE UNLOGGED TABLE hosts (
        hid	integer PRIMARY KEY,
        ip	varchar(16),
