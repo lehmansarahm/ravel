@@ -3,7 +3,7 @@ from mininet.topo import Topo
 class FattreeTopo(Topo):
     def __init__(self, k=4):
         super(FattreeTopo, self).__init__()
-        self.size = k
+        self.size = int(k)
         Topo.__init__(self)
         self._build()
 
