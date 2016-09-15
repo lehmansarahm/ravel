@@ -150,6 +150,42 @@ CREATE OR REPLACE RULE rm_del AS
 
 
 ------------------------------------------------------------
+-- ORCHESTRATION PROTOCOL
+------------------------------------------------------------
+
+/* Orchestration token clock */
+DROP TABLE IF EXISTS clock CASCADE;
+CREATE UNLOGGED TABLE clock (
+       counts   integer,
+       PRIMARY key (counts)
+);
+
+
+/* Initialize the clock to 0 */
+INSERT into clock (counts) values (0) ;
+
+
+/* Routing shortest path vector priority table */
+DROP TABLE IF EXISTS p_spv CASCADE;
+CREATE UNLOGGED TABLE p_spv (
+       counts   integer,
+       status   text,
+       PRIMARY key (counts)
+);
+
+
+/* Orchestration enabling function */
+CREATE OR REPLACE FUNCTION protocol_fun() RETURNS TRIGGER AS
+$$
+ct = plpy.execute("""select max (counts) from clock""")[0]['max']
+plpy.execute ("INSERT INTO p_spv VALUES (" + str (ct+1) + ", 'on');")
+return None;
+$$
+LANGUAGE 'plpythonu' VOLATILE SECURITY DEFINER;
+
+
+
+------------------------------------------------------------
 -- PRECOMPUTED PATHS
 ------------------------------------------------------------
 
@@ -195,9 +231,30 @@ AS $$
             END LOOP;
 
             DELETE FROM rm_delta;
-        RETURN 0;
+            RETURN 0;
         END;
 $$ LANGUAGE plpgsql VOLATILE SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION spv_constraint1_fun()
+RETURNS TRIGGER
+AS $$
+   BEGIN
+      PERFORM spv_constraint1_fun_unprofiled();
+      RETURN NEW;
+   END;
+$$ LANGUAGE plpgsql VOLATILE SECURITY DEFINER;
+
+CREATE TRIGGER spv_constraint1
+       AFTER INSERT ON p_spv
+       FOR EACH ROW
+       EXECUTE PROCEDURE spv_constraint1_fun();
+
+CREATE OR REPLACE RULE spv_constaint2 AS
+       ON INSERT TO p_spv
+       WHERE NEW.status = 'on'
+       DO ALSO
+           (UPDATE p_spv SET status = 'off' WHERE counts = NEW.counts;
+           );
 
 DROP FUNCTION IF EXISTS spv_constraint1_fun_profiled();
 CREATE OR REPLACE FUNCTION spv_constraint1_fun_profiled ()
@@ -205,7 +262,7 @@ RETURNS integer
 AS $$
 import time
 
-fo = open("/home/croftj/src/ravel/next-ravel/log.txt", "a")
+fo = open("/home/croft1/src/ravel/next-ravel/log.txt", "a")
 def logfunc(msg,f=fo):
     f.write(msg + "\n")
     f.flush()
@@ -237,56 +294,11 @@ for r in rm:
         elapsed = time.time()
         plpy.execute("DELETE FROM cf WHERE fid={0};".format(f))
         elapsed = round((time.time() - elapsed) * 1000, 3)
-        logfunc("#pi----delete_from_cf_ms----{0}".format(elapsed))
+        logfunc("#pd----delete_from_cf_ms----{0}".format(elapsed))
 
     plpy.execute("DELETE FROM rm_delta;")
 return 0
 $$ LANGUAGE 'plpythonu' VOLATILE SECURITY DEFINER;
-
-DROP FUNCTION IF EXISTS spv_constraint1_fun();
-CREATE OR REPLACE FUNCTION spv_constraint1_fun()
-RETURNS TRIGGER
-AS $$
-   BEGIN
-      SELECT pv_constraint1_fun_profiled();
-   END;
-$$ LANGUAGE plpgsql VOLATILE SECURITY DEFINER;
-
-
-
-------------------------------------------------------------
--- ORCHESTRATION PROTOCOL
-------------------------------------------------------------
-
-/* Orchestration token clock */
-DROP TABLE IF EXISTS clock CASCADE;
-CREATE UNLOGGED TABLE clock (
-       counts   integer,
-       PRIMARY key (counts)
-);
-
-
-/* Initialize the clock to 0 */
-INSERT into clock (counts) values (0) ;
-
-
-/* Routing shortest path vector priority table */
-DROP TABLE IF EXISTS p_spv CASCADE;
-CREATE UNLOGGED TABLE p_spv (
-       counts   integer,
-       status   text,
-       PRIMARY key (counts)
-);
-
-
-/* Orchestration enabling function */
-CREATE OR REPLACE FUNCTION protocol_fun() RETURNS TRIGGER AS
-$$
-ct = plpy.execute("""select max (counts) from clock""")[0]['max']
-plpy.execute ("INSERT INTO p_spv VALUES (" + str (ct+1) + ", 'on');")
-return None;
-$$
-LANGUAGE 'plpythonu' VOLATILE SECURITY DEFINER;
 
 
 
