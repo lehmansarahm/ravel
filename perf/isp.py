@@ -2,11 +2,18 @@ import os
 from mininet.topo import Topo
 
 class IspTopo(Topo):
-    def __init__(self, ispnum=1221, feeds=1000, path=None):
+    def __init__(self, ispnum=1221, feeds=None, path=None):
         super(IspTopo, self).__init__()
         self.ispnum = int(ispnum)
-        self.name = "isp{0}_{1}".format(ispnum, feeds)
-        self.feeds = int(feeds)
+        self.bidirectional = False
+
+        if feeds is None:
+            self.feeds = 0
+            self.name = "isp{0}".format(ispnum)
+        else:
+            self.feeds = int(feeds)
+            self.name = "isp{0}_{1}".format(ispnum, feeds)
+
         if path is None:
             self.path = os.path.dirname(os.path.realpath(__file__))
             self.path = os.path.join(self.path, "ISP_topo")
@@ -26,7 +33,7 @@ class IspTopo(Topo):
         edges = []
         with open(os.path.join(self.path, edge_file)) as edge_fd:
             for i, line in enumerate(edge_fd.readlines()):
-                if i > self.feeds:
+                if self.feeds > 0 and i > self.feeds:
                     break
 
                 tokens = line.split()
