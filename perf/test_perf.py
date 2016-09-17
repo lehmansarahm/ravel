@@ -13,10 +13,11 @@ import networkx.exception
 import psycopg2.extras
 
 import plot
+import plot_gen
 
 CWD = os.path.dirname(os.path.realpath(__file__))
 LOG = os.path.join(CWD, "..", "log.txt")
-LOGDEST = os.path.join(CWD, "plot", "log")
+LOGDEST = os.path.join(CWD, "plot")
 PRECOMPUTE_BASE = os.path.join(CWD, "precompute_base.sql")
 PROFILED = False
 
@@ -43,16 +44,15 @@ class Evaluation(object):
         self.rounds = rounds
         self.name = testname
         self.db = db
-        print testname
         self.logdest = os.path.join(LOGDEST, "{0}.txt".format(str(testname).replace(",", "_")))
-        print "LOGDEST", testname, self.logdest
+        open(self.logdest, 'w').close()
         self.cur = db.conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         self.fetch()
 
     def close(self):
         self.f.close()
-        open(self.logdest, 'w').close()
-        shutil.copyfile(LOG, self.logdest)
+        # open(self.logdest, 'w').close()
+        # shutil.copyfile(LOG, self.logdest)
 
     def fetch(self):
         self.cur.execute("SELECT count(*) FROM switches;")
@@ -86,7 +86,7 @@ class Evaluation(object):
 
         for i in range(len(ends)):
             [e1, e2] = ends[i]
-            is_inblacklist = numpy.random.choice([0,1], 1, p=[0.8, 0.2])[0]
+            is_inblacklist = numpy.random.choice([0,1], 1, p=[0.2, 0.8])[0]
             print e1, e2, is_inblacklist
             self.cur.execute("INSERT INTO acl_tb VALUES("+ str(e1)+ ","+ str(e2) + "," + str(is_inblacklist) +");")
 
@@ -199,7 +199,7 @@ class Evaluation(object):
         cur.execute("update lb set load = " +str(max_load - 1)+" where sid = "+str(s_id)+";")
         #print "update lb set load = " +str(max_load - 1)+" where sid = "+str(s_id)+";"
         t2 = time.time()
-        f.write('----lb: re-balance(absolute)----' + str((t2-t1)*1000) + '\n')
+        f.write('----lb: re-balance (absolute)----' + str((t2-t1)*1000) + '\n')
         f.flush()
 
         t3 = time.time()
@@ -209,8 +209,8 @@ class Evaluation(object):
         ct = cur.fetchall() [0]['max']
         cur.execute("INSERT INTO p_spv VALUES(" + str(ct+1) + ", 'on');")
         t4 = time.time()
-        f.write('----lb+rt: re-balance(per rule)----' + str((t2-t1 + t4-t3)*1000) + '\n')
-        f.write('----lb+rt: re-balance(absolute)----' + str((t2-t1 + t4-t3)*1000) + '\n')
+        f.write('----lb+rt: re-balance (per rule)----' + str((t2-t1 + t4-t3)*1000) + '\n')
+        f.write('----lb+rt: re-balance (absolute)----' + str((t2-t1 + t4-t3)*1000) + '\n')
         f.flush()
         # except psycopg2.DatabaseError, e:
         #     print 'op_lb fail Error %s' % e
@@ -239,8 +239,8 @@ class Evaluation(object):
         ct = cur.fetchall() [0]['max']
         cur.execute("INSERT INTO p_spv VALUES(" + str(ct+1) + ", 'on');")
         t4 = time.time()
-        f.write('----acl+rt: fix violation(per rule)----' + str((t2-t1 + t4-t3)*1000) + '\n')
-        f.write('----acl+rt: fix violation(absolute)----' + str((t2-t1 + t4-t3)*1000) + '\n')
+        f.write('----acl+rt: fix violation (per rule)----' + str((t2-t1 + t4-t3)*1000) + '\n')
+        f.write('----acl+rt: fix violation (absolute)----' + str((t2-t1 + t4-t3)*1000) + '\n')
         f.flush()
 
     def routing_ins_acl_lb(self, h1s, h2s):
@@ -300,15 +300,17 @@ class FattreeEvaluation(Evaluation):
         super(FattreeEvaluation, self).__init__(db, testname, rounds)
 
     def close(self):
+        super(FattreeEvaluation, self).close()
         shutil.copyfile(LOG, self.logdest)
 
         if PROFILED == True:
-            dest = os.path.join(CWD, "plot", "log", "profile")
+            dest = os.path.join(CWD, "plot", "profile", "log")
         else:
-            dest = os.path.join(CWD, "plot", "log", "fattree")
+            dest = os.path.join(CWD, "plot", "fattree", "log")
 
         os.system("mkdir -p {0}; mv {1} {0}".format(dest, self.logdest))
-        #super(FattreeEvaluation, self).close()
+        self.logdest = os.path.join(dest, os.path.basename(self.logdest))
+        print "{0} log saved: {1}".format(self.name, self.logdest)
 
     def primitive(self):
         size = 10
@@ -339,7 +341,7 @@ class FattreeEvaluation(Evaluation):
             self.routing_ins_acl_lb_tenant(thosts)
 
         dbname = self.logdest.split('.')[0]
-        self.logdest = dbname + '_tenant.log'
+        self.logdest = os.path.join(LOGDEST, "tenant_{0}.txt".format(self.name.replace(",", "_")))
 
     def routing_ins_acl_lb_tenant(self,hosts):
         cur = self.cur
@@ -370,7 +372,7 @@ class FattreeEvaluation(Evaluation):
         for i in range(len(ends)):
             [e1, e2] = ends[i]
             # is_inblacklist = random.choice([0,1])
-            is_inblacklist = numpy.random.choice([0,1], 1, p=[0.8, 0.2])[0]
+            is_inblacklist = numpy.random.choice([0,1], 1, p=[0.2, 0.8])[0]
             cur.execute("INSERT INTO tacl_tb VALUES("+ str(e1)+ ","+ str(e2) + "," + str(is_inblacklist) +");")
 
     def init_tlb(self):
@@ -499,9 +501,11 @@ class IspEvaluation(Evaluation):
         else:
             self.rib_edges_file = os.path.join(rib_path, "rib20011204_edges.txt".format(feeds))
 
-        self.init_rib()
+        if not PROFILED:
+            self.init_rib()
 
     def close(self):
+        super(IspEvaluation, self).close()
         shutil.copyfile(LOG, self.logdest)
 
         if self.isp == '4755' or self.isp == '3356' or self.isp == '7018':
@@ -510,12 +514,13 @@ class IspEvaluation(Evaluation):
             t = 'isp' + self.isp + '_3ribs'
 
         if PROFILED == True:
-            dest = "plot/profile/log"
+            dest = os.path.join(CWD, "plot", "profile", "log")
         else:
-            dest = "plot/{0}/log/".format(t)
+            dest = os.path.join(CWD, "plot", t, "log")
 
         os.system("mkdir -p {0}; mv {1} {0}".format(dest, self.logdest))
-        super(IspEvaluation, self).close()
+        self.logdest = os.path.join(dest, os.path.basename(self.logdest))
+        print "{0} log saved: {1}".format(self.name, self.logdest)
 
     def primitive(self):
         self.init_acl()
@@ -574,7 +579,6 @@ CREATE UNLOGGED TABLE borders(
             random_border = int(random.choice(ISP_borders))
 
             if random_border != switch_id:
-                #cursor.execute("INSERT INTO rm VALUES(%s,%s,%s);",(fid, sid2u_hid[switch_id], sid2u_hid[random_border]))
                 cursor.execute("INSERT INTO rm VALUES(%s,%s,%s);",(fid, switch_id, random_border))
                 fid += 1
 
@@ -636,10 +640,9 @@ def precompute_paths(db):
             if count > 1000000:
                 break
 
-            count += 1
-
             try:
                 path = networkx.shortest_path(g, src, dst)
+                count += 1
             except networkx.exception.NetworkXNoPath:
                 continue
 
@@ -664,6 +667,8 @@ def precompute_paths(db):
         f.write("INSERT INTO pre_cf(id, pid, sid, nid) VALUES {0};".format(
             ",".join("({0}, {1}, {2}, {3})".format(*t) for t in pre_cf)))
 
+    pre_paths = []
+    pre_cf = []
     db.cursor.execute(open("pre_paths.sql").read())
     db.cursor.execute(open("pre_cf.sql").read())
     os.remove("pre_paths.sql")
@@ -714,10 +719,12 @@ def setup(testname):
     if tokens[0] not in TOPOS:
         raise Exception("Invalid topo name {0}".format(tokens[0]))
 
+    print testname
     topo = TOPOS[tokens[0]](*tokens[1:])
     elapsed = time.time() - elapsed
     print "----------", topo.name
     print "Created topo", round(elapsed * 1000, 3)
+    print "Topo size", len(topo.switches()), len(topo.hosts()), len(topo.links())
 
     db = RavelDb(topo.name, "mininet", PRECOMPUTE_BASE)
     # force db refresh
@@ -736,8 +743,258 @@ def setup(testname):
 
     return db, topo
 
+def eval_overhead(db, evaluator, logfile):
+    f = open(logfile, 'a')
+    f.write("#overhead_utm\n")
+    f.flush
+    for i in range(30):
+        f.write("#round "+ str(i) + "\n")
+        f.flush
+
+        db.cursor.execute("select min(dst) from rm;")
+        mi = int (db.cursor.fetchall()[0][0])
+        db.cursor.execute("select max(dst) from rm;")
+        m= int (db.cursor.fetchall()[0][0])
+
+        host1 = random.randrange(mi, m)
+        host2 = random.randrange(mi, m)
+
+        t1 = time.time()
+        db.cursor.execute("insert into rm values (1808, "+ str(host1)+ ", "+ str(host2) + ");")
+        t2 = time.time()
+        ins_w = (t2-t1)
+
+        t1 = time.time()
+        db.cursor.execute("delete from rm where fid = 1808;")
+        t2 = time.time()
+        del_w = (t2-t1)
+
+        db.cursor.execute("DROP TABLE IF EXISTS lb_m CASCADE;")
+        db.cursor.execute("DROP TRIGGER IF EXISTS utm_1 ON rm;")
+        db.cursor.execute("DROP TRIGGER IF EXISTS lb_tb_1 ON lb_tb;")
+
+        t1 = time.time()
+        db.cursor.execute("insert into rm values (1808, "+ str(host1)+ ", "+ str(host2) + ");")
+        t2 = time.time()
+        ins_wo = (t2-t1)
+
+        f.write ('----'+db.name + 'ins----' + str ((ins_w-ins_wo)*1000) + '\n')
+        f.flush ()
+
+        t1 = time.time()
+        db.cursor.execute("delete from rm where fid = 1808;")
+        t2 = time.time()
+
+        del_wo = (t2-t1)
+
+        f.write ('----'+db.name + 'del----' + str ((del_w-del_wo)*1000) +'\n')
+        f.flush ()
+        db.cursor.execute(open(os.path.join(CWD, "tgs_lb.sql")).read())
+
+    f.close()
+
+def test_overhead():
+    topos = ["fattree,16", "fattree,32", "fattree,64"]
+    logdest = os.path.join(LOGDEST, "optimization")
+    logfile = os.path.join(logdest, "ovh.txt")
+    pltfile = os.path.join(logdest, "ovh.plt")
+    os.system("mkdir -p {0}".format(logdest))
+
+    reset_log()
+    open(logfile, 'w').close()
+
+    for toponame in topos:
+        db, topo = setup(toponame)
+        db.cursor.execute(open(os.path.join(CWD, "apps.sql")).read())
+        size = 1000
+        testname = toponame.replace(",", "_")
+        e = FattreeEvaluation(db, testname, 1)
+        e.rtm_ins(size)
+        e.init_acl()
+        e.init_lb()
+        e.op_primitive()
+        eval_overhead(db, e, logfile)
+
+    plot_gen.gen_dat(logfile, 'ovh')
+
+def eval_acc1(db, dbname, logfile):
+    f = open(logfile, 'a')
+    f.write("#" +dbname +"\n#access time\n")
+    f.flush
+
+    for i in range(30):
+        f.write("#round "+ str(i) + "\n")
+        f.flush
+
+        t1 = time.time()
+        db.cursor.execute("select * from lb")
+        t2 = time.time()
+        db.cursor.execute("select count(*) from lb")
+        num = int (db.cursor.fetchall()[0][0])
+        t =(t2-t1)/num
+
+        f.write ('----'+dbname +'view----' + str(t*1000) + '\n')
+        f.flush ()
+
+        t1 = time.time()
+        db.cursor.execute("select * from lb_m")
+        t2 = time.time()
+
+        db.cursor.execute("select count(*) from lb_m")
+        num = int (db.cursor.fetchall ()[0][0])
+        t = (t2-t1)/num
+
+        f.write('----'+ dbname+ 'table----' + str(t*1000) +'\n')
+        f.flush()
+
+    f.close()
+
+def eval_acc2(db, dbname, logfile):
+    f = open(logfile, 'a')
+
+    f.write("#"+ dbname+"\n#access time\n")
+    f.flush
+
+    for i in range(30):
+        f.write("#round "+ str(i) + "\n")
+        f.flush
+
+        t1 = time.time()
+        db.cursor.execute("select max(load) from lb")
+        t2 = time.time()
+        t = (t2-t1)
+
+        f.write ('----'+dbname +'view----' + str (t*1000) + '\n')
+        f.flush ()
+
+        t1 = time.time()
+        db.cursor.execute("select max(load) from lb_m")
+        t2 = time.time()
+
+        t = t2- t1
+
+        f.write ('----'+ dbname+ 'table----' + str (t*1000) +'\n')
+        f.flush ()
+
+    f.close()
+
+def eval_ovh1(db, dbname, logfile):
+    f = open(logfile, 'a')
+
+    f.write("#fattree16\n#overhead_utm\n")
+    f.flush
+
+    for i in range(30):
+        f.write("#round "+ str(i) + "\n")
+        f.flush
+
+        db.cursor.execute("SELECT src, dst FROM pre_paths;")
+        cs = db.cursor.fetchall()
+        cached_paths = [(h[0], h[1]) for h in cs]
+        host1, host2 = random.choice(cached_paths)
+
+        t1 = time.time()
+        db.cursor.execute("insert into rm values (1808, "+ str(host1)+ ", "+ str(host2) + ");")
+        t2 = time.time()
+        t = (t2-t1)
+
+        f.write ('----'+dbname + 'ins----' + str (t*1000) + '\n')
+        f.flush ()
+
+        t1 = time.time()
+        db.cursor.execute("delete from rm where fid = 1808;")
+        t2 = time.time()
+
+        t = (t2-t1)
+
+        f.write ('----'+dbname + 'del----' + str (t*1000) +'\n')
+        f.flush ()
+
+    f.close()
+
+def eval_ovh2(db, dbname, logfile):
+    f = open(logfile, 'a')
+
+    f.write("#fattree16\n#overhead_lbtb\n")
+    f.flush
+
+    for i in range(30):
+        f.write("#round "+ str(i) + "\n")
+        f.flush
+
+        db.cursor.execute("select sid from lb_tb;")
+        sid_list = db.cursor.fetchall()
+        size = len(sid_list)
+        idx = int((size-1)*random.random())
+        sid = str(sid_list[idx])[1]
+
+        t1 = time.time()
+        db.cursor.execute("delete from lb_tb where sid = "+ str(sid)+ ";")
+        t2 = time.time()
+        t = (t2-t1)
+
+        f.write ('----'+dbname+ 'del----' + str (t*1000) + '\n')
+        f.flush ()
+
+        t1 = time.time()
+        db.cursor.execute("insert into lb_tb values ("+ str(sid)+ ");")
+        t2 = time.time()
+
+        t = (t2-t1)
+
+        f.write ('----'+ dbname + 'ins----' + str (t*1000) +'\n')
+        f.flush ()
+
+    f.close()
+
+def test_lb():
+    topos = ["fattree,16", "fattree,32", "fattree,64"]
+    files = ["acc", "max", "ovh1", "ovh2"]
+    sizes = [10, 100, 1000]
+
+    logfile = {}
+    pltfile = {}
+
+    for tp in files:
+        os.system("mkdir -p {0}; mkdir -p {1}"
+                  .format(os.path.join(LOGDEST, "optimization", "log"),
+                          os.path.join(LOGDEST, "optimization", "dat")))
+        logfile[tp] = os.path.join(LOGDEST, "optimization", "log", "{0}.txt".format(tp))
+        pltfile[tp] = os.path.join(LOGDEST, "optimization", "dat", "{0}.txt".format(tp))
+        open(logfile[tp], 'w').close()
+
+    dbname = "fattree,16"
+    for k in sizes:
+        db, topo = setup(dbname)
+        e = FattreeEvaluation(db, dbname.replace(",",""), 30)
+        db.cursor.execute(open(os.path.join(CWD, "apps.sql")).read())
+        e.rtm_ins(k)
+        e.init_acl()
+        e.init_lb()
+        e.op_primitive()
+        db.cursor.execute(open(os.path.join(CWD, "tgs_lb.sql")).read())
+        eval_acc1(db, str(k), logfile['acc'])
+        eval_acc2(db, str(k), logfile['max'])
+
+    for toponame in topos:
+        db, topo = setup(toponame)
+        db.cursor.execute(open(os.path.join(CWD, "apps.sql")).read())
+        size = 1000
+        e = FattreeEvaluation(db, toponame.replace(",",""), 30)
+        e.rtm_ins(size)
+        e.init_acl()
+        e.init_lb()
+        e.op_primitive()
+        db.cursor.execute(open(os.path.join(CWD, "tgs_lb.sql")).read())
+
+        eval_ovh1(db, toponame.replace(",",""), logfile['ovh1'])
+        eval_ovh2(db, toponame.replace(",",""), logfile['ovh2'])
+
+    for i in files:
+        plot_gen.gen_dat(logfile[i], i)
+
 def profile(rounds=30):
-    topos_ft = ["fattree,8","fattree,16", "fattree,32", "fattree,64"]
+    topos_ft = ["fattree,16", "fattree,32", "fattree,64"]
     topos_isp1 = ["isp,2914,{0}".format(rounds),
                   "isp,2914,{0}".format(rounds*10),
                   "isp,2914,{0}".format(rounds*100)]
@@ -748,28 +1005,43 @@ def profile(rounds=30):
         reset_log()
         db, topo = setup(toponame)
         enable_profiling(db)
-        testname = "profile_" + "_".join(toponame.split(","))
-        e = Evaluation(db, testname, rounds)
-        e.op_profile()
 
+        tokens = toponame.split(",")
+        testname = toponame.replace(",", "_")
+        if isinstance(topo, FattreeTopo):
+            e = FattreeEvaluation(db, testname, rounds)
+        elif isinstance(topo, IspTopo):
+            feeds = None
+            if len(tokens) > 2:
+                feeds = tokens[2]
+            else:
+                feeds = rounds#*10
+            e = IspEvaluation(db, testname, tokens[1], feeds, rounds)
+
+        e.op_profile()
         e.close()
         plot.profile_dat(e.logdest, rounds)
         disable_profiling(db)
 
 def scenario(rounds, name):
     tests = []
+    plotter = None
 
     if name == "3sizes":
-        tests.extend(["isp,4755", "isp,3356", "isp,7-18"])
-        # tests.append("isp,4755,100")
+        plotter = plot.rPlot_primitive(os.path.join(CWD, "plot", "isp_3sizes"))
+        tests.extend(["isp,4755", "isp,3356", "isp,7018"])
     elif name == "3ribs":
+        plotter = plot.rPlot_primitive(os.path.join(CWD, "plot", "isp2914_3ribs"))
+        plotter.key_list.remove("rt: route ins")
         tests.extend(["isp,2914,{0}".format(rounds),
                       "isp,2914,{0}".format(rounds*10),
                       "isp,2914,{0}".format(rounds*100)])
-        # tests.extend(["isp,2914,30"])
-    elif name == "primitive" or name == "tenant":
+    elif name == "primitive":
+        plotter = plot.rPlot_primitive(os.path.join(CWD, "plot", "fattree"))
         tests.extend(["fattree,16", "fattree,32", "fattree,64"])
-        # tests.extend(["fattree,4"])
+    elif name == "tenant":
+        plotter = plot.rPlot_tenant(os.path.join(CWD, "plot", "fattree"))
+        tests.extend(["fattree,16", "fattree,32", "fattree,64"])
     else:
         raise Exception("unknown test {0}".format(name))
 
@@ -786,27 +1058,98 @@ def scenario(rounds, name):
             elif name == "tenant":
                 e.tenant()
             e.close()
+            plotter.add_log(e.logdest)
         elif isinstance(topo, IspTopo):
             tokens = test.split(",")
             ispnum = tokens[1]
             feeds = None
             if len(tokens) > 2:
                 feeds = tokens[2]
+            else:
+                feeds = rounds#*10
             e = IspEvaluation(db, test, ispnum, feeds)
             e.primitive()
             e.close()
+            plotter.add_log(e.logdest)
         else:
             raise Exception("unknown topo type {0}".format(topo.__class__.__name__))
+
+    plotter.gen_dat()
+    plotter.gen_plt()
+
+def plot_profile_logs(rounds):
+    topos_ft = ["fattree,16", "fattree,32", "fattree,64"]
+    topos_isp1 = ["isp,2914,{0}".format(rounds),
+                  "isp,2914,{0}".format(rounds*10),
+                  "isp,2914,{0}".format(rounds*100)]
+    topos_isp2 = ["isp,4755", "isp,3356", "isp,7018"]
+
+    topos = topos_ft + topos_isp1 + topos_isp2
+    for toponame in topos:
+        plot.profile_dat(os.path.join(CWD, "plot", "profile", "log", toponame.replace(",", "_")))
+
+def plot_scenario_logs(rounds, name):
+    tests = []
+    topo = None
+    if name == "3sizes":
+        topo = "isp"
+        plotter = plot.rPlot_primitive(os.path.join(CWD, "plot", "isp_3sizes"))
+        tests.extend(["isp,4755", "isp,3356", "isp,7018"])
+    elif name == "3ribs":
+        topo = "isp"
+        plotter = plot.rPlot_primitive(os.path.join(CWD, "plot", "isp2914_3ribs"))
+        plotter.key_list.remove("rt: route ins")
+        tests.extend(["isp,2914,{0}".format(rounds),
+                      "isp,2914,{0}".format(rounds*10),
+                      "isp,2914,{0}".format(rounds*100)])
+    elif name == "primitive":
+        topo = "fattree"
+        plotter = plot.rPlot_primitive(os.path.join(CWD, "plot", "fattree"))
+        tests.extend(["fattree,16", "fattree,32", "fattree,64"])
+    elif name == "tenant":
+        topo = "fattree"
+        plotter = plot.rPlot_tenant(os.path.join(CWD, "plot", "fattree"))
+        tests.extend(["fattree,16", "fattree,32", "fattree,64"])
+    else:
+        raise Exception("unknown test {0}".format(name))
+
+    for test in tests:
+        tokens = test.split(",")
+        if topo == "fattree":
+            logname = os.path.join(CWD, "plot", "fattree", "log",
+                                   "{0}_fattree_{1}.txt".format(name, tokens[1]))
+        elif topo == "isp":
+            if name == "3sizes":
+                logname = os.path.join(CWD, "plot", "isp_3sizes", "log",
+                                       "isp_{0}.txt".format(tokens[1]))
+            elif name == "3ribs":
+                logname = os.path.join(CWD, "plot", "isp2914_3ribs", "log",
+                                       "isp_2914_{0}.txt".format(tokens[2]))
+        else:
+            raise Exception("unknown test {0}".format(topo))
+
+        plotter.add_log(logname)
+
+    plotter.gen_dat()
+    plotter.gen_plt()
 
 if __name__ == "__main__":
     if not os.path.exists(LOGDEST):
         os.makedirs(LOGDEST)
 
+    # plot_profile_logs(30)
+    # plot_scenario_logs(100, "primitive")
+    # plot_scenario_logs(100, "tenant")
+    # plot_scenario_logs(100, "3sizes")
+    # plot_scenario_logs(100, "3ribs")
+
     # profile()
-    scenario(100, "primitive")
-    scenario(100, "tenant")
-    scenario(100, "3sizes")
-    scenario(100, "3ribs")
+    # scenario(100, "primitive")
+    # scenario(100, "tenant")
+    # scenario(100, "3sizes")
+    # scenario(100, "3ribs")
+    # test_lb()
+    # test_overhead()
 
     #t = IspTopo(1221,10)
     # db = RavelDb("ravel", "ravel", PRECOMPUTE_BASE)
