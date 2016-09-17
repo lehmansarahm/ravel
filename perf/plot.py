@@ -1,11 +1,6 @@
 from __future__ import division
 import os
 
-CWD = os.path.dirname(os.path.realpath(__file__))
-PLOTDIR = os.path.join(CWD, "plot")
-if not os.path.exists(PLOTDIR):
-    os.makedirs(PLOTDIR)
-
 gnuplot_script = '''
 reset
 
@@ -39,9 +34,7 @@ def get_k (logfile):
     return t2
 
 def parse_log (logfile, keytext):
-
     s = []
-
     f = open(logfile, "r")
     for l in f.readlines():
         if l[0] == '#':
@@ -58,11 +51,10 @@ def parse_log (logfile, keytext):
     return s
 
 def gen_dat (logfile, keytext, dir_name):
-
     xlabel = keytext
     nametext = xlabel.replace (' ', '_').replace (':', '').replace ('(','_').replace (')','_').replace ('+','_').replace ('*','_')
 
-    datfile = dir_name + nametext + '.dat'
+    datfile = os.path.join(dir_name, nametext + '.dat')
 
     o0 = sorted (parse_log (logfile[0], keytext))
     o1 = sorted (parse_log (logfile[1], keytext))
@@ -71,6 +63,12 @@ def gen_dat (logfile, keytext, dir_name):
     l0 = len (o0)
     l1 = len (o1)
     l2 = len (o2)
+
+    print "-----------"
+    print keytext
+    print o0, o1, o2
+    print l0, l1, l2
+
     l = max ([l0,l1,l2])
 
     def t_o (i, li, o):
@@ -95,7 +93,7 @@ def gen_plt (logfile, keytext, dir_name):
     pltfile = dir_name + '/dat/' + nametext + '.plt'
     print pltfile
 
-    pdffile = os.path.join(PLOTDIR, dir_name.split("/")[-1], nametext + ".pdf")
+    pdffile = os.path.join(dir_name, nametext + ".pdf")
 
     pf = open(pltfile, "wr")
     pf.write (gnuplot_script)
@@ -126,14 +124,12 @@ class rPlot ():
         self.log_file_list = loglist
         self.key_list = keylist
 
-        #d = '/media/sf_share/ravel_plot/'
-        d = PLOTDIR
-        self.log_dir = d + subdir + '/log/'
-        self.dat_dir = d + subdir + '/dat/'
-        self.pdf_dir = d + subdir
+        self.log_dir = os.path.join(subdir, "log")
+        self.dat_dir = os.path.join(subdir, "dat")
+        self.pdf_dir = os.path.abspath(subdir)
 
     def add_log (self,filename):
-        self.log_file_list.append (self.log_dir + filename)
+        self.log_file_list.append (filename)
 
     def add_key (self,key):
         self.key_list.append (key)
@@ -184,12 +180,15 @@ class rPlot_tenant (rPlot):
 
 def profile_dat (logfile, rounds):
     logfilename = os.path.basename(logfile)
+    logdir = os.path.dirname(logfile)
+    logdir = os.path.abspath(os.path.join(logdir, ".."))
     logname =  os.path.splitext(logfilename)[0]
-    datfile_rti = os.path.join(PLOTDIR, "dat", logname + "_rti.dat")
-    datfile_rtd = os.path.join(PLOTDIR, "dat", logname + "_rtd.dat")
-    pdffile_rti = os.path.join(PLOTDIR, logname + "_rti.pdf")
-    pdffile_rtd = os.path.join(PLOTDIR, logname + "_rtd.pdf")
-    pltfile = os.path.join(PLOTDIR, "dat", logname + ".plt")
+
+    datfile_rti = os.path.join(logdir, "dat", logname + "_rti.dat")
+    datfile_rtd = os.path.join(logdir, "dat", logname + "_rtd.dat")
+    pdffile_rti = os.path.join(logdir, logname + "_rti.pdf")
+    pdffile_rtd = os.path.join(logdir, logname + "_rtd.pdf")
+    pltfile = os.path.join(logdir, "dat", logname + ".plt")
     rti_dat = []
     rtd_dat = []
 
