@@ -1,3 +1,7 @@
+#!/usr/bin/env python
+
+import sys
+import os
 from mininet.topo import Topo
 
 class FattreeTopo(Topo):
@@ -52,3 +56,59 @@ class FattreeTopo(Topo):
                     self.addLink(edge_sw, hostobj)
 
 topos = { 'fattree' : FattreeTopo }
+
+if __name__ == "__main__":
+    import sys
+
+    if len(sys.argv) != 2:
+        sys.exit(0)
+
+    k = int(sys.argv[1])
+    topo = FattreeTopo(k)
+
+    # add ravel to path
+    path = ""
+    if 'PYTHONPATH' in os.environ:
+        path = os.environ['PYTHONPATH']
+
+    sys.path = path.split(':') + sys.path
+    cwd = os.path.dirname(os.path.abspath(__file__))
+    raveldir = os.path.normpath(os.path.join(cwd, ".."))
+    sys.path.append(os.path.abspath(raveldir))
+
+    from ravel.db import RavelDb, BASE_SQL
+
+    db = RavelDb("mininet", "mininet", BASE_SQL)
+    db.cursor.execute("DELETE FROM switches; DELETE FROM hosts; DELETE FROM tp;")
+    nodecount = 0
+    nodemap = {}
+    hosts = []
+    for sw in topo.switches():
+        db.cursor.execute("INSERT INTO SWITCHES(sid, name) VALUES({0}, '{1}');"
+                          .format(nodecount, sw))
+        nodemap[sw] = nodecount
+        nodecount += 1
+
+    for host in topo.hosts():
+        db.cursor.execute("INSERT INTO hosts(hid, name) VALUES({0}, '{1}');"
+                          .format(nodecount, host))
+        nodemap[host] = nodecount
+        hosts.append(host)
+        nodecount += 1
+
+    for edge1, edge2 in topo.links():
+        sid = nodemap[edge1]
+        nid = nodemap[edge2]
+        if edge1 in hosts or edge2 in hosts:
+            ishost = 1
+        else:
+            ishost = 0
+
+        if hasattr(topo, "bidirectional") and not topo.bidirectional:
+            db.cursor.execute("INSERT INTO tp(sid, nid, ishost, isactive) "
+                              "VALUES({0}, {1}, {2}, 1);"
+                              .format(sid, nid, ishost))
+        else:
+            db.cursor.execute("INSERT INTO tp(sid, nid, ishost, isactive) "
+                              "VALUES({0}, {1}, {2}, 1),({1}, {0}, {2}, 1);"
+                              .format(sid, nid, ishost))
