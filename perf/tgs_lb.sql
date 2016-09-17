@@ -1,0 +1,83 @@
+DROP TABLE IF EXISTS lb_m CASCADE;
+DROP TRIGGER IF EXISTS utm_1 ON rm;
+DROP TRIGGER IF EXISTS lb_tb_1 ON lb_tb;
+
+---CREATE TABLE lb_m AS 
+---SELECT sid, count(*) AS load
+---FROM lb_tb, utm
+---WHERE lb_tb.sid = utm.host2
+---GROUP BY sid;
+
+CREATE TABLE lb_m AS(
+	SELECT sid,
+		(SELECT count(*) FROM rm
+		 WHERE dst = sid) AS load
+	FROM lb_tb
+	);
+
+
+CREATE OR REPLACE FUNCTION r_1()
+RETURNS TRIGGER AS
+$$
+if(TD["event"] == "INSERT"):
+	new_host2 = TD["new"]["dst"]
+	m_row = plpy.execute("SELECT * FROM lb_tb WHERE sid ="+ str(new_host2))
+	if(m_row.nrows() != 0):
+		plpy.execute("UPDATE lb_m SET load = load + 1 WHERE sid = "+ str(new_host2) + ";")
+
+if(TD["event"] == "DELETE"):
+	old_host2 = TD["old"]["dst"]
+	plpy.execute("UPDATE lb_m SET load = load - 1 WHERE sid = "+ str(old_host2) + ";")
+	#plpy.execute("delete from lb_m where load = 0;")
+
+if(TD["event"] == "UPDATE"):
+	new_host2 = TD["new"]["dst"]
+	old_host2 = TD["old"]["dst"]
+	if (new_host2 != old_host2):
+		plpy.execute("UPDATE lb_m SET load = load - 1 WHERE sid = "+ str(old_host2) + ";")
+		m_row = plpy.execute("SELECT * FROM lb_tb WHERE sid ="+ str(new_host2))
+        	if(m_row.nrows() != 0):
+                	plpy.execute("UPDATE lb_m SET load = load + 1 WHERE sid = "+ str(new_host2) + ";")
+		
+
+return None;
+$$
+LANGUAGE 'plpythonu' VOLATILE SECURITY DEFINER;
+
+
+
+CREATE TRIGGER utm_1
+	BEFORE INSERT OR DELETE OR UPDATE ON rm
+	FOR EACH ROW
+EXECUTE PROCEDURE r_1();
+
+
+CREATE OR REPLACE FUNCTION r_2()
+RETURNS TRIGGER AS
+$$
+if(TD["event"] == "DELETE"):
+	old_sid = TD["old"]["sid"]
+	plpy.execute("DELETE FROM lb_m WHERE sid ="+ str(old_sid)+ ";")
+
+if(TD["event"] == "INSERT"):
+	new_sid = TD["new"]["sid"]
+	res = plpy.execute("SELECT * FROM rm WHERE dst = "+ str(new_sid)+ ";")
+	count = res.nrows()
+	plpy.execute("INSERT INTO lb_m VALUES(" + str(new_sid)+ ", " + str(count)+ ");")
+
+if(TD["event"] == "UPDATE"):
+	new_sid = TD["new"]["sid"]
+	old_sid = TD["old"]["sid"]
+	if(new_sid != old_sid):
+		plpy.execute("DELETE FROM lb_m WHERE sid ="+ str(old_sid)+ ";")
+		res = plpy.execute("SELECT * FROM rm WHERE dst = "+ str(new_sid)+ ";")
+        	count = res.nrows()
+        	plpy.execute("INSERT INTO lb_m VALUES(" + str(new_sid)+ ", " + str(count)+ ");")
+
+$$
+LANGUAGE 'plpythonu' VOLATILE SECURITY DEFINER;
+
+CREATE TRIGGER lb_tb_1
+	BEFORE INSERT OR DELETE OR UPDATE ON lb_tb
+	FOR EACH ROW
+EXECUTE PROCEDURE r_2();
