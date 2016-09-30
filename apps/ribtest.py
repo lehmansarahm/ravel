@@ -12,8 +12,9 @@ from ravel.log import logger
 from ravel.util import resource_file
 from ravel.messaging import clear_queue
 
-#RIB_SIZE = 1000000
-RIB_SIZE = 1000
+RIB_SIZE = 1000000
+
+graph = None
 
 def precompute_paths(db):
     db.cursor.execute("""
@@ -46,6 +47,8 @@ CREATE INDEX ON pre_cf(id);
 
     g = networkx.Graph()
     g.add_edges_from(edges)
+    global graph
+    graph = g
 
     count = 0
     pre_paths = []
@@ -58,6 +61,9 @@ CREATE INDEX ON pre_cf(id);
 
             if count > 1000000:
                 break
+
+            # if count > 1:
+            #     break
 
             try:
                 path = networkx.shortest_path(g, src, dst)
@@ -337,7 +343,7 @@ while True:
         failed = True
         error = "this should not be reachable"
 
-if count != len(edges):
+if count != len(edges) and s != d:
     failed = True
     error = "wrong path length"
 
@@ -681,7 +687,7 @@ while True:
         failed = True
         error = "this should not be reachable"
 
-if count != len(edges):
+if count != len(edges) and s != d:
     failed = True
     error = "wrong path length s:{0}, d:{1}, cnt:{2}, len{3} -- {4}".format(s, d, count, len(edges), edges)
 
@@ -743,7 +749,27 @@ class RibTestConsole(AppConsole):
 
         return nodemap
 
-    def make_paths(self, nodes, rib_size):
+    def add_precomputed(self, nodemap, src, dst):
+        # self.db.cursor.execute("SELECT COUNT(id) FROM pre_paths WHERE src={0} AND dst={1};"
+        #                        .format(nodemap[src], nodemap[dst]))
+        # count = int(self.db.cursor.fetchall()[0][0])
+
+        # if count == 0:
+        self.db.cursor.execute("SELECT COUNT(*) FROM pre_paths;")
+
+        idx = int(self.db.cursor.fetchall()[0][0])
+        self.db.cursor.execute("INSERT INTO pre_paths(id, src, dst) VALUES "
+                               "({0}, {1}, {2});"
+                               .format(idx+1, nodemap[src], nodemap[dst]))
+
+        path = networkx.shortest_path(graph, nodemap[src], nodemap[dst])
+        # TODO: how to handle pathlen=2?
+        for i in range(2, len(path)):
+            self.db.cursor.execute("INSERT INTO pre_cf(id, pid, sid, nid) VALUES "
+                                   "({0}, {1}, {2}, {3});"
+                                   .format(idx, path[i-2], path[i-1], path[i]))
+
+    def make_paths(self, nodes, rib_size, nodemap):
         prefix_file = "apps/ribtest/rib_prefixes.txt"
         ip_file = "apps/ribtest/rib_nodes.txt"
 
@@ -771,6 +797,16 @@ class RibTestConsole(AppConsole):
         prefixmap = {}
 
         paths = []
+
+        precomputed = {}
+        self.db.cursor.execute("SELECT src,dst FROM pre_paths;")
+        fetch = self.db.cursor.fetchall()
+        for n in fetch:
+            if n[0] not in precomputed:
+                precomputed[n[0]] = []
+
+            precomputed[n[0]].append(n[1])
+
         for line in edges:
             tokens = line.split()
             ip = tokens[0]
@@ -793,6 +829,26 @@ class RibTestConsole(AppConsole):
 
             paths.append((src, dst))
 
+            s = nodemap[src]
+            d = nodemap[dst]
+
+            if s not in precomputed:
+                precomputed[s] = []
+                self.add_precomputed(nodemap, src, dst)
+                precomputed[s].append(d)
+            if d not in precomputed[s]:
+                self.add_precomputed(nodemap, src, dst)
+                precomputed[s].append(d)
+            if d not in precomputed:
+                precomputed[d] = []
+                self.add_precomputed(nodemap, dst, src)
+                precomputed[d].append(s)
+            if s not in precomputed[d]:
+                self.add_precomputed(nodemap, dst, src)
+                precomputed[d].append(s)
+
+            # if not in pre_compute
+
         return paths
 
     def do_test(self, line):
@@ -806,6 +862,8 @@ class RibTestConsole(AppConsole):
                 print "Invalid integer", line
                 return
 
+        precompute_paths(self.db)
+
         self.db.cursor.execute("SELECT name FROM hosts;")
         results = self.db.cursor.fetchall()
         nodes = [n[0] for n in results]
@@ -816,7 +874,7 @@ class RibTestConsole(AppConsole):
         for n in results:
             nodemap[n[1]] = n[0]
 
-        paths = self.make_paths(nodes, size)
+        paths = self.make_paths(nodes, size, nodemap)
         print "#paths:", len(paths)
 
         # disable flow triggers
@@ -830,7 +888,6 @@ class RibTestConsole(AppConsole):
         self.db.cursor.execute(vaccuum.format("cf"))
         self.db.cursor.execute(vaccuum.format("rm"))
 
-        precompute_paths(self.db)
         tests = [
             BaselinePrecomputedTest(self.db, self.env),
             OrchestrationPrecomputedTest(self.db, self.env),
