@@ -1,424 +1,105 @@
-2016-12-06 19:23:18.299557 [ERROR] - Process not found! Time to restart with topology: single,3
-2016-12-06 19:25:28.541047 [ERROR] - Process not found! Time to restart with topology: single,3
-2016-12-06 19:25:38.555876 [INFO] - Process found!
-2016-12-06 19:25:48.568570 [INFO] - Process found!
-2016-12-06 19:25:58.572267 [INFO] - Process found!
-2016-12-06 19:26:08.580991 [ERROR] - Process not found! Time to restart with topology: single,3
-2016-12-06 19:26:18.596867 [INFO] - Process found!
-2016-12-06 19:26:28.597408 [INFO] - Process found!
-2016-12-06 19:26:38.608163 [INFO] - Process found!
-2016-12-06 19:26:48.618769 [INFO] - Process found!
-2016-12-07 10:11:52.719845 [ERROR] - Process not found! Time to restart with topology: single,3
-2016-12-07 10:12:02.732154 [INFO] - Process found!
-2016-12-07 10:12:12.737796 [INFO] - Process found!
-2016-12-07 10:12:22.746216 [ERROR] - Process not found! Time to restart with topology: single,3
-2016-12-07 10:12:32.758473 [INFO] - Process found!
-2016-12-07 10:12:42.767795 [INFO] - Process found!
-2016-12-07 10:12:52.778632 [INFO] - Process found!
-2016-12-07 10:13:02.787809 [INFO] - Process found!
-2016-12-07 10:13:12.790859 [INFO] - Process found!
-2016-12-07 10:13:22.800370 [INFO] - Process found!
-2016-12-07 10:13:32.810017 [INFO] - Process found!
-2016-12-07 10:13:42.812657 [INFO] - Process found!
-2016-12-07 10:13:52.813660 [INFO] - Process found!
-2016-12-07 10:14:02.824269 [INFO] - Process found!
-2016-12-07 10:14:12.835094 [INFO] - Process found!
-2016-12-07 10:14:22.837751 [INFO] - Process found!
-2016-12-07 10:14:32.849036 [INFO] - Process found!
-2016-12-07 10:14:42.852619 [INFO] - Process found!
-2016-12-07 10:14:52.862813 [INFO] - Process found!
-2016-12-07 10:15:02.867150 [INFO] - Process found!
-2016-12-07 10:15:12.872494 [INFO] - Process found!
-2016-12-07 10:15:22.874376 [INFO] - Process found!
-2016-12-07 10:15:32.885309 [INFO] - Process found!
-2016-12-07 10:15:42.888049 [INFO] - Process found!
-2016-12-07 10:15:52.898735 [INFO] - Process found!
-2016-12-07 10:16:02.905854 [INFO] - Process found!
-2016-12-07 10:16:12.912779 [INFO] - Process found!
-2016-12-07 10:16:22.913583 [INFO] - Process found!
-2016-12-07 10:16:32.924930 [INFO] - Process found!
-2016-12-07 10:16:42.934874 [INFO] - Process found!
-2016-12-07 10:16:52.943593 [INFO] - Process found!
-2016-12-07 10:17:02.949253 [INFO] - Process found!
-2016-12-07 10:17:12.959399 [INFO] - Process found!
-2016-12-07 10:17:22.962826 [INFO] - Process found!
-2016-12-07 10:17:32.973566 [INFO] - Process found!
-2016-12-07 10:17:42.984399 [INFO] - Process found!
-2016-12-07 10:17:52.987823 [INFO] - Process found!
-2016-12-07 10:18:02.990811 [INFO] - Process found!
-2016-12-07 10:18:13.000620 [INFO] - Process found!
-2016-12-07 10:18:23.009934 [INFO] - Process found!
-2016-12-07 10:18:33.012941 [INFO] - Process found!
-2016-12-07 10:18:43.018186 [INFO] - Process found!
-2016-12-07 10:18:53.029552 [INFO] - Process found!
-2016-12-07 10:19:03.040970 [INFO] - Process found!
-2016-12-07 10:19:13.052701 [INFO] - Process found!
-2016-12-07 10:19:23.062738 [INFO] - Process found!
-2016-12-07 10:19:33.075570 [INFO] - Process found!
-2016-12-07 10:19:43.084532 [INFO] - Process found!
-2016-12-07 10:19:53.087775 [INFO] - Process found!
-2016-12-07 10:20:03.098768 [INFO] - Process found!
-2016-12-07 10:20:13.109901 [INFO] - Process found!
-2016-12-07 10:20:23.112791 [INFO] - Process found!
-2016-12-07 10:20:33.123164 [INFO] - Process found!
-2016-12-07 10:20:43.132530 [INFO] - Process found!
-2016-12-07 10:20:53.142577 [INFO] - Process found!
-2016-12-07 10:21:03.143075 [INFO] - Process found!
-2016-12-07 10:21:13.151168 [INFO] - Process found!
-2016-12-07 10:21:23.159808 [INFO] - Process found!
-2016-12-07 10:21:33.167179 [INFO] - Process found!
-2016-12-07 10:21:43.172315 [INFO] - Process found!
-2016-12-07 10:21:53.179748 [INFO] - Process found!
-2016-12-07 10:22:03.198242 [INFO] - Process found!
-2016-12-07 11:14:56.129161 [ERROR] - Process not found! Time to restart with topology: 
-2016-12-07 11:15:06.143597 [ERROR] - Process not found! Time to restart with topology: 
-2016-12-07 11:15:34.666259 [ERROR] - Process not found! Time to restart with topology: single,3
-
-2016-12-07 11:15:44.684244 [INFO] - Process found!
-2016-12-07 11:15:54.687999 [INFO] - Process found!
-2016-12-07 11:16:04.701254 [INFO] - Process found!
-2016-12-07 11:16:14.710160 [INFO] - Process found!
-2016-12-07 11:16:24.714429 [INFO] - Process found!
-2016-12-07 11:16:34.721247 [INFO] - Process found!
-2016-12-07 11:55:02.863425 [INFO] - Process found!
-2016-12-07 11:55:12.871729 [INFO] - Process found!
-2016-12-07 11:55:22.879638 [INFO] - Process found!
-2016-12-07 11:55:32.893536 [INFO] - Process found!
-2016-12-07 11:55:42.904507 [INFO] - Process found!
-2016-12-07 11:55:52.911713 [INFO] - Process found!
-2016-12-07 11:56:02.922510 [INFO] - Process found!
-2016-12-07 11:56:12.933118 [INFO] - Process found!
-2016-12-07 11:56:22.936618 [INFO] - Process found!
-2016-12-07 11:56:32.947552 [INFO] - Process found!
-2016-12-07 11:56:42.954426 [INFO] - Process found!
-2016-12-07 11:56:52.961905 [INFO] - Process found!
-2016-12-07 11:57:02.968270 [INFO] - Process found!
-2016-12-07 11:57:12.978891 [INFO] - Process found!
-2016-12-07 11:57:22.987380 [INFO] - Process found!
-2016-12-07 11:57:32.991545 [INFO] - Process found!
-2016-12-07 11:57:43.002398 [INFO] - Process found!
-2016-12-07 11:57:53.012212 [INFO] - Process found!
-2016-12-07 11:58:03.023252 [INFO] - Process found!
-2016-12-07 11:58:13.030356 [INFO] - Process found!
-2016-12-07 11:58:23.037168 [INFO] - Process found!
-2016-12-07 11:58:33.042728 [INFO] - Process found!
-2016-12-07 11:58:43.042930 [INFO] - Process found!
-2016-12-07 11:58:53.049638 [INFO] - Process found!
-2016-12-07 11:59:03.059410 [INFO] - Process found!
-2016-12-07 11:59:13.061399 [INFO] - Process found!
-2016-12-07 11:59:23.072192 [INFO] - Process found!
-2016-12-07 11:59:33.079644 [INFO] - Process found!
-2016-12-07 11:59:43.086478 [INFO] - Process found!
-2016-12-07 11:59:53.092698 [INFO] - Process found!
-2016-12-07 12:00:03.094230 [INFO] - Process found!
-2016-12-07 12:00:13.104527 [INFO] - Process found!
-2016-12-07 12:00:23.112220 [INFO] - Process found!
-2016-12-07 12:00:33.122681 [INFO] - Process found!
-2016-12-07 12:00:43.131748 [INFO] - Process found!
-2016-12-07 12:00:53.136804 [INFO] - Process found!
-2016-12-07 12:01:03.147246 [INFO] - Process found!
-2016-12-07 12:01:13.154397 [INFO] - Process found!
-2016-12-07 12:01:23.162255 [INFO] - Process found!
-2016-12-07 12:01:33.172399 [INFO] - Process found!
-2016-12-07 12:01:43.179564 [INFO] - Process found!
-2016-12-07 12:01:53.187376 [INFO] - Process found!
-2016-12-07 12:02:03.197298 [INFO] - Process found!
-2016-12-07 12:02:13.207996 [INFO] - Process found!
-2016-12-07 12:02:23.216953 [INFO] - Process found!
-2016-12-07 12:02:33.226012 [INFO] - Process found!
-2016-12-07 12:02:43.236473 [INFO] - Process found!
-2016-12-07 12:02:53.248807 [INFO] - Process found!
-2016-12-07 12:03:03.259220 [INFO] - Process found!
-2016-12-07 12:03:13.270435 [INFO] - Process found!
-2016-12-07 12:03:23.281941 [INFO] - Process found!
-2016-12-07 12:03:33.291331 [INFO] - Process found!
-2016-12-07 12:03:43.301390 [INFO] - Process found!
-2016-12-07 12:03:53.311183 [INFO] - Process found!
-2016-12-07 12:04:03.322369 [INFO] - Process found!
-2016-12-07 12:04:13.332503 [INFO] - Process found!
-2016-12-07 12:04:23.340509 [INFO] - Process found!
-2016-12-07 12:04:33.352963 [INFO] - Process found!
-2016-12-07 12:04:43.362085 [INFO] - Process found!
-2016-12-07 12:04:53.371303 [INFO] - Process found!
-2016-12-07 12:05:03.386475 [INFO] - Process found!
-2016-12-07 12:05:13.389036 [INFO] - Process found!
-2016-12-07 12:05:23.399893 [INFO] - Process found!
-2016-12-07 12:05:33.410196 [INFO] - Process found!
-2016-12-07 12:05:43.412129 [INFO] - Process found!
-2016-12-07 12:05:53.422186 [INFO] - Process found!
-2016-12-07 12:06:03.429944 [INFO] - Process found!
-2016-12-07 12:06:13.439831 [INFO] - Process found!
-2016-12-07 12:06:23.450572 [INFO] - Process found!
-2016-12-07 12:06:33.454573 [INFO] - Process found!
-2016-12-07 12:06:43.461424 [INFO] - Process found!
-2016-12-07 12:06:53.462061 [INFO] - Process found!
-2016-12-07 12:07:03.472008 [INFO] - Process found!
-2016-12-07 12:07:13.480470 [INFO] - Process found!
-2016-12-07 12:07:23.491353 [INFO] - Process found!
-2016-12-07 12:07:33.502102 [INFO] - Process found!
-2016-12-07 12:07:43.512032 [INFO] - Process found!
-2016-12-07 12:07:53.522606 [INFO] - Process found!
-2016-12-07 12:08:03.529425 [INFO] - Process found!
-2016-12-07 12:08:13.536755 [INFO] - Process found!
-2016-12-07 12:08:23.543498 [INFO] - Process found!
-2016-12-07 12:08:33.553546 [INFO] - Process found!
-2016-12-07 12:08:43.561950 [INFO] - Process found!
-2016-12-07 12:08:53.572432 [INFO] - Process found!
-2016-12-07 12:09:03.579534 [INFO] - Process found!
-2016-12-07 12:09:13.587254 [INFO] - Process found!
-2016-12-07 12:09:23.590350 [INFO] - Process found!
-2016-12-07 12:09:33.601048 [INFO] - Process found!
-2016-12-07 12:09:43.611575 [INFO] - Process found!
-2016-12-07 12:09:53.622830 [INFO] - Process found!
-2016-12-07 12:10:03.632036 [INFO] - Process found!
-2016-12-07 12:10:13.640257 [INFO] - Process found!
-2016-12-07 12:10:23.648007 [INFO] - Process found!
-2016-12-07 12:10:33.655432 [INFO] - Process found!
-2016-12-07 12:10:43.663857 [INFO] - Process found!
-2016-12-07 12:10:53.671251 [INFO] - Process found!
-2016-12-07 12:11:03.680277 [INFO] - Process found!
-2016-12-07 12:11:13.687982 [INFO] - Process found!
-2016-12-07 12:11:23.696334 [INFO] - Process found!
-2016-12-07 12:11:33.712655 [INFO] - Process found!
-2016-12-07 12:11:43.721404 [INFO] - Process found!
-2016-12-07 12:11:53.731669 [INFO] - Process found!
-2016-12-07 12:12:03.742125 [INFO] - Process found!
-2016-12-07 12:12:13.752534 [INFO] - Process found!
-2016-12-07 12:12:23.761506 [INFO] - Process found!
-2016-12-07 12:12:33.771648 [INFO] - Process found!
-2016-12-07 12:12:43.779505 [INFO] - Process found!
-2016-12-07 12:12:53.787828 [INFO] - Process found!
-2016-12-07 12:13:03.794899 [INFO] - Process found!
-2016-12-07 12:13:13.804433 [INFO] - Process found!
-2016-12-07 12:13:23.811712 [INFO] - Process found!
-2016-12-07 12:13:33.811964 [INFO] - Process found!
-2016-12-07 12:13:43.822853 [INFO] - Process found!
-2016-12-07 12:13:53.834185 [INFO] - Process found!
-2016-12-07 12:14:03.836374 [INFO] - Process found!
-2016-12-07 12:14:13.846248 [INFO] - Process found!
-2016-12-07 12:14:23.854929 [INFO] - Process found!
-2016-12-07 12:14:33.863064 [INFO] - Process found!
-2016-12-07 12:14:43.873778 [INFO] - Process found!
-2016-12-07 12:14:53.879668 [INFO] - Process found!
-2016-12-07 12:15:03.886273 [INFO] - Process found!
-2016-12-07 12:15:13.897147 [INFO] - Process found!
-2016-12-07 12:15:23.905837 [INFO] - Process found!
-2016-12-07 12:15:33.915496 [INFO] - Process found!
-2016-12-07 12:15:43.926813 [INFO] - Process found!
-2016-12-07 12:15:53.936201 [INFO] - Process found!
-2016-12-07 12:16:03.938602 [INFO] - Process found!
-2016-12-07 12:16:13.948101 [INFO] - Process found!
-2016-12-07 12:16:23.957928 [INFO] - Process found!
-2016-12-07 12:16:33.963980 [INFO] - Process found!
-2016-12-07 12:16:43.973634 [INFO] - Process found!
-2016-12-07 12:16:53.980151 [INFO] - Process found!
-2016-12-07 12:17:03.986294 [INFO] - Process found!
-2016-12-07 12:17:13.993698 [INFO] - Process found!
-2016-12-07 12:17:24.003597 [INFO] - Process found!
-2016-12-07 12:17:34.011365 [INFO] - Process found!
-2016-12-07 12:17:44.018025 [INFO] - Process found!
-2016-12-07 12:17:54.030588 [INFO] - Process found!
-2016-12-07 12:18:04.039199 [INFO] - Process found!
-2016-12-07 12:18:14.047793 [INFO] - Process found!
-2016-12-07 12:18:24.055606 [INFO] - Process found!
-2016-12-07 12:18:34.064871 [INFO] - Process found!
-2016-12-07 12:18:44.074126 [INFO] - Process found!
-2016-12-07 12:18:54.083831 [INFO] - Process found!
-2016-12-07 12:19:04.098800 [INFO] - Process found!
-2016-12-07 12:19:14.107822 [INFO] - Process found!
-2016-12-07 12:19:24.116131 [INFO] - Process found!
-2016-12-07 12:19:34.121878 [INFO] - Process found!
-2016-12-07 12:19:44.132311 [INFO] - Process found!
-2016-12-07 12:19:54.139430 [INFO] - Process found!
-2016-12-07 12:20:04.147407 [INFO] - Process found!
-2016-12-07 12:20:14.154406 [INFO] - Process found!
-2016-12-07 12:20:24.163443 [INFO] - Process found!
-2016-12-07 12:20:34.174089 [INFO] - Process found!
-2016-12-07 12:20:44.180243 [INFO] - Process found!
-2016-12-07 12:20:54.186805 [INFO] - Process found!
-2016-12-07 12:21:04.198099 [INFO] - Process found!
-2016-12-07 12:21:14.204721 [INFO] - Process found!
-2016-12-07 12:21:24.211827 [INFO] - Process found!
-2016-12-07 12:21:34.222363 [INFO] - Process found!
-2016-12-07 12:21:44.229406 [INFO] - Process found!
-2016-12-07 12:21:54.237162 [INFO] - Process found!
-2016-12-07 12:22:04.248260 [INFO] - Process found!
-2016-12-07 12:22:14.254418 [INFO] - Process found!
-2016-12-07 12:22:24.262371 [INFO] - Process found!
-2016-12-07 12:22:34.273758 [INFO] - Process found!
-2016-12-07 12:22:44.279634 [INFO] - Process found!
-2016-12-07 12:22:54.287751 [INFO] - Process found!
-2016-12-07 12:23:04.297938 [INFO] - Process found!
-2016-12-07 12:23:14.307649 [INFO] - Process found!
-2016-12-07 12:23:24.311887 [INFO] - Process found!
-2016-12-07 12:23:34.322801 [INFO] - Process found!
-2016-12-07 12:23:44.329442 [INFO] - Process found!
-2016-12-07 12:23:54.336403 [INFO] - Process found!
-2016-12-07 12:24:04.337149 [INFO] - Process found!
-2016-12-07 12:24:14.347809 [INFO] - Process found!
-2016-12-07 12:24:24.354623 [INFO] - Process found!
-2016-12-07 12:24:34.361856 [INFO] - Process found!
-2016-12-07 12:24:44.372047 [INFO] - Process found!
-2016-12-07 12:24:54.379696 [INFO] - Process found!
-2016-12-07 12:25:04.387208 [INFO] - Process found!
-2016-12-07 12:25:14.398085 [INFO] - Process found!
-2016-12-07 12:25:24.407497 [INFO] - Process found!
-2016-12-07 12:25:34.413042 [INFO] - Process found!
-2016-12-07 12:25:44.423102 [INFO] - Process found!
-2016-12-07 12:25:54.429496 [INFO] - Process found!
-2016-12-07 12:26:04.436734 [INFO] - Process found!
-2016-12-07 12:26:14.438418 [INFO] - Process found!
-2016-12-07 12:26:24.448926 [INFO] - Process found!
-2016-12-07 12:26:34.454597 [INFO] - Process found!
-2016-12-07 12:26:44.464023 [INFO] - Process found!
-2016-12-07 12:26:54.471946 [INFO] - Process found!
-2016-12-07 12:27:04.479634 [INFO] - Process found!
-2016-12-07 12:27:14.486345 [INFO] - Process found!
-2016-12-07 12:27:24.487159 [INFO] - Process found!
-2016-12-07 12:27:34.497510 [INFO] - Process found!
-2016-12-07 12:27:44.504485 [INFO] - Process found!
-2016-12-07 12:27:54.511907 [INFO] - Process found!
-2016-12-07 12:28:04.521574 [INFO] - Process found!
-2016-12-07 12:28:14.529402 [INFO] - Process found!
-2016-12-07 12:28:24.536179 [INFO] - Process found!
-2016-12-07 12:28:34.547669 [INFO] - Process found!
-2016-12-07 12:28:44.560721 [INFO] - Process found!
-2016-12-07 12:28:54.561733 [INFO] - Process found!
-2016-12-07 12:29:04.571916 [INFO] - Process found!
-2016-12-07 12:29:14.579874 [INFO] - Process found!
-2016-12-07 12:29:24.587056 [INFO] - Process found!
-2016-12-07 12:29:34.597937 [INFO] - Process found!
-2016-12-07 12:29:44.604484 [INFO] - Process found!
-2016-12-07 12:29:54.611716 [INFO] - Process found!
-2016-12-07 12:30:04.622679 [INFO] - Process found!
-2016-12-07 12:30:14.629780 [INFO] - Process found!
-2016-12-07 12:30:24.636831 [INFO] - Process found!
-2016-12-07 12:30:34.647295 [INFO] - Process found!
-2016-12-07 12:30:44.654540 [INFO] - Process found!
-2016-12-07 12:30:54.661826 [INFO] - Process found!
-2016-12-07 12:31:04.662892 [INFO] - Process found!
-2016-12-07 12:31:14.669847 [INFO] - Process found!
-2016-12-07 12:31:24.679579 [INFO] - Process found!
-2016-12-07 12:31:34.687812 [INFO] - Process found!
-2016-12-07 12:31:44.689953 [INFO] - Process found!
-2016-12-07 12:31:54.690499 [INFO] - Process found!
-2016-12-07 12:32:04.691223 [INFO] - Process found!
-2016-12-07 12:32:14.701680 [INFO] - Process found!
-2016-12-07 12:32:24.711631 [INFO] - Process found!
-2016-12-07 12:32:34.722588 [INFO] - Process found!
-2016-12-07 12:32:44.731890 [INFO] - Process found!
-2016-12-07 12:32:54.736493 [INFO] - Process found!
-2016-12-07 12:33:04.740538 [INFO] - Process found!
-2016-12-07 12:33:14.742953 [INFO] - Process found!
-2016-12-07 12:33:24.754291 [INFO] - Process found!
-2016-12-07 12:33:34.761798 [INFO] - Process found!
-2016-12-07 12:33:44.772529 [INFO] - Process found!
-2016-12-07 12:33:54.779879 [INFO] - Process found!
-2016-12-07 12:34:04.786183 [INFO] - Process found!
-2016-12-07 12:34:14.786466 [INFO] - Process found!
-2016-12-07 12:34:24.791249 [INFO] - Process found!
-2016-12-07 12:34:34.803513 [INFO] - Process found!
-2016-12-07 12:34:44.813852 [INFO] - Process found!
-2016-12-07 12:34:54.826001 [INFO] - Process found!
-2016-12-07 12:35:04.836486 [INFO] - Process found!
-2016-12-07 12:35:14.837328 [INFO] - Process found!
-2016-12-07 12:35:24.847512 [INFO] - Process found!
-2016-12-07 12:35:34.854716 [INFO] - Process found!
-2016-12-07 12:35:44.862068 [INFO] - Process found!
-2016-12-07 12:35:54.869888 [INFO] - Process found!
-2016-12-07 12:36:04.879412 [INFO] - Process found!
-2016-12-07 12:36:14.887032 [INFO] - Process found!
-2016-12-07 12:36:24.892948 [INFO] - Process found!
-2016-12-07 12:36:34.903036 [INFO] - Process found!
-2016-12-07 12:36:44.913326 [INFO] - Process found!
-2016-12-07 12:36:54.923343 [INFO] - Process found!
-2016-12-07 12:37:04.933709 [INFO] - Process found!
-2016-12-07 12:37:14.942046 [INFO] - Process found!
-2016-12-07 12:37:24.952769 [INFO] - Process found!
-2016-12-07 12:37:34.961410 [INFO] - Process found!
-2016-12-07 12:37:44.966701 [INFO] - Process found!
-2016-12-07 12:37:54.977412 [INFO] - Process found!
-2016-12-07 12:38:04.986488 [INFO] - Process found!
-2016-12-07 12:38:14.994977 [INFO] - Process found!
-2016-12-07 12:38:25.004727 [INFO] - Process found!
-2016-12-07 12:38:35.011765 [INFO] - Process found!
-2016-12-07 12:38:45.022252 [INFO] - Process found!
-2016-12-07 12:38:55.031988 [INFO] - Process found!
-2016-12-07 12:39:05.036561 [INFO] - Process found!
-2016-12-07 12:39:15.046992 [INFO] - Process found!
-2016-12-07 12:39:25.056745 [INFO] - Process found!
-2016-12-07 12:39:35.061486 [INFO] - Process found!
-2016-12-07 12:39:45.072167 [INFO] - Process found!
-2016-12-07 12:39:55.079427 [INFO] - Process found!
-2016-12-07 12:40:05.087153 [INFO] - Process found!
-2016-12-07 12:40:15.098592 [INFO] - Process found!
-2016-12-07 12:40:25.105842 [INFO] - Process found!
-2016-12-07 12:40:35.114556 [INFO] - Process found!
-2016-12-07 12:40:45.124761 [INFO] - Process found!
-2016-12-07 12:40:55.129397 [INFO] - Process found!
-2016-12-07 12:41:05.139295 [INFO] - Process found!
-2016-12-07 12:41:15.143772 [INFO] - Process found!
-2016-12-07 12:41:25.152724 [INFO] - Process found!
-2016-12-07 12:41:35.161200 [INFO] - Process found!
-2016-12-07 12:41:45.161555 [INFO] - Process found!
-2016-12-07 12:41:55.173411 [INFO] - Process found!
-2016-12-07 12:42:05.179814 [INFO] - Process found!
-2016-12-07 12:42:15.186115 [INFO] - Process found!
-2016-12-07 12:42:25.186712 [INFO] - Process found!
-2016-12-07 12:42:35.188380 [INFO] - Process found!
-2016-12-07 12:42:45.198791 [INFO] - Process found!
-2016-12-07 12:42:55.205405 [INFO] - Process found!
-2016-12-07 12:43:05.211233 [INFO] - Process found!
-2016-12-07 12:43:15.211926 [INFO] - Process found!
-2016-12-07 12:43:25.223008 [INFO] - Process found!
-2016-12-07 12:43:35.229982 [INFO] - Process found!
-2016-12-07 12:43:45.238091 [INFO] - Process found!
-2016-12-07 12:43:55.243951 [INFO] - Process found!
-2016-12-07 12:44:05.245572 [INFO] - Process found!
-2016-12-07 12:44:15.254480 [INFO] - Process found!
-2016-12-07 12:44:25.263727 [INFO] - Process found!
-2016-12-07 12:44:35.274102 [INFO] - Process found!
-2016-12-07 12:44:45.284287 [INFO] - Process found!
-2016-12-07 12:44:55.291862 [INFO] - Process found!
-2016-12-07 12:45:05.296201 [INFO] - Process found!
-2016-12-07 12:45:15.304636 [INFO] - Process found!
-2016-12-07 12:45:25.311281 [INFO] - Process found!
-2016-12-07 12:45:35.314896 [INFO] - Process found!
-2016-12-07 12:45:45.326497 [INFO] - Process found!
-2016-12-07 12:45:55.336414 [INFO] - Process found!
-2016-12-07 12:46:05.346994 [INFO] - Process found!
-2016-12-07 12:46:15.355796 [INFO] - Process found!
-2016-12-07 12:46:25.362513 [INFO] - Process found!
-2016-12-07 12:46:35.372731 [INFO] - Process found!
-2016-12-07 12:46:45.381911 [INFO] - Process found!
-2016-12-07 12:46:55.386780 [INFO] - Process found!
-2016-12-07 12:47:05.387569 [INFO] - Process found!
-2016-12-07 12:47:15.395977 [INFO] - Process found!
-2016-12-07 12:47:25.405085 [INFO] - Process found!
-2016-12-07 12:47:35.411668 [INFO] - Process found!
-2016-12-07 12:47:45.414694 [INFO] - Process found!
-2016-12-07 12:47:55.418158 [INFO] - Process found!
-2016-12-07 12:48:05.419443 [INFO] - Process found!
-2016-12-07 12:48:15.429764 [INFO] - Process found!
-2016-12-07 12:48:25.440903 [INFO] - Process found!
-2016-12-07 12:48:35.442191 [INFO] - Process found!
-2016-12-07 12:48:45.453616 [INFO] - Process found!
-2016-12-07 12:48:55.462258 [INFO] - Process found!
-2016-12-07 12:49:05.473131 [INFO] - Process found!
-2016-12-07 12:49:15.479758 [INFO] - Process found!
-2016-12-07 12:49:25.486446 [INFO] - Process found!
-2016-12-07 12:49:35.495344 [INFO] - Process found!
-2016-12-07 12:49:45.504493 [INFO] - Process found!
-2016-12-07 12:49:55.511920 [INFO] - Process found!
-2016-12-07 12:50:05.534108 [INFO] - Process found!
-2016-12-07 12:50:15.555346 [INFO] - Process found!
-2016-12-07 12:50:25.561387 [INFO] - Process found!
-2016-12-07 12:50:35.561985 [INFO] - Process found!
-2016-12-07 12:50:45.572817 [INFO] - Process found!
-2016-12-07 12:50:55.579707 [INFO] - Process found!
-2016-12-07 12:51:05.586445 [INFO] - Process found!
-2016-12-07 12:51:15.596167 [INFO] - Process found!
-2016-12-07 12:51:25.604607 [INFO] - Process found!
-2016-12-07 12:51:35.611762 [INFO] - Process found!
-2016-12-07 12:51:45.618325 [INFO] - Process found!
-2016-12-07 12:51:55.631297 [INFO] - Process found!
+2016-12-07 21:57:50.537875 [ERROR] - Process not found! Time to restart with topology: single,3
+2016-12-07 21:58:51.338944 [INFO] - Process found!  Backing up the database.
+2016-12-07 21:59:52.168418 [INFO] - Process found!  Backing up the database.
+2016-12-07 22:00:52.858312 [INFO] - Process found!  Backing up the database.
+2016-12-07 22:01:53.764607 [ERROR] - Process not found! Time to restart with topology: single,3
+2016-12-07 22:02:54.682614 [INFO] - Process found!  Backing up the database.
+2016-12-07 22:03:55.506932 [INFO] - Process found!  Backing up the database.
+2016-12-07 22:04:56.197085 [INFO] - Process found!  Backing up the database.
+2016-12-07 22:05:56.994720 [INFO] - Process found!  Backing up the database.
+2016-12-07 22:06:57.232459 [INFO] - Process found!  Backing up the database.
+2016-12-07 22:07:57.476174 [INFO] - Process found!  Backing up the database.
+2016-12-07 22:08:57.759195 [INFO] - Process found!  Backing up the database.
+2016-12-07 22:09:57.989099 [INFO] - Process found!  Backing up the database.
+2016-12-07 22:10:58.233709 [INFO] - Process found!  Backing up the database.
+2016-12-07 22:11:58.509429 [ERROR] - Process not found! Time to restart with topology: single,3
+2016-12-07 22:14:33.054767 [ERROR] - Process not found! Time to restart with topology: single,3
+2016-12-07 22:15:49.830324 [ERROR] - Process not found! Time to restart with topology: single,3
+2016-12-07 22:16:08.727478 [ERROR] - Process not found! Time to restart with topology: single,3
+2016-12-07 22:16:42.390929 [ERROR] - Process not found! Time to restart with topology: single,3
+2016-12-07 22:17:42.641883 [INFO] - Process found!  Backing up the database.
+2016-12-07 22:18:43.274790 [INFO] - Process found!  Backing up the database.
+2016-12-07 22:19:43.974567 [INFO] - Process found!  Backing up the database.
+2016-12-07 22:20:17.026249 [ERROR] - Process not found! Time to restart with topology: single,3
+2016-12-07 22:21:17.427418 [INFO] - Process found!  Backing up the database.
+2016-12-07 22:22:18.147056 [INFO] - Process found!  Backing up the database.
+2016-12-07 22:23:18.824548 [INFO] - Process found!  Backing up the database.
+2016-12-07 22:24:19.441766 [INFO] - Process found!  Backing up the database.
+2016-12-07 22:25:19.667001 [INFO] - Process found!  Backing up the database.
+2016-12-07 22:26:19.904364 [INFO] - Process found!  Backing up the database.
+2016-12-07 22:27:20.141744 [INFO] - Process found!  Backing up the database.
+2016-12-07 22:28:20.370502 [INFO] - Process found!  Backing up the database.
+2016-12-07 22:29:20.594069 [INFO] - Process found!  Backing up the database.
+2016-12-07 22:30:21.259134 [INFO] - Process found!  Backing up the database.
+2016-12-07 22:31:21.739078 [INFO] - Process found!  Backing up the database.
+2016-12-08 09:23:44.433794 [INFO] - Process found!  Backing up the database.
+2016-12-08 09:24:44.684425 [INFO] - Process found!  Backing up the database.
+2016-12-08 09:25:44.905890 [INFO] - Process found!  Backing up the database.
+2016-12-08 09:26:45.140551 [INFO] - Process found!  Backing up the database.
+2016-12-08 09:27:45.387107 [INFO] - Process found!  Backing up the database.
+2016-12-08 09:28:46.094131 [INFO] - Process found!  Backing up the database.
+2016-12-08 09:29:46.581978 [INFO] - Process found!  Backing up the database.
+2016-12-08 09:30:47.089796 [INFO] - Process found!  Backing up the database.
+2016-12-08 09:31:47.680668 [INFO] - Process found!  Backing up the database.
+2016-12-08 09:32:47.905616 [INFO] - Process found!  Backing up the database.
+2016-12-08 09:33:48.180538 [INFO] - Process found!  Backing up the database.
+2016-12-08 09:34:48.498807 [INFO] - Process found!  Backing up the database.
+2016-12-08 09:35:48.741767 [INFO] - Process found!  Backing up the database.
+2016-12-08 09:36:48.986550 [INFO] - Process found!  Backing up the database.
+2016-12-08 09:37:49.515349 [INFO] - Process found!  Backing up the database.
+2016-12-08 09:38:49.985809 [INFO] - Process found!  Backing up the database.
+2016-12-08 09:39:50.495132 [INFO] - Process found!  Backing up the database.
+2016-12-08 09:40:50.760237 [INFO] - Process found!  Backing up the database.
+2016-12-08 09:41:51.105680 [INFO] - Process found!  Backing up the database.
+2016-12-08 09:42:51.352403 [INFO] - Process found!  Backing up the database.
+2016-12-08 09:43:51.630681 [INFO] - Process found!  Backing up the database.
+2016-12-08 09:44:51.860243 [INFO] - Process found!  Backing up the database.
+2016-12-08 09:45:52.332169 [INFO] - Process found!  Backing up the database.
+2016-12-08 09:46:52.791737 [INFO] - Process found!  Backing up the database.
+2016-12-08 09:47:53.555599 [INFO] - Process found!  Backing up the database.
+2016-12-08 09:48:53.790758 [INFO] - Process found!  Backing up the database.
+2016-12-08 09:49:54.005391 [INFO] - Process found!  Backing up the database.
+2016-12-08 09:50:54.230676 [INFO] - Process found!  Backing up the database.
+2016-12-08 09:51:54.481082 [INFO] - Process found!  Backing up the database.
+2016-12-08 09:52:54.888257 [INFO] - Process found!  Backing up the database.
+2016-12-08 09:53:55.362996 [INFO] - Process found!  Backing up the database.
+2016-12-08 09:54:55.842483 [INFO] - Process found!  Backing up the database.
+2016-12-08 09:55:56.282627 [INFO] - Process found!  Backing up the database.
+2016-12-08 09:56:56.510495 [INFO] - Process found!  Backing up the database.
+2016-12-08 09:57:56.730412 [INFO] - Process found!  Backing up the database.
+2016-12-08 09:58:56.956234 [INFO] - Process found!  Backing up the database.
+2016-12-08 10:36:10.934569 [INFO] - Process found!  Backing up the database.
+2016-12-08 10:37:11.327552 [INFO] - Process found!  Backing up the database.
+2016-12-08 10:38:11.801358 [INFO] - Process found!  Backing up the database.
+2016-12-08 10:39:12.285948 [INFO] - Process found!  Backing up the database.
+2016-12-08 10:40:12.773043 [INFO] - Process found!  Backing up the database.
+2016-12-08 10:41:12.998445 [INFO] - Process found!  Backing up the database.
+2016-12-08 10:42:13.523134 [INFO] - Process found!  Backing up the database.
+2016-12-08 10:43:13.953446 [INFO] - Process found!  Backing up the database.
+2016-12-08 10:44:14.201286 [INFO] - Process found!  Backing up the database.
+2016-12-08 10:45:14.429416 [INFO] - Process found!  Backing up the database.
+2016-12-08 10:46:14.925277 [INFO] - Process found!  Backing up the database.
+2016-12-08 10:47:15.405291 [INFO] - Process found!  Backing up the database.
+2016-12-08 10:48:15.898327 [INFO] - Process found!  Backing up the database.
+2016-12-08 10:49:16.122940 [INFO] - Process found!  Backing up the database.
+2016-12-08 11:10:54.047937 [INFO] - Process found!  Backing up the database.
+2016-12-08 11:11:54.267339 [INFO] - Process found!  Backing up the database.
+2016-12-08 11:12:54.490218 [INFO] - Process found!  Backing up the database.
+2016-12-08 11:13:54.713127 [INFO] - Process found!  Backing up the database.
+2016-12-08 11:14:55.178043 [INFO] - Process found!  Backing up the database.
+2016-12-08 11:15:55.998712 [INFO] - Process found!  Backing up the database.
+2016-12-08 11:16:56.490344 [INFO] - Process found!  Backing up the database.
+2016-12-08 11:17:56.718196 [INFO] - Process found!  Backing up the database.
+2016-12-08 11:18:57.040343 [INFO] - Process found!  Backing up the database.
+2016-12-08 11:23:51.228955 [ERROR] - Process not found! Time to restart with topology: single,3
+2016-12-08 11:24:51.705966 [INFO] - Process found!  Backing up the database.
+2016-12-08 11:25:52.365649 [INFO] - Process found!  Backing up the database.
+2016-12-08 11:26:52.970156 [INFO] - Process found!  Backing up the database.
+2016-12-08 11:27:45.512404 [ERROR] - Process not found! Time to restart with topology: single,3
+2016-12-08 11:35:11.476095 [ERROR] - Process not found! Time to restart with topology: single,3
+2016-12-08 11:36:11.537481 [INFO] - Process found!  Backing up the database.
+2016-12-08 11:37:12.194704 [INFO] - Process found!  Backing up the database.
+2016-12-08 11:37:15.418583 [ERROR] - Process not found! Time to restart with topology: single,3
+2016-12-08 11:37:27.039848 [ERROR] - Process not found! Time to restart with topology: single,3
+2016-12-08 11:38:16.108917 [ERROR] - Process not found! Time to restart with topology: single,3
+2016-12-08 11:39:18.098609 [ERROR] - Process not found! Time to restart with topology: single,3

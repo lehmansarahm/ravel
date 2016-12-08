@@ -1,9 +1,36 @@
-2016-12-06 18:59:10.030363 [ERROR] - Process not found! Time to restart with topology: single,3
-2016-12-06 19:04:13.328513 [ERROR] - Process not found! Time to restart with topology: single,3
-2016-12-06 19:08:18.280611 [ERROR] - Process not found! Time to restart with topology: single,32016-12-06 19:09:28.763173 [ERROR] - Process not found! Time to restart with topology: single,32016-12-06 19:12:40.537676 [ERROR] - Process not found! Time to restart with topology: single,32016-12-06 19:15:05.550106 [ERROR] - Process not found! Time to restart with topology: single,32016-12-06 19:15:15.556188 [ERROR] - Process not found! Time to restart with topology: single,32016-12-06 19:15:25.559621 [ERROR] - Process not found! Time to restart with topology: single,32016-12-06 19:15:29.039952 [ERROR] - Process not found! Time to restart with topology: single,32016-12-06 19:16:49.922906 [ERROR] - Process not found! Time to restart with topology: single,32016-12-06 19:17:51.873390 [ERROR] - Process not found! Time to restart with topology: single,32016-12-06 19:18:01.877318 [ERROR] - Process not found! Time to restart with topology: single,32016-12-06 19:18:11.890808 [ERROR] - Process not found! Time to restart with topology: single,32016-12-06 19:18:21.902117 [INFO] - Process found!2016-12-06 19:18:31.903214 [INFO] - Process found!2016-12-06 19:18:41.913671 [INFO] - Process found!2016-12-06 19:19:13.525627 [ERROR] - Process not found! Time to restart with topology: single,3
-2016-12-06 19:20:13.572512 [ERROR] - Process not found! Time to restart with topology: single,3
-2016-12-06 19:21:13.633679 [INFO] - Process found!
-2016-12-06 19:22:45.873559 [ERROR] - Process not found! Time to restart with topology: single,3
-2016-12-06 19:23:01.226162 [ERROR] - Process not found! Time to restart with topology: single,3
-2016-12-06 19:23:18.299557 [ERROR] - Process not found! Time to restart with topology: single,3
-2016-12-06 19:24:18.368519 [INFO] - Process found!
+2016-12-07 21:42:00.541547 [ERROR] - Process not found! Time to restart with topology: single,3
+2016-12-07 21:42:50.503731 [INFO] - Process found!
+2016-12-07 21:44:15.310420 [INFO] - Process found!
+2016-12-07 21:44:51.378509 [INFO] - Process found!
+2016-12-07 21:46:33.623596 [ERROR] - Process not found! Time to restart with topology: single,3
+2016-12-07 21:46:43.639377 [INFO] - Process found!
+2016-12-07 21:46:54.330958 [INFO] - Process found!
+2016-12-07 21:47:04.989455 [INFO] - Process found!
+2016-12-07 21:47:15.990238 [INFO] - Process found!
+2016-12-07 21:47:26.623394 [INFO] - Process found!
+2016-12-07 21:47:37.336271 [INFO] - Process found!
+2016-12-07 21:47:48.208323 [INFO] - Process found!
+2016-12-07 21:47:58.758292 [INFO] - Process found!
+2016-12-07 21:48:09.516866 [INFO] - Process found!
+2016-12-07 21:48:20.166976 [INFO] - Process found!
+2016-12-07 21:48:30.904488 [INFO] - Process found!
+2016-12-07 21:48:41.535148 [INFO] - Process found!
+2016-12-07 21:48:52.275092 [INFO] - Process found!
+2016-12-07 21:49:03.064921 [INFO] - Process found!
+2016-12-07 21:49:13.719397 [ERROR] - Process not found! Time to restart with topology: single,3
+2016-12-07 21:49:23.730649 [INFO] - Process found!
+2016-12-07 21:49:34.463977 [INFO] - Process found!
+2016-12-07 21:49:45.341355 [INFO] - Process found!
+2016-12-07 21:49:55.910561 [INFO] - Process found!
+2016-12-07 21:50:06.688736 [INFO] - Process found!
+2016-12-07 21:50:17.214666 [INFO] - Process found!
+2016-12-07 21:50:27.770353 [INFO] - Process found!
+2016-12-07 21:50:38.507536 [INFO] - Process found!
+2016-12-07 21:50:49.150623 [INFO] - Process found!
+2016-12-07 21:50:59.810566 [INFO] - Process found!
+2016-12-07 21:51:10.278135 [INFO] - Process found!
+2016-12-07 21:51:16.807729 [ERROR] - Process not found! Time to restart with topology: single,3
+2016-12-07 21:51:51.658756 [ERROR] - Process not found! Time to restart with topology: single,3
+2016-12-07 21:52:51.719417 [INFO] - Process found!  Backing up the database.
+2016-12-07 21:53:52.441924 [ERROR] - Process not found! Time to restart with topology: single,3
+2016-12-07 21:54:52.502097 [INFO] - Process found!  Backing up the database.
