@@ -15,6 +15,13 @@ from ravel.cli import RavelCLI
 from ravel.log import LEVELS, logger
 from ravel.util import Config
 
+# -------------------------------------------------------------------
+# Sarah's additions
+# -------------------------------------------------------------------
+with open("ep/pid.txt","w") as pid_file:
+	pid_file.write("%s" % os.getpid())
+# -------------------------------------------------------------------
+
 def optParser():
     desc = "Ravel console"
     usage = "%prog [options]\ntype %prog -h for details"
@@ -65,6 +72,14 @@ if __name__ == "__main__":
     if opts.clean:
         clean()
         sys.exit(0)
+
+    # ---------------------------------------------------------------
+    # Sarah's additions
+    # ---------------------------------------------------------------
+    if opts.topo:
+		with open("ep/topo.txt","w") as topo_file:
+			topo_file.write(opts.topo)
+    # ---------------------------------------------------------------
 
     if not opts.topo:
         parser.error("No topology specified")

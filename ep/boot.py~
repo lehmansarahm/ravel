@@ -1,0 +1,11 @@
+#!/usr/bin/env python
+
+import os
+
+# Read last Ravel topology from file
+with open("topo.txt","r") as topo_file:
+	ravelTopo = topo_file.read()
+
+# Open a terminal and start Ravel
+bootCmd = "sudo gnome-terminal -e 'bash -c \"cd /home/ravel/ravel &&  ./ravel.py --topo={0}\"'".format(ravelTopo)
+os.system(bootCmd)
