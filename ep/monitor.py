@@ -32,11 +32,11 @@ def update_boot_script():
 	
 	# Print updated contents of boot shell
 	with open("boot.sh","r+w") as boot_shell:
-		boot_shell.write("#!/bin/sh \n")
-		boot_shell.write("cd /home/ravel/ravel \n")
-		boot_shell.write("./ravel.py --clean \n")
-		boot_shell.write("./ravel.py --topo={0} --restore \n".format(ravelTopo))
-		boot_shell.write("bash")
+		ravelLaunch = "#!/bin/sh \n"\
+			"cd /home/ravel/ravel \n"\
+			"./ravel.py --clean \n"\
+			"./ravel.py --topo={0} --restore".format(ravelTopo)
+		boot_shell.write(ravelLaunch)
 
 	# Start Ravel boot script
 	subprocess.Popen(["gnome-terminal", "--command", "./boot.sh"])

@@ -256,7 +256,7 @@ def RavelCLI(opts):
 		# wipe database schema
 		RavelConsole(env).do_exec("scripts/wipeSchema.sql")
 		# run restore script
-		os.system("sudo -u ravel psql ravel < /home/ravel/ravel/ep/backup2.sql")
+		os.system("sudo -u ravel psql ravel < /home/ravel/ravel/ep/backup.sql")
     # ---------------------------------------------------------------
 
     while True:
