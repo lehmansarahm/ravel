@@ -1,14 +1,23 @@
 #!/usr/bin/env python
 
+import time
 from time import sleep
 import psutil
 import datetime
 import subprocess
 import os
+import sys, getopt
+from optparse import OptionParser
 
 monitor_interval = 60
 monitor_first_time = True
-log = open("log.txt","a")
+
+useAutoclose = False
+autoCloseTime = 0
+
+# Set up new log file for a new day
+logFilename = "log_{0}.txt".format(time.strftime("%m-%d-%Y"))
+log = open(logFilename,"a")
 
 # -------------------------------------------------------------------
 # -------------------------------------------------------------------
@@ -60,11 +69,46 @@ def check_process():
 # -------------------------------------------------------------------
 # -------------------------------------------------------------------
 
-# Write this process's ID to file
-with open("mpid.txt","w") as mpid_file:
-	mpid_file.write("%s" % os.getpid())
+# List out the available parameters
+def optParser():
+    desc = "EverPresent console"
+    usage = "%prog [options]\ntype %prog -h for details"
 
-# Start monitor loop
-while (True):
-	check_process()
-	sleep(monitor_interval)
+    parser = OptionParser(description=desc, usage=usage)
+    parser.add_option("--autoclose", "-a", type="string", default=None,
+                      help="auto-close EP monitor after the designated number of minutes")
+    return parser
+
+# -------------------------------------------------------------------
+# -------------------------------------------------------------------
+
+if __name__ == "__main__":
+	# Parse any necessary arguments
+	try:
+		opts, args = getopt.getopt(sys.argv[1:],"ha:",["autoclose="])
+	except getopt.GetoptError:
+		print 'monitor.py -a <close time in whole minutes>'
+		sys.exit(2)
+	for opt, arg in opts:
+		if opt == '-h':
+			print 'monitor.py -a <close time in whole minutes>'
+			sys.exit()
+		elif opt in ("-a", "--autoclose"):
+			useAutoclose = True
+			autoCloseTime = int(arg)
+
+	# Write this process's ID to file
+	with open("mpid.txt","w") as mpid_file:
+		mpid_file.write("%s" % os.getpid())
+
+	# Start monitor loop
+	while (not useAutoclose or (autoCloseTime > 0)):
+		if (useAutoclose):
+			print "EverPresent will autoclose in {0} minutes".format(autoCloseTime)
+		check_process()
+		sleep(monitor_interval)
+		autoCloseTime -= (monitor_interval/60)
+
+	# Once loop is complete, exit
+	log.close()
+	sys.exit()

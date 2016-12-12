@@ -1,0 +1,16 @@
+2016-12-12 09:52:32.224581 [ERROR] - Process not found! Time to restart with topology: single,3
+2016-12-12 09:52:55.780640 [ERROR] - Process not found! Time to restart with topology: single,3
+2016-12-12 09:53:42.639825 [ERROR] - Process not found! Time to restart with topology: single,3
+2016-12-12 09:54:37.455915 [ERROR] - Process not found! Time to restart with topology: single,3
+2016-12-12 09:55:37.520955 [INFO] - Process found!  Backing up the database.
+2016-12-12 10:11:16.912812 [ERROR] - Process not found! Time to restart with topology: single,3
+2016-12-12 10:13:58.763349 [ERROR] - Process not found! Time to restart with topology: single,3
+2016-12-12 10:14:58.829340 [INFO] - Process found!  Backing up the database.
+2016-12-12 10:15:59.445778 [INFO] - Process found!  Backing up the database.
+2016-12-12 10:17:55.284505 [ERROR] - Process not found! Time to restart with topology: single,3
+2016-12-12 10:18:52.110760 [ERROR] - Process not found! Time to restart with topology: single,3
+2016-12-12 10:21:03.154752 [ERROR] - Process not found! Time to restart with topology: single,3
+2016-12-12 10:22:47.761189 [INFO] - Process found!  Backing up the database.
+2016-12-12 10:24:01.312059 [ERROR] - Process not found! Time to restart with topology: single,3
+2016-12-12 10:25:15.723041 [ERROR] - Process not found! Time to restart with topology: single,3
+2016-12-12 10:25:49.173376 [INFO] - Process found!  Backing up the database.
