@@ -6,17 +6,19 @@ import psutil
 import datetime
 import subprocess
 import os
-import sys, getopt
+import sys, argparse
 from optparse import OptionParser
 
-monitor_interval = 60
-monitor_first_time = True
+MONITOR_INTERVAL = 60
+
+LOG_RESOURCE_INTERVAL = 10
+logResources = False
 
 useAutoclose = False
 autoCloseTime = 0
 
 # Set up new log file for a new day
-logFilename = "log_{0}.txt".format(time.strftime("%m-%d-%Y"))
+logFilename = "monitor_logs/log_{0}.txt".format(time.strftime("%m-%d-%Y"))
 log = open(logFilename,"a")
 
 # -------------------------------------------------------------------
@@ -32,7 +34,7 @@ def update_backup_script():
 
 def update_boot_script():
 	# Read last Ravel topology from file
-	with open("topo.txt","r") as topo_file:
+	with open("configs/topo.txt","r") as topo_file:
 		ravelTopo = topo_file.read()
 
 	# Update log
@@ -48,6 +50,8 @@ def update_boot_script():
 		boot_shell.write(ravelLaunch)
 
 	# Start Ravel boot script
+	with open ("resource_logs/boottime.txt", "a") as bootTimeLog:
+		bootTimeLog.write("{0} - Launching Ravel\n".format(datetime.datetime.now()))
 	subprocess.Popen(["gnome-terminal", "--command", "./boot.sh"])
 
 # -------------------------------------------------------------------
@@ -55,7 +59,7 @@ def update_boot_script():
 
 def check_process():
 	# Read Ravel process ID from file
-	with open("pid.txt","r") as pid_file:
+	with open("configs/pid.txt","r") as pid_file:
 		ravelPID = pid_file.read()
 
 	# Attempt to locate process
@@ -69,45 +73,53 @@ def check_process():
 # -------------------------------------------------------------------
 # -------------------------------------------------------------------
 
-# List out the available parameters
-def optParser():
-    desc = "EverPresent console"
-    usage = "%prog [options]\ntype %prog -h for details"
+def log_resources():
+	with open("configs/pid.txt","r") as pid_file:
+		# Grab current Ravel process ID
+		ravelPID = pid_file.read()
+		os.system('ps -p {0} -o %cpu,%mem,cmd >> /home/ravel/ravel/ep/resource_logs/ravel_{1}.txt'.format(ravelPID, time.strftime("%m-%d-%Y")))
 
-    parser = OptionParser(description=desc, usage=usage)
-    parser.add_option("--autoclose", "-a", type="string", default=None,
-                      help="auto-close EP monitor after the designated number of minutes")
-    return parser
+		# Grab current EP monitor process ID
+		monitorPID = os.getpid()
+		os.system('ps -p {0} -o %cpu,%mem,cmd >> /home/ravel/ravel/ep/resource_logs/ep_{1}.txt'.format(monitorPID, time.strftime("%m-%d-%Y")))
+
+# -------------------------------------------------------------------
+# -------------------------------------------------------------------
+
+def create_parser():
+	parser = argparse.ArgumentParser(description='Monitor the current network controller')
+	parser.add_argument('--autoclose', type=int, default=None, help='Automatically shuts down the EverPresent monitor after a given period of time in minutes')
+	parser.add_argument('--logResources', action="store_true", default=False, help='Records the CPU and memory usages of the EverPresent and Ravel processes, and writes the values to a log file')
+	return parser;
 
 # -------------------------------------------------------------------
 # -------------------------------------------------------------------
 
 if __name__ == "__main__":
 	# Parse any necessary arguments
-	try:
-		opts, args = getopt.getopt(sys.argv[1:],"ha:",["autoclose="])
-	except getopt.GetoptError:
-		print 'monitor.py -a <close time in whole minutes>'
-		sys.exit(2)
-	for opt, arg in opts:
-		if opt == '-h':
-			print 'monitor.py -a <close time in whole minutes>'
-			sys.exit()
-		elif opt in ("-a", "--autoclose"):
-			useAutoclose = True
-			autoCloseTime = int(arg)
+	args = create_parser().parse_args()
+	if args.logResources:
+		logResources = True
+	if args.autoclose:
+		useAutoclose = True
+		autoCloseTime = args.autoclose
 
 	# Write this process's ID to file
-	with open("mpid.txt","w") as mpid_file:
+	with open("configs/mpid.txt","w") as mpid_file:
 		mpid_file.write("%s" % os.getpid())
 
 	# Start monitor loop
+	execTime = LOG_RESOURCE_INTERVAL
 	while (not useAutoclose or (autoCloseTime > 0)):
-		if (useAutoclose):
-			print "EverPresent will autoclose in {0} minutes".format(autoCloseTime)
-		check_process()
-		sleep(monitor_interval)
-		autoCloseTime -= (monitor_interval/60)
+		if (execTime % MONITOR_INTERVAL == 0):
+			if (useAutoclose):
+				print "EverPresent will autoclose in {0} minutes".format(autoCloseTime)
+			check_process()
+			sleep(MONITOR_INTERVAL)
+			autoCloseTime -= (MONITOR_INTERVAL/60)
+		else:
+			log_resources()
+			execTime += LOG_RESOURCE_INTERVAL
 
 	# Once loop is complete, exit
 	log.close()

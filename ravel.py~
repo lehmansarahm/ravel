@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import datetime
 import os
 import sys
 from optparse import OptionParser
@@ -18,8 +19,10 @@ from ravel.util import Config
 # -------------------------------------------------------------------
 # Sarah's additions
 # -------------------------------------------------------------------
-with open("ep/pid.txt","w") as pid_file:
+with open("ep/configs/pid.txt","w") as pid_file:
 	pid_file.write("%s" % os.getpid())
+with open ("/home/ravel/ravel/ep/resource_logs/boottime.txt", "a") as bootTimeLog:
+	bootTimeLog.write("{0} - Ravel launch initiated.\n".format(datetime.datetime.now(), bootMode))
 # -------------------------------------------------------------------
 
 def optParser():
@@ -84,7 +87,7 @@ if __name__ == "__main__":
     # Sarah's additions
     # ---------------------------------------------------------------
     if opts.topo:
-		with open("ep/topo.txt","w") as topo_file:
+		with open("ep/configs/topo.txt","w") as topo_file:
 			topo_file.write(opts.topo)
     # ---------------------------------------------------------------
 

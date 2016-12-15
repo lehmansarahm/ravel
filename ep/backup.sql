@@ -585,60 +585,6 @@ CREATE UNLOGGED TABLE clock (
 ALTER TABLE public.clock OWNER TO ravel;
 
 --
--- Name: fw_policy_acl; Type: TABLE; Schema: public; Owner: ravel; Tablespace: 
---
-
-CREATE UNLOGGED TABLE fw_policy_acl (
-    end1 integer NOT NULL,
-    end2 integer NOT NULL,
-    allow integer
-);
-
-
-ALTER TABLE public.fw_policy_acl OWNER TO ravel;
-
---
--- Name: fw_policy_user; Type: TABLE; Schema: public; Owner: ravel; Tablespace: 
---
-
-CREATE UNLOGGED TABLE fw_policy_user (
-    uid integer
-);
-
-
-ALTER TABLE public.fw_policy_user OWNER TO ravel;
-
---
--- Name: rm; Type: TABLE; Schema: public; Owner: ravel; Tablespace: 
---
-
-CREATE UNLOGGED TABLE rm (
-    fid integer NOT NULL,
-    src integer,
-    dst integer,
-    vol integer,
-    fw integer,
-    lb integer
-);
-
-
-ALTER TABLE public.rm OWNER TO ravel;
-
---
--- Name: fw_violation; Type: VIEW; Schema: public; Owner: ravel
---
-
-CREATE VIEW fw_violation AS
- SELECT rm.fid
-   FROM rm
-  WHERE ((rm.fw = 1) AND (NOT ((rm.src, rm.dst) IN ( SELECT fw_policy_acl.end1,
-            fw_policy_acl.end2
-           FROM fw_policy_acl))));
-
-
-ALTER TABLE public.fw_violation OWNER TO ravel;
-
---
 -- Name: hosts; Type: TABLE; Schema: public; Owner: ravel; Tablespace: 
 --
 
@@ -684,18 +630,6 @@ UNION
 ALTER TABLE public.nodes OWNER TO ravel;
 
 --
--- Name: p_fw; Type: TABLE; Schema: public; Owner: ravel; Tablespace: 
---
-
-CREATE UNLOGGED TABLE p_fw (
-    counts integer NOT NULL,
-    status text
-);
-
-
-ALTER TABLE public.p_fw OWNER TO ravel;
-
---
 -- Name: p_spv; Type: TABLE; Schema: public; Owner: ravel; Tablespace: 
 --
 
@@ -719,6 +653,22 @@ CREATE UNLOGGED TABLE ports (
 
 
 ALTER TABLE public.ports OWNER TO ravel;
+
+--
+-- Name: rm; Type: TABLE; Schema: public; Owner: ravel; Tablespace: 
+--
+
+CREATE UNLOGGED TABLE rm (
+    fid integer NOT NULL,
+    src integer,
+    dst integer,
+    vol integer,
+    fw integer,
+    lb integer
+);
+
+
+ALTER TABLE public.rm OWNER TO ravel;
 
 --
 -- Name: rm_delta; Type: TABLE; Schema: public; Owner: ravel; Tablespace: 
@@ -905,39 +855,13 @@ COPY clock (counts) FROM stdin;
 
 
 --
--- Data for Name: fw_policy_acl; Type: TABLE DATA; Schema: public; Owner: ravel
---
-
-COPY fw_policy_acl (end1, end2, allow) FROM stdin;
-2	3	1
-\.
-
-
---
--- Data for Name: fw_policy_user; Type: TABLE DATA; Schema: public; Owner: ravel
---
-
-COPY fw_policy_user (uid) FROM stdin;
-\.
-
-
---
 -- Data for Name: hosts; Type: TABLE DATA; Schema: public; Owner: ravel
 --
 
 COPY hosts (hid, ip, mac, name) FROM stdin;
-2	10.0.0.1	de:82:82:1b:1d:6b	h1
-3	10.0.0.2	d6:bb:88:4c:01:e5	h2
-4	10.0.0.3	ce:32:b8:89:5a:26	h3
-5	10.0.0.4	01:02:03:04:05:06	h4
-\.
-
-
---
--- Data for Name: p_fw; Type: TABLE DATA; Schema: public; Owner: ravel
---
-
-COPY p_fw (counts, status) FROM stdin;
+2	10.0.0.1	82:53:8b:34:76:59	h1
+3	10.0.0.2	de:cb:57:33:46:d1	h2
+4	10.0.0.3	a2:86:a1:c2:61:dc	h3
 \.
 
 
@@ -1043,27 +967,11 @@ ALTER TABLE ONLY clock
 
 
 --
--- Name: fw_policy_acl_pkey; Type: CONSTRAINT; Schema: public; Owner: ravel; Tablespace: 
---
-
-ALTER TABLE ONLY fw_policy_acl
-    ADD CONSTRAINT fw_policy_acl_pkey PRIMARY KEY (end1, end2);
-
-
---
 -- Name: hosts_pkey; Type: CONSTRAINT; Schema: public; Owner: ravel; Tablespace: 
 --
 
 ALTER TABLE ONLY hosts
     ADD CONSTRAINT hosts_pkey PRIMARY KEY (hid);
-
-
---
--- Name: p_fw_pkey; Type: CONSTRAINT; Schema: public; Owner: ravel; Tablespace: 
---
-
-ALTER TABLE ONLY p_fw
-    ADD CONSTRAINT p_fw_pkey PRIMARY KEY (counts);
 
 
 --
@@ -1114,13 +1022,6 @@ CREATE INDEX cf_fid_sid_idx ON cf USING btree (fid, sid);
 
 
 --
--- Name: fw_policy_acl_end1_end2_idx; Type: INDEX; Schema: public; Owner: ravel; Tablespace: 
---
-
-CREATE INDEX fw_policy_acl_end1_end2_idx ON fw_policy_acl USING btree (end1, end2);
-
-
---
 -- Name: hosts_hid_idx; Type: INDEX; Schema: public; Owner: ravel; Tablespace: 
 --
 
@@ -1163,51 +1064,6 @@ CREATE INDEX urm_fid_host1_idx ON urm USING btree (fid, host1);
 
 
 --
--- Name: fw1; Type: RULE; Schema: public; Owner: ravel
---
-
-CREATE RULE fw1 AS
-    ON INSERT TO rm
-   WHERE ((NOT ((new.src, new.dst) IN ( SELECT fw_policy_acl_1.end2,
-            fw_policy_acl_1.end1
-           FROM fw_policy_acl fw_policy_acl_1))) AND (new.src IN ( SELECT fw_policy_user.uid
-           FROM fw_policy_user))) DO  INSERT INTO fw_policy_acl (end1, end2, allow)
-  VALUES (new.dst, new.src, 1);
-
-
---
--- Name: fw2; Type: RULE; Schema: public; Owner: ravel
---
-
-CREATE RULE fw2 AS
-    ON DELETE TO rm
-   WHERE ((( SELECT count(*) AS count
-           FROM rm
-          WHERE ((rm.src = old.src) AND (rm.dst = old.dst))) = 1) AND (old.src IN ( SELECT fw_policy_user.uid
-           FROM fw_policy_user))) DO  DELETE FROM fw_policy_acl
-  WHERE ((fw_policy_acl.end2 = old.src) AND (fw_policy_acl.end1 = old.dst));
-
-
---
--- Name: fw2clock; Type: RULE; Schema: public; Owner: ravel
---
-
-CREATE RULE fw2clock AS
-    ON UPDATE TO p_fw
-   WHERE (new.status = 'off'::text) DO  INSERT INTO clock (counts)
-  VALUES (new.counts);
-
-
---
--- Name: fw_repair; Type: RULE; Schema: public; Owner: ravel
---
-
-CREATE RULE fw_repair AS
-    ON DELETE TO fw_violation DO INSTEAD  DELETE FROM rm
-  WHERE (rm.fid = old.fid);
-
-
---
 -- Name: rm_del; Type: RULE; Schema: public; Owner: ravel
 --
 
@@ -1226,18 +1082,6 @@ CREATE RULE rm_del AS
 CREATE RULE rm_ins AS
     ON INSERT TO rm DO  INSERT INTO rm_delta (fid, src, dst, vol, isadd)
   VALUES (new.fid, new.src, new.dst, new.vol, 1);
-
-
---
--- Name: run_fw; Type: RULE; Schema: public; Owner: ravel
---
-
-CREATE RULE run_fw AS
-    ON INSERT TO p_fw
-   WHERE (new.status = 'on'::text) DO ( DELETE FROM fw_violation;
- UPDATE p_fw SET status = 'off'::text
-  WHERE (p_fw.counts = new.counts);
-);
 
 
 --
