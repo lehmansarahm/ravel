@@ -1,4 +1,4 @@
 #!/bin/sh 
 cd /home/ravel/ravel 
 ./ravel.py --clean 
-./ravel.py --topo=web --restore
+./ravel.py --topo=web --custom=single,3 --restore

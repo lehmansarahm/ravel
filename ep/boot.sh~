@@ -1,5 +1,3 @@
 #!/bin/sh 
 cd /home/ravel/ravel 
-./ravel.py --clean 
-./ravel.py --topo=single,3 --restore
-bash
+./ravel.py --topo=single,3stom=ep/topo/web.py

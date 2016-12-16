@@ -1,0 +1,34 @@
+#!/usr/bin/env python
+
+import os
+import subprocess
+import sys
+from time import sleep
+
+# Print updated contents of boot shell
+with open("boot.sh","r+w") as boot_shell:
+	ravelLaunch = "#!/bin/sh \n"\
+		"cd /home/ravel/ravel \n"\
+		"./ravel.py --topo={0} --custom={1}\n".format("web", "ep/topo/web.py")
+	boot_shell.write(ravelLaunch)
+
+# Start Ravel boot script
+subprocess.Popen(["gnome-terminal", "--command", "./boot.sh"])
+
+# Print updated contents of monitor launch shell
+with open("monitor.sh","r+w") as boot_shell:
+	ravelLaunch = "#!/bin/sh \n"\
+		"cd /home/ravel/ravel/ep \n"\
+		"./monitor.py"
+	boot_shell.write(ravelLaunch)
+
+# Wait 20sec, then start EP boot script
+#sleep(20)
+#subprocess.Popen(["gnome-terminal", "--command", "./monitor.sh"])
+
+# Wait 60sec, then kill Ravel (EP will restore)
+#sleep(60)
+#os.system("sudo ./kill_ravel.py")
+
+# End launch script
+sys.exit()

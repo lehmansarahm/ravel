@@ -13,3 +13,212 @@
 %CPU %MEM CMD
 %CPU %MEM CMD
 %CPU %MEM CMD
+%CPU %MEM CMD
+%CPU %MEM CMD
+%CPU %MEM CMD
+%CPU %MEM CMD
+%CPU %MEM CMD
+%CPU %MEM CMD
+%CPU %MEM CMD
+ 5.0  0.4 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 5.0  0.4 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 5.0  0.4 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 5.0  0.4 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 0.8  0.5 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 0.8  0.5 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 0.8  0.5 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 0.8  0.5 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 0.8  0.5 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 0.8  0.5 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 0.8  0.5 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 0.8  0.5 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 0.8  0.5 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 0.8  0.5 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 9.8  1.1 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 9.9  1.1 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 9.9  1.1 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+10.0  1.1 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 9.6  1.1 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 0.5  0.4 python ./ravel.py --topo=single,3
+%CPU %MEM CMD
+ 0.5  0.4 python ./ravel.py --topo=single,3
+%CPU %MEM CMD
+ 0.5  0.4 python ./ravel.py --topo=single,3
+%CPU %MEM CMD
+ 0.5  0.4 python ./ravel.py --topo=single,3
+%CPU %MEM CMD
+ 0.5  0.4 python ./ravel.py --topo=single,3
+%CPU %MEM CMD
+ 0.5  0.4 python ./ravel.py --topo=single,3 --restore
+%CPU %MEM CMD
+ 0.5  0.4 python ./ravel.py --topo=single,3 --restore
+%CPU %MEM CMD
+ 0.5  0.4 python ./ravel.py --topo=single,3 --restore
+%CPU %MEM CMD
+ 0.5  0.4 python ./ravel.py --topo=single,3 --restore
+%CPU %MEM CMD
+ 0.5  0.4 python ./ravel.py --topo=single,3 --restore
+%CPU %MEM CMD
+ 0.5  0.4 python ./ravel.py --topo=single,3
+%CPU %MEM CMD
+ 0.5  0.4 python ./ravel.py --topo=single,3
+%CPU %MEM CMD
+ 0.5  0.4 python ./ravel.py --topo=single,3
+%CPU %MEM CMD
+ 0.5  0.4 python ./ravel.py --topo=single,3
+%CPU %MEM CMD
+ 0.5  0.4 python ./ravel.py --topo=single,3
+%CPU %MEM CMD
+ 0.4  0.5 python ./ravel.py --topo=single,3
+%CPU %MEM CMD
+ 0.4  0.5 python ./ravel.py --topo=single,3
+%CPU %MEM CMD
+ 0.4  0.5 python ./ravel.py --topo=single,3
+%CPU %MEM CMD
+ 0.4  0.5 python ./ravel.py --topo=single,3
+%CPU %MEM CMD
+ 0.4  0.5 python ./ravel.py --topo=single,3
+%CPU %MEM CMD
+ 0.5  0.4 python ./ravel.py --topo=single,3
+%CPU %MEM CMD
+ 0.5  0.4 python ./ravel.py --topo=single,3
+%CPU %MEM CMD
+ 0.4  0.4 python ./ravel.py --topo=single,3
+%CPU %MEM CMD
+ 0.4  0.4 python ./ravel.py --topo=single,3
+%CPU %MEM CMD
+ 0.4  0.4 python ./ravel.py --topo=single,3
+%CPU %MEM CMD
+ 1.0  0.8 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 1.0  0.8 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 1.0  0.8 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 1.0  0.8 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 1.0  0.8 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 0.8  0.4 python ./ravel.py --topo=single,3
+%CPU %MEM CMD
+ 0.8  0.4 python ./ravel.py --topo=single,3
+%CPU %MEM CMD
+ 0.8  0.4 python ./ravel.py --topo=single,3
+%CPU %MEM CMD
+ 0.8  0.4 python ./ravel.py --topo=single,3
+%CPU %MEM CMD
+ 0.8  0.4 python ./ravel.py --topo=single,3
+%CPU %MEM CMD
+ 1.0  0.5 python ./ravel.py --topo=single,3
+%CPU %MEM CMD
+ 1.0  0.5 python ./ravel.py --topo=single,3
+%CPU %MEM CMD
+ 1.0  0.5 python ./ravel.py --topo=single,3
+%CPU %MEM CMD
+ 1.0  0.5 python ./ravel.py --topo=single,3
+%CPU %MEM CMD
+ 1.0  0.5 python ./ravel.py --topo=single,3
+%CPU %MEM CMD
+ 1.5  0.8 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 1.5  0.8 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 1.5  0.8 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 1.5  0.8 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 1.5  0.8 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 0.5  0.5 python ./ravel.py --topo=single,3
+%CPU %MEM CMD
+ 0.5  0.5 python ./ravel.py --topo=single,3
+%CPU %MEM CMD
+ 0.5  0.5 python ./ravel.py --topo=single,3
+%CPU %MEM CMD
+ 0.5  0.5 python ./ravel.py --topo=single,3
+%CPU %MEM CMD
+ 0.5  0.5 python ./ravel.py --topo=single,3
+%CPU %MEM CMD
+ 1.1  0.8 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 1.1  0.8 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 1.0  0.8 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 1.0  0.8 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 1.0  0.8 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 2.5  0.5 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 2.5  0.5 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 2.4  0.5 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 2.4  0.5 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 2.4  0.5 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 0.5  0.5 python ./ravel.py --topo=single,3
+%CPU %MEM CMD
+ 0.5  0.5 python ./ravel.py --topo=single,3
+%CPU %MEM CMD
+ 0.5  0.5 python ./ravel.py --topo=single,3
+%CPU %MEM CMD
+ 0.5  0.5 python ./ravel.py --topo=single,3
+%CPU %MEM CMD
+ 0.5  0.5 python ./ravel.py --topo=single,3
+%CPU %MEM CMD
+ 3.6  0.5 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 3.5  0.5 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 3.5  0.5 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 3.5  0.5 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 3.5  0.5 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+%CPU %MEM CMD
+%CPU %MEM CMD
+%CPU %MEM CMD
+%CPU %MEM CMD
+%CPU %MEM CMD
+ 3.4  0.5 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 3.3  0.5 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 3.3  0.5 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 3.3  0.5 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 3.3  0.5 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 3.1  0.5 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 3.0  0.5 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 3.1  0.5 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 3.0  0.5 python ./ravel.py --topo=web --custom=ep/topo/web.py
+%CPU %MEM CMD
+ 3.0  0.5 python ./ravel.py --topo=web --custom=ep/topo/web.py

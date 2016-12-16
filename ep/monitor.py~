@@ -17,6 +17,10 @@ logResources = False
 useAutoclose = False
 autoCloseTime = 0
 
+# Printing welcome message to terminal
+print "EVERPRESENT MONITOR IS NOW ONLINE"
+print "For more information, review monitor and resource logs"
+
 # Set up new log file for a new day
 logFilename = "monitor_logs/log_{0}.txt".format(time.strftime("%m-%d-%Y"))
 log = open(logFilename,"a")
@@ -27,8 +31,12 @@ log = open(logFilename,"a")
 def update_backup_script():
 	log.write("{0} [INFO] - Process found!  Backing up the database.\n".format(datetime.datetime.now()))
 	log.flush()
-	os.system("sudo -u ravel pg_dump ravel > /home/ravel/ravel/ep/backup.sql")
 
+	with open ("resource_logs/backuptime.txt", "a") as backupTimeLog:
+		backupTimeLog.write("{0} - Backing up Ravel\n".format(datetime.datetime.now()))
+		os.system("sudo -u ravel pg_dump ravel > /home/ravel/ravel/ep/backup-temp.sql")
+		backupTimeLog.write("{0} - Ravel backup complete\n".format(datetime.datetime.now()))
+		
 # -------------------------------------------------------------------
 # -------------------------------------------------------------------
 
@@ -42,16 +50,19 @@ def update_boot_script():
 	log.flush()
 	
 	# Print updated contents of boot shell
-	with open("boot.sh","r+w") as boot_shell:
+	with open("boot.sh","w") as boot_shell:
 		ravelLaunch = "#!/bin/sh \n"\
 			"cd /home/ravel/ravel \n"\
 			"./ravel.py --clean \n"\
 			"./ravel.py --topo={0} --restore".format(ravelTopo)
 		boot_shell.write(ravelLaunch)
 
+	# Copy the backup script
+	os.system("sudo mv /home/ravel/ravel/ep/backup-temp.sql /home/ravel/ravel/ep/backup.sql")
+
 	# Start Ravel boot script
 	with open ("resource_logs/boottime.txt", "a") as bootTimeLog:
-		bootTimeLog.write("{0} - Launching Ravel".format(datetime.datetime.now()))
+		bootTimeLog.write("{0} - Launching Ravel\n".format(datetime.datetime.now()))
 	subprocess.Popen(["gnome-terminal", "--command", "./boot.sh"])
 
 # -------------------------------------------------------------------

@@ -10,3 +10,97 @@
 2016-12-15 10:06:55.823108 [INFO] - Process found!  Backing up the database.
 2016-12-15 10:07:56.442707 [INFO] - Process found!  Backing up the database.
 2016-12-15 10:08:56.700337 [ERROR] - Process not found! Time to restart with topology: single,3
+2016-12-15 10:46:46.927264 [ERROR] - Process not found! Time to restart with topology: web
+2016-12-15 10:47:46.974759 [ERROR] - Process not found! Time to restart with topology: web
+2016-12-15 10:48:47.032574 [ERROR] - Process not found! Time to restart with topology: web
+2016-12-15 10:54:06.205607 [INFO] - Process found!  Backing up the database.
+2016-12-15 10:55:13.722105 [INFO] - Process found!  Backing up the database.
+2016-12-15 10:56:14.300597 [INFO] - Process found!  Backing up the database.
+2016-12-15 11:08:08.965428 [INFO] - Process found!  Backing up the database.
+2016-12-15 11:09:09.493032 [INFO] - Process found!  Backing up the database.
+2016-12-15 11:37:42.393473 [INFO] - Process found!  Backing up the database.
+2016-12-15 12:32:45.358585 [INFO] - Process found!  Backing up the database.
+2016-12-15 12:33:46.550675 [ERROR] - Process not found! Time to restart with topology: single,3
+2016-12-15 12:35:47.630544 [INFO] - Process found!  Backing up the database.
+2016-12-15 12:37:25.109549 [INFO] - Process found!  Backing up the database.
+2016-12-15 12:38:25.617735 [ERROR] - Process not found! Time to restart with topology: single,3
+2016-12-15 12:41:46.753697 [INFO] - Process found!  Backing up the database.
+2016-12-15 12:42:47.510089 [ERROR] - Process not found! Time to restart with topology: single,3
+2016-12-15 12:45:10.148617 [INFO] - Process found!  Backing up the database.
+2016-12-15 12:46:10.867675 [ERROR] - Process not found! Time to restart with topology: single,3
+2016-12-15 12:54:34.098110 [INFO] - Process found!  Backing up the database.
+2016-12-15 12:55:35.238959 [INFO] - Process found!  Backing up the database.
+2016-12-15 12:56:36.388441 [INFO] - Process found!  Backing up the database.
+2016-12-15 12:57:37.602728 [INFO] - Process found!  Backing up the database.
+2016-12-15 12:58:38.606434 [INFO] - Process found!  Backing up the database.
+2016-12-15 12:59:39.666573 [ERROR] - Process not found! Time to restart with topology: web
+2016-12-15 13:00:39.733319 [INFO] - Process found!  Backing up the database.
+2016-12-15 13:06:01.446290 [INFO] - Process found!  Backing up the database.
+2016-12-15 13:07:02.184642 [ERROR] - Process not found! Time to restart with topology: single,3
+2016-12-15 13:10:19.983058 [INFO] - Process found!  Backing up the database.
+2016-12-15 13:11:20.854091 [ERROR] - Process not found! Time to restart with topology: single,3
+2016-12-15 13:39:18.444975 [INFO] - Process found!  Backing up the database.
+2016-12-15 13:40:20.944857 [INFO] - Process found!  Backing up the database.
+2016-12-15 13:41:23.568203 [INFO] - Process found!  Backing up the database.
+2016-12-15 13:42:25.756774 [INFO] - Process found!  Backing up the database.
+2016-12-15 13:43:27.081575 [INFO] - Process found!  Backing up the database.
+2016-12-15 13:44:28.401875 [ERROR] - Process not found! Time to restart with topology: web
+2016-12-15 13:46:04.108872 [INFO] - Process found!  Backing up the database.
+2016-12-15 13:47:05.285758 [INFO] - Process found!  Backing up the database.
+2016-12-15 13:48:06.482885 [INFO] - Process found!  Backing up the database.
+2016-12-15 13:49:07.764500 [ERROR] - Process not found! Time to restart with topology: web
+2016-12-15 16:41:25.300924 [INFO] - Process found!  Backing up the database.
+2016-12-15 16:42:26.503895 [ERROR] - Process not found! Time to restart with topology: single,3
+2016-12-15 17:01:01.330041 [INFO] - Process found!  Backing up the database.
+2016-12-15 17:02:02.987029 [ERROR] - Process not found! Time to restart with topology: web
+2016-12-15 17:03:16.309156 [INFO] - Process found!  Backing up the database.
+2016-12-15 17:04:17.502010 [INFO] - Process found!  Backing up the database.
+2016-12-15 17:05:18.307278 [ERROR] - Process not found! Time to restart with topology: web
+2016-12-15 17:06:18.387209 [ERROR] - Process not found! Time to restart with topology: web
+2016-12-15 17:13:53.640152 [INFO] - Process found!  Backing up the database.
+2016-12-15 17:14:55.037572 [INFO] - Process found!  Backing up the database.
+2016-12-15 17:15:56.301906 [INFO] - Process found!  Backing up the database.
+2016-12-15 17:16:57.568567 [INFO] - Process found!  Backing up the database.
+2016-12-15 17:17:58.471424 [INFO] - Process found!  Backing up the database.
+2016-12-15 17:18:59.340557 [INFO] - Process found!  Backing up the database.
+2016-12-15 17:20:00.206258 [INFO] - Process found!  Backing up the database.
+2016-12-15 17:21:01.701677 [ERROR] - Process not found! Time to restart with topology: web
+2016-12-15 17:22:42.709533 [INFO] - Process found!  Backing up the database.
+2016-12-15 17:23:43.471582 [INFO] - Process found!  Backing up the database.
+2016-12-15 17:25:12.834020 [INFO] - Process found!  Backing up the database.
+2016-12-15 17:26:13.926264 [ERROR] - Process not found! Time to restart with topology: single,3
+2016-12-15 17:52:37.368242 [INFO] - Process found!  Backing up the database.
+2016-12-15 17:53:38.418709 [INFO] - Process found!  Backing up the database.
+2016-12-15 17:54:39.598960 [INFO] - Process found!  Backing up the database.
+2016-12-15 17:55:40.753976 [INFO] - Process found!  Backing up the database.
+2016-12-15 17:56:41.578084 [INFO] - Process found!  Backing up the database.
+2016-12-15 17:57:42.422013 [INFO] - Process found!  Backing up the database.
+2016-12-15 17:58:43.845183 [INFO] - Process found!  Backing up the database.
+2016-12-15 17:59:44.728516 [ERROR] - Process not found! Time to restart with topology: web
+2016-12-15 18:00:50.158780 [INFO] - Process found!  Backing up the database.
+2016-12-15 18:01:50.826580 [INFO] - Process found!  Backing up the database.
+2016-12-15 18:02:51.544476 [ERROR] - Process not found! Time to restart with topology: web
+2016-12-15 18:03:55.506899 [ERROR] - Process not found! Time to restart with topology: web
+2016-12-15 18:04:55.666780 [ERROR] - Process not found! Time to restart with topology: web
+2016-12-15 18:06:51.274622 [INFO] - Process found!  Backing up the database.
+2016-12-15 18:07:52.306122 [INFO] - Process found!  Backing up the database.
+2016-12-15 18:08:53.563799 [INFO] - Process found!  Backing up the database.
+2016-12-15 18:09:54.756884 [INFO] - Process found!  Backing up the database.
+2016-12-15 18:10:55.637230 [INFO] - Process found!  Backing up the database.
+2016-12-15 18:11:56.488725 [INFO] - Process found!  Backing up the database.
+2016-12-15 18:12:57.928268 [INFO] - Process found!  Backing up the database.
+2016-12-15 18:13:58.785092 [ERROR] - Process not found! Time to restart with topology: web
+2016-12-15 18:15:35.196350 [INFO] - Process found!  Backing up the database.
+2016-12-15 18:16:35.913818 [INFO] - Process found!  Backing up the database.
+2016-12-15 18:18:13.538223 [INFO] - Process found!  Backing up the database.
+2016-12-15 18:19:14.728200 [INFO] - Process found!  Backing up the database.
+2016-12-15 18:20:15.957127 [INFO] - Process found!  Backing up the database.
+2016-12-15 18:21:17.139083 [INFO] - Process found!  Backing up the database.
+2016-12-15 18:22:18.047321 [INFO] - Process found!  Backing up the database.
+2016-12-15 18:23:18.902585 [INFO] - Process found!  Backing up the database.
+2016-12-15 18:24:20.436390 [INFO] - Process found!  Backing up the database.
+2016-12-15 18:25:21.563306 [ERROR] - Process not found! Time to restart with topology: web
+2016-12-15 18:26:27.345326 [INFO] - Process found!  Backing up the database.
+2016-12-15 18:27:28.133059 [INFO] - Process found!  Backing up the database.
+2016-12-15 18:28:28.852701 [INFO] - Process found!  Backing up the database.
+2016-12-15 18:29:29.496519 [ERROR] - Process not found! Time to restart with topology: web

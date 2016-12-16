@@ -1,0 +1,2 @@
+2016-12-15 17:50:43.788474 - Backing up Ravel
+2016-12-15 17:50:44.470940 - Ravel backup complete

@@ -1,0 +1,7 @@
+2016-12-15 17:24:42.751513 - Ravel launch initiated.
+2016-12-15 17:24:45.186667 - Ravel launch initiated.
+2016-12-15 17:24:54.531776 - Ravel launched. Ready for CLI.
+2016-12-15 17:26:13.938508 - Launching Ravel
+2016-12-15 17:26:15.197884 - Ravel launch initiated.
+2016-12-15 17:26:17.309560 - Ravel launch initiated.
+2016-12-15 17:26:32.700541 - Ravel restored. Ready for CLI.
